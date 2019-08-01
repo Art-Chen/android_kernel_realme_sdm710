@@ -1077,7 +1077,7 @@ struct psi_trigger *psi_trigger_create(struct psi_group *group,
 	printk(KERN_ERR "===>PSIDEBUG:psi_trigger_create threshold = %llu,win = %llu\n",t->threshold, t->win.size);
 	if (!rcu_access_pointer(group->poll_kworker)) {
 		struct sched_param param = {
-			.sched_priority = MAX_RT_PRIO - 1,
+			.sched_priority = 1,
 		};
 		struct kthread_worker *kworker;
 		printk(KERN_ERR "===>PSIDEBUG:kthread_create_worker\n");
