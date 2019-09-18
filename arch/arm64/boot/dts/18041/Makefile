@@ -4,7 +4,8 @@ ifeq ($(CONFIG_BUILD_ARM64_DT_OVERLAY),y)
 
 sdm710-pm660a-mtp-overlay.dtbo-base := sdm710.dtb
 else
-dtb-$(CONFIG_ARCH_SDM670) += 	sdm710.dtb
+dtb-$(CONFIG_ARCH_SDM670) += 	sdm710.dtb \
+	sdm710-pm660a-mtp.dtb
 endif
 
 always		:= $(dtb-y)

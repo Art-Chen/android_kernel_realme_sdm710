@@ -32,7 +32,6 @@
  **  Bangxiong.wu   2019/02/24     add for 18593 silead_optical_fp
  **  Qing.Guan      2019/04/01     add for egis et711 fp
  ************************************************************************************/
-
 #include <linux/module.h>
 #include <linux/proc_fs.h>
 #if CONFIG_OPPO_FINGERPRINT_PLATFORM == 6763 || CONFIG_OPPO_FINGERPRINT_PLATFORM == 6771 || CONFIG_OPPO_FINGERPRINT_PLATFORM == 6779

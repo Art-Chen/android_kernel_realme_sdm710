@@ -4749,6 +4749,15 @@ static int sde_crtc_onscreenfinger_atomic_check(struct sde_crtc_state *cstate,
 		if (mode == 3)
 			aod_index = i;
 	}
+	
+	if (fp_mode == 1) {
+		cstate->fingerprint_pressed = true;
+		return 0;
+	} else {
+		cstate->fingerprint_pressed = false;
+		cstate->fingerprint_dim_layer = NULL;
+		return 0;
+	}
 
 	if (oppo_dimlayer_bl_enable) {
 		int backlight = oppo_get_panel_brightness();

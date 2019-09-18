@@ -352,6 +352,9 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
         case GF_IOC_RESET:
             pr_info("%s GF_IOC_RESET. \n", __func__);
             gf_hw_reset(gf_dev, 10);
+			pr_info("[%s] Art_Chen force set UI ready \n", __func__);
+            char msg = GF_NET_EVENT_UI_READY;
+            sendnlmsg(&msg);
             break;
         case GF_IOC_ENABLE_SPI_CLK:
             pr_debug("%s GF_IOC_ENABLE_SPI_CLK\n",  __func__);

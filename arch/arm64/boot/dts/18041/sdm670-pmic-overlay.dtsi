@@ -133,18 +133,18 @@
 
 			qcom,normal_vterm_hw_inc = <150>;
 			qcom,non_normal_vterm_hw_inc = <18>;
-			
 
-			qcom,default_iterm_ma = <200>;			
-			qcom,default_temp_normal_fastchg_current_ma = <2000>;			
+
+			qcom,default_iterm_ma = <200>;
+			qcom,default_temp_normal_fastchg_current_ma = <2000>;
 			qcom,default_normal_vfloat_sw_limit = <4350>;
 			qcom,default_temp_normal_vfloat_mv = <4387>;
 			qcom,default_normal_vfloat_over_sw_limit = <4397>;
-            
+
 			qcom,default_temp_little_cool_fastchg_current_ma = <2100>;
 			qcom,default_little_cool_vfloat_sw_limit = <4350>;
 			qcom,default_temp_little_cool_vfloat_mv = <4387>;
-			qcom,default_little_cool_vfloat_over_sw_limit = <4397>;	
+			qcom,default_little_cool_vfloat_over_sw_limit = <4397>;
 			///qcom,offset_temp = <30>;
 			//for control:
 			//qcom,suspend_after_full;
@@ -159,7 +159,7 @@
 			qcom,ship-gpio = <&tlmm 67 0x00>;
 
 			//qcom,dischg-gpio = <&pm660l_gpios 7 0x00>;
-			pinctrl-names = "chargerid_switch_active", "chargerid_switch_sleep", "chargerid_switch_default", 
+			pinctrl-names = "chargerid_switch_active", "chargerid_switch_sleep", "chargerid_switch_default",
 							"ship_active", "ship_sleep",
 							"chg_qupv3_se12_2uart_sleep", "chg_qupv3_se12_2uart_default";
 							/*"dischg_enable", "dischg_disable",*/
@@ -169,7 +169,7 @@
 			pinctrl-3 = <&ship_active>;
 			pinctrl-4 = <&ship_sleep>;
 			pinctrl-5 = <&chg_qupv3_se12_2uart_sleep>;
-			pinctrl-6 = <&chg_qupv3_se12_2uart_default>;			
+			pinctrl-6 = <&chg_qupv3_se12_2uart_default>;
 
 //#endif //VENDOR_EDIT
 		qcom,chgr@1000 {
