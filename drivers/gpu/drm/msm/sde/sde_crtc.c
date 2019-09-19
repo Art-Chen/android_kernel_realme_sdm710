@@ -4751,9 +4751,13 @@ static int sde_crtc_onscreenfinger_atomic_check(struct sde_crtc_state *cstate,
 	}
 	
 	if (fp_mode == 1) {
+		oppo_force_screenfp = true;
+		dimlayer_hbm = true;
 		cstate->fingerprint_pressed = true;
 		return 0;
 	} else {
+		oppo_force_screenfp = false;
+		dimlayer_hbm = false;
 		cstate->fingerprint_pressed = false;
 		cstate->fingerprint_dim_layer = NULL;
 		return 0;
