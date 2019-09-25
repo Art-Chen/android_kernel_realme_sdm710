@@ -4750,18 +4750,6 @@ static int sde_crtc_onscreenfinger_atomic_check(struct sde_crtc_state *cstate,
 			aod_index = i;
 	}
 	
-	if (fp_mode == 1) {
-		oppo_force_screenfp = true;
-		dimlayer_hbm = true;
-		cstate->fingerprint_pressed = true;
-		return 0;
-	} else {
-		oppo_force_screenfp = false;
-		dimlayer_hbm = false;
-		cstate->fingerprint_pressed = false;
-		cstate->fingerprint_dim_layer = NULL;
-		return 0;
-	}
 
 	if (oppo_dimlayer_bl_enable) {
 		int backlight = oppo_get_panel_brightness();
@@ -4841,16 +4829,34 @@ static int sde_crtc_onscreenfinger_atomic_check(struct sde_crtc_state *cstate,
 			SDE_ERROR("Failed to config dim layer\n");
 			return -EINVAL;
 		}
-		if (fppressed_index >= 0)
-			cstate->fingerprint_pressed = true;
-		else
-			cstate->fingerprint_pressed = false;
 	} else {
 		oppo_underbrightness_alpha = 0;
 		cstate->fingerprint_dim_layer = NULL;
 		cstate->fingerprint_mode = false;
 		cstate->fingerprint_pressed = false;
 	}
+	
+	if (fp_mode == 1) {
+		oppo_force_screenfp = true;
+		//dimlayer_hbm = true;
+		cstate->fingerprint_mode = true;
+		cstate->fingerprint_pressed = true;
+		return 0;
+	} else if (lcd_closebl_flag_fp) {
+		oppo_underbrightness_alpha = 0;
+		cstate->fingerprint_dim_layer = NULL;
+		cstate->fingerprint_mode = false;
+		oppo_force_screenfp = false;
+		//dimlayer_hbm = false;
+		cstate->fingerprint_pressed = false;
+
+		return 0;
+	} else {
+		oppo_force_screenfp = false;
+		//dimlayer_hbm = false;
+		cstate->fingerprint_pressed = false;
+	}
+
 
 	return 0;
 }
