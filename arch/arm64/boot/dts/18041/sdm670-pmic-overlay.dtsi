@@ -99,8 +99,9 @@
 
 			qcom,non_standard_vfloat_mv = <3980>;
 			qcom,non_standard_fastchg_current_ma = <512>;
-
-
+      qcom,short_c_bat_cv_mv = <0x10ea>;
+      qcom,short_c_bat_vfloat_mv = <0xed8>;
+      qcom,short_c_bat_fastchg_current_ma = <0x200>;
 
 			qcom,cold_vfloat_sw_limit = <3930>;
 			qcom,little_cold_vfloat_sw_limit = <4350>;
@@ -109,6 +110,7 @@
 			qcom,normal_vfloat_sw_limit = <4350>;
 			qcom,warm_vfloat_sw_limit = <4080>;
 			qcom,non_standard_vfloat_sw_limit = <3930>;
+      qcom,short_c_bat_vfloat_sw_limit = <0xea6>;
 
 
 			qcom,max_chg_time_sec = <36000>;
@@ -129,10 +131,21 @@
 			qcom,vbatt_soc_1 = <3410>;
 			qcom,vooc_project = <1>;
 			qcom,vbatt_num = <1>;
+      qcom,ffc_support;
 
 
 			qcom,normal_vterm_hw_inc = <150>;
 			qcom,non_normal_vterm_hw_inc = <18>;
+      qcom,ff1_normal_fastchg_ma = <0x3e8>;
+      qcom,ffc2_normal_fastchg_ma = <0x2ee>;
+      qcom,ffc2_temp_warm_decidegc = <0x15e>;
+      qcom,ffc2_warm_fastchg_ma = <0x352>;
+      qcom,ffc2_temp_high_decidegc = <0x190>;
+      qcom,ffc2_temp_low_decidegc = <0x78>;
+      qcom,ffc2_exit_step_ma = <0x64>;
+      qcom,ffc_normal_vfloat_sw_limit = <0x114e>;
+      qcom,ffc_temp_normal_vfloat_mv = <0x1194>;
+      qcom,ffc_normal_vfloat_over_sw_limit = <0x1194>;
 
 
 			qcom,default_iterm_ma = <200>;
@@ -160,7 +173,7 @@
 
 			//qcom,dischg-gpio = <&pm660l_gpios 7 0x00>;
 			pinctrl-names = "chargerid_switch_active", "chargerid_switch_sleep", "chargerid_switch_default",
-							"ship_active", "ship_sleep",
+							"ship_active", "ship_sleep", "shortc_active",
 							"chg_qupv3_se12_2uart_sleep", "chg_qupv3_se12_2uart_default";
 							/*"dischg_enable", "dischg_disable",*/
 			pinctrl-0 = <&chargerid_switch_active>;
@@ -168,8 +181,9 @@
 			pinctrl-2 = <&chargerid_switch_default>;
 			pinctrl-3 = <&ship_active>;
 			pinctrl-4 = <&ship_sleep>;
-			pinctrl-5 = <&chg_qupv3_se12_2uart_sleep>;
-			pinctrl-6 = <&chg_qupv3_se12_2uart_default>;
+      pinctrl-5 = <&shortc_active>;
+			pinctrl-6 = <&chg_qupv3_se12_2uart_sleep>;
+			pinctrl-7 = <&chg_qupv3_se12_2uart_default>;
 
 //#endif //VENDOR_EDIT
 		qcom,chgr@1000 {

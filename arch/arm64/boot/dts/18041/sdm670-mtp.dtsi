@@ -193,6 +193,7 @@
 		pressure_report_support;
 		fw_update_app_support;
 		fingerprint_underscreen_support;
+    ic_is_synaptics;
 
 		/*
 		 *Virtual Key Config:
@@ -433,7 +434,7 @@
 		pinctrl-0 = <&gpio_goodix_irq_default>;
 	};
 	// #endif VENDOR_EDIT
-	
+
         // #ifdef VENDOR_EDIT
 	/* Qing.Guan@BSP.Fingerprint.Basic 2019/02/20 add for egis optical fingerprint */
 	egis_fp {
@@ -447,7 +448,7 @@
 		pinctrl-0 = <&gpio_egis_irq_default>;
 	};
 	// #endif //VENDOR_EDIT
-	
+
         // #ifdef VENDOR_EDIT
 	/* luhongyu@Bsp.Fingerprint.Basic 2018-10-30 add for fingerprint */
 	silead_fp {
@@ -639,7 +640,7 @@
 		reg = <0x55>;
 		qcom,modify-soc-smooth;
 	};
-	
+
 	oppo_short-ic@58 {
 		status = "okay";
 		compatible = "oppo,oppo_short-ic";
@@ -1068,10 +1069,10 @@
 		motor-retard-pos = <430>;
 		delay-cycle = <14 14 14>; //ms
 		slow-delay-cycle = <28 28 28>; //ms
-		full-speed-param = <65 15500>;
-		up-speed-param = <5 15500>;
+		full-speed-param = <65 12000>;
+		up-speed-param = <5 12000>;
 		down-speed-param = <3 156250>;
-		nodetect-speed-param = <15 15500>;
+		nodetect-speed-param = <15 12000>;
 		slow-full-speed-param = <60 31250>;
 		slow-up-speed-param = <5 104166>;
 		slow-down-speed-param = <3 156250>;
@@ -1080,6 +1081,9 @@
 		stop-pos-point = <3 3>;
 		pos-change-thrd = <300 350>;
 		hall-data-sign = <0>;//1 represent positive ,0 represent negative
+    press-irq-makeup = <0x37 0x37>;
+    stop-retry = <0x4>;
+    stop_in_advance;
 		/*
 		support mag noise decrease:
 		511 - pattern[0] = irq_max

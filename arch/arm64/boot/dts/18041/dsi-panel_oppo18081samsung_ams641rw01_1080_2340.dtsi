@@ -379,7 +379,7 @@
 		qcom,mdss-dsi-lane-3-state;
 		qcom,mdss-pan-physical-width-dimension = <69>;
 		qcom,mdss-pan-physical-height-dimension = <148>;
-		qcom,mdss-dsi-reset-sequence = <1 5>, <0 2>, <1 10>;
+		qcom,mdss-dsi-reset-sequence = <1 10>, <0 5>, <1 10>;
 		qcom,mdss-dsi-dma-trigger = "trigger_sw";
 		qcom,mdss-dsi-mdp-trigger = "none";
 		qcom,mdss-dsi-t-clk-post = <0x0f>;
@@ -512,9 +512,9 @@
 					39 01 00 00 00 00 03 9F 5A 5A
 					/* AOD ON */
 					39 01 00 00 00 00 03 F0 5A 5A
-					15 01 00 00 00 00 02 53 22
+					15 01 00 00 00 00 02 53 23
 					15 01 00 00 00 00 02 B0 A5
-					15 01 00 00 00 00 02 C7 00
+					15 01 00 00 73 00 02 C7 00
 					39 01 00 00 00 00 03 F0 A5 A5
 					/* Seed CRC mode enable */
 					15 01 00 00 00 00 02 81 90
