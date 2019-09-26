@@ -395,6 +395,37 @@ static int cam_flash_ops(struct cam_flash_ctrl *flash_ctrl,
 	soc_private = (struct cam_flash_private_soc *)
 		flash_ctrl->soc_info.soc_private;
 
+/* add by likelong@camera 2017.11.20 force to turn on dual LED */
+#ifdef CONFIG_VENDOR_REALME
+	if (op == CAMERA_SENSOR_FLASH_OP_FIRELOW) {
+		for (i = 0; i < flash_ctrl->torch_num_sources; i++) {
+			if (flash_data->led_current_ma[i]) {
+				if (i)
+					flash_data->led_current_ma[i-1] =
+					flash_data->led_current_ma[i];
+				else
+					flash_data->led_current_ma[i+1] =
+					flash_data->led_current_ma[i];
+				break;
+			}
+		}
+	} else if (op == CAMERA_SENSOR_FLASH_OP_FIREHIGH) {
+		for (i = 0; i < flash_ctrl->flash_num_sources; i++) {
+			if (flash_data->led_current_ma[i]) {
+				if (i)
+					flash_data->led_current_ma[i-1] =
+					flash_data->led_current_ma[i];
+				else
+					flash_data->led_current_ma[i+1] =
+					flash_data->led_current_ma[i];
+				break;
+			}
+		}
+	} else {
+		CAM_ERR(CAM_FLASH, "Wrong Operation: %d", op);
+	}
+#endif
+
 	if (op == CAMERA_SENSOR_FLASH_OP_FIRELOW) {
 		for (i = 0; i < flash_ctrl->torch_num_sources; i++) {
 			if (flash_ctrl->torch_trigger[i]) {
@@ -545,6 +576,21 @@ static int cam_flash_i2c_delete_req(struct cam_flash_ctrl *fctrl,
 	fctrl->func_tbl.flush_req(fctrl, FLUSH_REQ, del_req_id);
 	return 0;
 }
+
+#ifdef CONFIG_VENDOR_REALME
+/*Add by hongbo.dai@Camera 20180319 for flash*/
+int cam_flash_on(struct cam_flash_ctrl *flash_ctrl,
+	struct cam_flash_frame_setting *flash_data,
+	int mode) {
+	int rc = 0;
+	if (mode == 0) {
+		rc = cam_flash_low(flash_ctrl, flash_data);
+	} else if (mode == 1) {
+		rc = cam_flash_high(flash_ctrl, flash_data);
+	}
+	return rc;
+}
+#endif
 
 static int cam_flash_pmic_delete_req(struct cam_flash_ctrl *fctrl,
 	uint64_t req_id)

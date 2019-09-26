@@ -59,6 +59,10 @@ static void cam_req_mgr_workq_put_task(struct crm_workq_task *task)
 		(struct cam_req_mgr_core_workq *)task->parent;
 	unsigned long flags = 0;
 
+#ifndef VENDOR_EDIT
+	/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
+	WORKQ_ACQUIRE_LOCK(workq, flags);
+#endif
 	list_del_init(&task->entry);
 	task->cancel = 0;
 	task->process_cb = NULL;
@@ -127,6 +131,31 @@ static void cam_req_mgr_process_workq(struct work_struct *w)
 	}
 }
 
+#ifndef VENDOR_EDIT
+/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
+void crm_workq_clear_q(struct cam_req_mgr_core_workq *workq)
+{
+	int32_t                 i = CRM_TASK_PRIORITY_0;
+	struct crm_workq_task  *task, *task_save;
+
+	CAM_DBG(CAM_CRM, "pending_cnt %d",
+		atomic_read(&workq->task.pending_cnt));
+
+	while (i < CRM_TASK_PRIORITY_MAX) {
+		if (!list_empty(&workq->task.process_head[i])) {
+			list_for_each_entry_safe(task, task_save,
+				&workq->task.process_head[i], entry) {
+				cam_req_mgr_workq_put_task(task);
+				CAM_WARN(CAM_CRM, "flush task %pK, %d, cnt %d",
+					task, i, atomic_read(
+					&workq->task.free_cnt));
+			}
+		}
+		i++;
+	}
+}
+#endif
+
 int cam_req_mgr_workq_enqueue_task(struct crm_workq_task *task,
 	void *priv, int32_t prio)
 {
@@ -145,6 +174,14 @@ int cam_req_mgr_workq_enqueue_task(struct crm_workq_task *task,
 		rc = -EINVAL;
 		goto end;
 	}
+
+#ifndef VENDOR_EDIT
+	/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
+	if (!workq->job) {
+		rc = -EINVAL;
+		goto end;
+	}
+#endif
 
 	if (task->cancel == 1) {
 		cam_req_mgr_workq_put_task(task);
@@ -166,6 +203,11 @@ int cam_req_mgr_workq_enqueue_task(struct crm_workq_task *task,
 
 	list_add_tail(&task->entry,
 		&workq->task.process_head[task->priority]);
+
+#ifndef VENDOR_EDIT
+	/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
+	WORKQ_RELEASE_LOCK(workq, flags);
+#endif
 
 	atomic_add(1, &workq->task.pending_cnt);
 	CAM_DBG(CAM_CRM, "enq task %pK pending_cnt %d",
@@ -240,6 +282,11 @@ int cam_req_mgr_workq_create(char *name, int32_t num_tasks,
 			task->parent = (void *)crm_workq;
 			/* Put all tasks in free pool */
 			INIT_LIST_HEAD(&task->entry);
+#ifndef VENDOR_EDIT
+			/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
+			list_add_tail(&task->entry,
+			&crm_workq->task.process_head[CRM_TASK_PRIORITY_0]);
+#endif
 			cam_req_mgr_workq_put_task(task);
 		}
 		*workq = crm_workq;

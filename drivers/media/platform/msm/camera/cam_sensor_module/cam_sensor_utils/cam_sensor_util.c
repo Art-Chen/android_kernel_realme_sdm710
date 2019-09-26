@@ -15,6 +15,14 @@
 #include <cam_mem_mgr.h>
 #include "cam_res_mgr_api.h"
 
+#ifdef CONFIG_VENDOR_REALME
+/*Jindian.Guan@Camera.Driver, 2019/01/04, add for [malloc imx586 qsc memory early]*/
+extern struct i2c_settings_list *i2c_settings_list_vendor;
+extern struct cam_sensor_i2c_reg_array *reg_setting_vendor;
+extern uint32_t vendor_size;
+#endif
+
+
 #define CAM_SENSOR_PINCTRL_STATE_SLEEP "cam_suspend"
 #define CAM_SENSOR_PINCTRL_STATE_DEFAULT "cam_default"
 
@@ -49,6 +57,61 @@ static struct i2c_settings_list*
 	return tmp;
 }
 
+#ifdef CONFIG_VENDOR_REALME
+/*Jindian.Guan@Camera.Driver, 2019/01/04, add for [malloc imx586 qsc memory early]*/
+static struct i2c_settings_list*
+	cam_sensor_get_i2c_ptr_vendor(struct i2c_settings_array *i2c_reg_settings,
+		uint32_t size, uint16_t vendor_mode)
+{
+	struct i2c_settings_list *tmp;
+	if (vendor_mode == SENSOR_SPC && vendor_size == size && reg_setting_vendor != NULL && i2c_settings_list_vendor != NULL) {
+		tmp = i2c_settings_list_vendor;
+		tmp->i2c_settings.reg_setting = reg_setting_vendor;
+		tmp->resident = 1;
+		list_add_tail(&(tmp->list),
+			&(i2c_reg_settings->list_head));
+		CAM_DBG(CAM_SENSOR, "spc malloc second list %p, reg %p, size %d",i2c_settings_list_vendor,reg_setting_vendor,vendor_size);
+	} else {
+		if (reg_setting_vendor) {
+			kfree(reg_setting_vendor);
+			reg_setting_vendor = NULL;
+			vendor_size = 0;
+		}
+
+		if (i2c_settings_list_vendor) {
+			kfree(i2c_settings_list_vendor);
+			i2c_settings_list_vendor = NULL;
+		}
+
+		tmp = (struct i2c_settings_list *)
+			kzalloc(sizeof(struct i2c_settings_list), GFP_KERNEL);
+
+		if (tmp != NULL)
+			list_add_tail(&(tmp->list),
+			    &(i2c_reg_settings->list_head));
+		else
+			return NULL;
+
+		reg_setting_vendor = (struct cam_sensor_i2c_reg_array *)
+			kzalloc(sizeof(struct cam_sensor_i2c_reg_array) *
+			size, GFP_KERNEL);
+		if (reg_setting_vendor == NULL) {
+			list_del(&(tmp->list));
+			kfree(tmp);
+			return NULL;
+		}
+		tmp->i2c_settings.reg_setting = reg_setting_vendor;
+		tmp->resident = 1;
+		i2c_settings_list_vendor = tmp;
+		vendor_size = size;
+		CAM_DBG(CAM_SENSOR, "spc malloc first %p,size %d",tmp->i2c_settings.reg_setting,vendor_size);
+	}
+	tmp->i2c_settings.size = size;
+
+	return tmp;
+}
+#endif
+
 int32_t delete_request(struct i2c_settings_array *i2c_array)
 {
 	struct i2c_settings_list *i2c_list = NULL, *i2c_next = NULL;
@@ -61,9 +124,20 @@ int32_t delete_request(struct i2c_settings_array *i2c_array)
 
 	list_for_each_entry_safe(i2c_list, i2c_next,
 		&(i2c_array->list_head), list) {
+		#ifdef CONFIG_VENDOR_REALME
+		/*Jindian.Guan@Camera.Driver, 2019/01/04, add for [malloc imx586 qsc memory early]*/
+		if (i2c_list->resident) {
+		    list_del(&(i2c_list->list));
+		}else {
+		    kfree(i2c_list->i2c_settings.reg_setting);
+		    list_del(&(i2c_list->list));
+		    kfree(i2c_list);
+		}
+		#else
 		kfree(i2c_list->i2c_settings.reg_setting);
 		list_del(&(i2c_list->list));
 		kfree(i2c_list);
+		#endif
 	}
 	INIT_LIST_HEAD(&(i2c_array->list_head));
 	i2c_array->is_settings_valid = 0;
@@ -160,8 +234,18 @@ int32_t cam_sensor_handle_random_write(
 	struct i2c_settings_list  *i2c_list;
 	int32_t rc = 0, cnt;
 
+	#ifdef CONFIG_VENDOR_REALME
+	/*Jindian.Guan@Camera.Driver, 2019/01/04, add for [malloc imx586 qsc memory early]*/
+	if (cam_cmd_i2c_random_wr->header.reserved == SENSOR_SPC)
+		i2c_list = cam_sensor_get_i2c_ptr_vendor(i2c_reg_settings,
+		    cam_cmd_i2c_random_wr->header.count,cam_cmd_i2c_random_wr->header.reserved);
+	else
+		i2c_list = cam_sensor_get_i2c_ptr(i2c_reg_settings,
+		    cam_cmd_i2c_random_wr->header.count);
+	#else
 	i2c_list = cam_sensor_get_i2c_ptr(i2c_reg_settings,
 		cam_cmd_i2c_random_wr->header.count);
+	#endif
 	if (i2c_list == NULL ||
 		i2c_list->i2c_settings.reg_setting == NULL) {
 		CAM_ERR(CAM_SENSOR, "Failed in allocating i2c_list");
@@ -572,6 +656,164 @@ int cam_sensor_util_i2c_apply_setting(
 
 	return rc;
 }
+
+#ifdef CONFIG_VENDOR_REALME
+/*Jindian.Guan@Camera.Driver, 2019/01/04, add for [malloc imx586 qsc memory early]*/
+int cam_sensor_i2c_command_parser_vendor(
+	struct camera_io_master *io_master,
+	struct i2c_settings_array *i2c_reg_settings,
+	struct cam_cmd_buf_desc   *cmd_desc,
+	int32_t num_cmd_buffers,
+	uint16_t vendor_mode)
+{
+	int16_t                   rc = 0, i = 0;
+	size_t                    len_of_buff = 0;
+	uint64_t                  generic_ptr;
+	uint16_t                  cmd_length_in_bytes = 0;
+
+	for (i = 0; i < num_cmd_buffers; i++) {
+		uint32_t                  *cmd_buf = NULL;
+		struct common_header      *cmm_hdr;
+		uint16_t                  generic_op_code;
+		uint32_t                  byte_cnt = 0;
+		uint32_t                  j = 0;
+		struct list_head          *list = NULL;
+
+		/*
+		 * It is not expected the same settings to
+		 * be spread across multiple cmd buffers
+		 */
+		CAM_DBG(CAM_SENSOR, "Total cmd Buf in Bytes: %d",
+			cmd_desc[i].length);
+
+		if (!cmd_desc[i].length)
+			continue;
+
+		rc = cam_mem_get_cpu_buf(cmd_desc[i].mem_handle,
+			(uint64_t *)&generic_ptr, &len_of_buff);
+		cmd_buf = (uint32_t *)generic_ptr;
+		if (rc < 0) {
+			CAM_ERR(CAM_SENSOR,
+				"cmd hdl failed:%d, Err: %d, Buffer_len: %ld",
+				cmd_desc[i].mem_handle, rc, len_of_buff);
+			return rc;
+		}
+		cmd_buf += cmd_desc[i].offset / sizeof(uint32_t);
+
+		while (byte_cnt < cmd_desc[i].length) {
+			cmm_hdr = (struct common_header *)cmd_buf;
+			generic_op_code = cmm_hdr->third_byte;
+			switch (cmm_hdr->cmd_type) {
+			case CAMERA_SENSOR_CMD_TYPE_I2C_RNDM_WR: {
+				uint16_t cmd_length_in_bytes   = 0;
+				struct cam_cmd_i2c_random_wr
+					*cam_cmd_i2c_random_wr =
+					(struct cam_cmd_i2c_random_wr *)cmd_buf;
+
+				cam_cmd_i2c_random_wr->header.reserved = vendor_mode;
+
+				rc = cam_sensor_handle_random_write(
+					cam_cmd_i2c_random_wr,
+					i2c_reg_settings,
+					&cmd_length_in_bytes, &j, &list);
+				if (rc < 0) {
+					CAM_ERR(CAM_SENSOR,
+					"Failed in random write %d", rc);
+					return rc;
+				}
+
+				cmd_buf += cmd_length_in_bytes /
+					sizeof(uint32_t);
+				byte_cnt += cmd_length_in_bytes;
+				break;
+			}
+			case CAMERA_SENSOR_CMD_TYPE_I2C_CONT_WR: {
+				uint16_t cmd_length_in_bytes   = 0;
+				struct cam_cmd_i2c_continuous_wr
+				*cam_cmd_i2c_continuous_wr =
+				(struct cam_cmd_i2c_continuous_wr *)
+				cmd_buf;
+
+				rc = cam_sensor_handle_continuous_write(
+					cam_cmd_i2c_continuous_wr,
+					i2c_reg_settings,
+					&cmd_length_in_bytes, &j, &list);
+				if (rc < 0) {
+					CAM_ERR(CAM_SENSOR,
+					"Failed in continuous write %d", rc);
+					return rc;
+				}
+
+				cmd_buf += cmd_length_in_bytes /
+					sizeof(uint32_t);
+				byte_cnt += cmd_length_in_bytes;
+				break;
+			}
+			case CAMERA_SENSOR_CMD_TYPE_WAIT: {
+				if (generic_op_code ==
+					CAMERA_SENSOR_WAIT_OP_HW_UCND ||
+					generic_op_code ==
+						CAMERA_SENSOR_WAIT_OP_SW_UCND) {
+
+					rc = cam_sensor_handle_delay(
+						&cmd_buf, generic_op_code,
+						i2c_reg_settings, j, &byte_cnt,
+						list);
+					if (rc < 0) {
+						CAM_ERR(CAM_SENSOR,
+							"delay hdl failed: %d",
+							rc);
+						return rc;
+					}
+
+				} else if (generic_op_code ==
+					CAMERA_SENSOR_WAIT_OP_COND) {
+					rc = cam_sensor_handle_poll(
+						&cmd_buf, i2c_reg_settings,
+						&byte_cnt, &j, &list);
+					if (rc < 0) {
+						CAM_ERR(CAM_SENSOR,
+							"Random read fail: %d",
+							rc);
+						return rc;
+					}
+				} else {
+					CAM_ERR(CAM_SENSOR,
+						"Wrong Wait Command: %d",
+						generic_op_code);
+					return -EINVAL;
+				}
+				break;
+			}
+			case CAMERA_SENSOR_CMD_TYPE_I2C_INFO: {
+				rc = cam_sensor_handle_slave_info(
+					io_master, cmd_buf);
+				if (rc) {
+					CAM_ERR(CAM_SENSOR,
+						"Handle slave info failed with rc: %d",
+						rc);
+					return rc;
+				}
+				cmd_length_in_bytes =
+					sizeof(struct cam_cmd_i2c_info);
+				cmd_buf +=
+					cmd_length_in_bytes / sizeof(uint32_t);
+				byte_cnt += cmd_length_in_bytes;
+				break;
+			}
+			default:
+				CAM_ERR(CAM_SENSOR, "Invalid Command Type:%d",
+					 cmm_hdr->cmd_type);
+				return -EINVAL;
+			}
+		}
+		i2c_reg_settings->is_settings_valid = 1;
+	}
+
+	return rc;
+}
+
+#endif
 
 int32_t msm_camera_fill_vreg_params(
 	struct cam_hw_soc_info *soc_info,

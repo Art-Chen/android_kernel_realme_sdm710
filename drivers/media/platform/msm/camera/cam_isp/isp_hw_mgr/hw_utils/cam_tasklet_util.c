@@ -274,7 +274,13 @@ static inline void cam_tasklet_flush(struct cam_tasklet_info *tasklet_info)
 int cam_tasklet_start(void  *tasklet_info)
 {
 	struct cam_tasklet_info       *tasklet = tasklet_info;
+	#ifndef CONFIG_VENDOR_REALME
+	/*added by houyujun@Camera 20180526 for avoid leak to dump*/
+	struct cam_tasklet_queue_cmd  *tasklet_cmd;
+	struct cam_tasklet_queue_cmd  *tasklet_cmd_temp;
+	#else
 	int i = 0;
+	#endif
 
 	if (atomic_read(&tasklet->tasklet_active)) {
 		CAM_ERR(CAM_ISP, "Tasklet already active. idx = %d",
@@ -282,6 +288,15 @@ int cam_tasklet_start(void  *tasklet_info)
 		return -EBUSY;
 	}
 
+	#ifndef CONFIG_VENDOR_REALME
+	/*added by houyujun@Camera 20180526 for  avoid leak to dump*/
+	/* flush the command queue first */
+	list_for_each_entry_safe(tasklet_cmd, tasklet_cmd_temp,
+		&tasklet->used_cmd_list, list) {
+		list_del_init(&tasklet_cmd->list);
+		list_add_tail(&tasklet_cmd->list, &tasklet->free_cmd_list);
+	}
+	#else
 	/* clean up the command queue first */
 	for (i = 0; i < CAM_TASKLETQ_SIZE; i++) {
 		list_del_init(&tasklet->cmd_queue[i].list);

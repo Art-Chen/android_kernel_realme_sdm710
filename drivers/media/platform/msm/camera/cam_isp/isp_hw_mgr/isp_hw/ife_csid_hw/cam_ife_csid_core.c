@@ -428,6 +428,11 @@ static int cam_ife_csid_global_reset(struct cam_ife_csid_hw *csid_hw)
 			csid_hw->hw_intf->hw_idx, val);
 	csid_hw->error_irq_count = 0;
 
+	#ifdef CONFIG_VENDOR_REALME
+		/* Xinlan.He@camera modify, 2018/07/10, add debug info for sof_freeze */
+	csid_hw->pkg_show_cnt = 0;
+	#endif
+
 	return rc;
 }
 
@@ -1051,6 +1056,10 @@ static int cam_ife_csid_disable_hw(struct cam_ife_csid_hw *csid_hw)
 
 	csid_hw->hw_info->hw_state = CAM_HW_STATE_POWER_DOWN;
 	csid_hw->error_irq_count = 0;
+	#ifdef CONFIG_VENDOR_REALME
+		/* Xinlan.He@camera modify, 2018/07/10, add debug info for sof_freeze */
+	csid_hw->pkg_show_cnt = 0;
+	#endif
 	return rc;
 }
 
@@ -1345,6 +1354,14 @@ static int cam_ife_csid_disable_csi2(
 	/*Disable the CSI2 rx inerrupts */
 	cam_io_w_mb(0, soc_info->reg_map[0].mem_base +
 		csid_reg->csi2_reg->csid_csi2_rx_irq_mask_addr);
+
+	#ifdef CONFIG_VENDOR_REALME
+	/*added by houyujun@Camera 20180526 for csid overflow*/
+	cam_io_w_mb(0, soc_info->reg_map[0].mem_base +
+		csid_reg->csi2_reg->csid_csi2_rx_cfg0_addr);
+	cam_io_w_mb(0, soc_info->reg_map[0].mem_base +
+		csid_reg->csi2_reg->csid_csi2_rx_cfg1_addr);
+	#endif
 
 	res->res_state = CAM_ISP_RESOURCE_STATE_RESERVED;
 
@@ -2101,6 +2118,12 @@ static int cam_ife_csid_set_csid_debug(struct cam_ife_csid_hw   *csid_hw,
 
 	csid_debug = (uint32_t  *) cmd_args;
 	csid_hw->csid_debug = *csid_debug;
+#ifdef CONFIG_VENDOR_REALME
+	/* Xinlan.He@camera modify, 2018/07/10, add debug info for sof_freeze */
+	if (csid_hw->hw_intf->hw_idx == 2) {
+		csid_hw->csid_debug |= CSID_DEBUG_ENABLE_EOF_IRQ;
+	}
+#endif
 	CAM_DBG(CAM_ISP, "CSID:%d set csid debug value:%d",
 		csid_hw->hw_intf->hw_idx, csid_hw->csid_debug);
 
@@ -2721,6 +2744,45 @@ static int cam_ife_csid_process_cmd(void *hw_priv,
 
 }
 
+#ifdef CONFIG_VENDOR_REALME
+/*added by houyujun@Camera 20180526 for csid overflow*/
+static int cam_ife_csid_halt_device(
+	struct cam_ife_csid_hw *csid_hw)
+{
+	uint32_t  i;
+	int rc = 0;
+	struct cam_isp_resource_node *res_node;
+	struct cam_ife_csid_reg_offset *csid_reg;
+	struct cam_hw_soc_info *soc_info;
+
+	res_node = &csid_hw->ipp_res;
+	csid_reg = csid_hw->csid_info->csid_reg;
+	soc_info = &csid_hw->hw_info->soc_info;
+	if (res_node->res_state == CAM_ISP_RESOURCE_STATE_STREAMING) {
+		rc = cam_ife_csid_disable_ipp_path(csid_hw,
+			res_node, CAM_CSID_HALT_IMMEDIATELY);
+		res_node->res_state = CAM_ISP_RESOURCE_STATE_INIT_HW;
+	}
+
+	for (i = 0; i < CAM_IFE_CSID_RDI_MAX; i++) {
+		res_node = &csid_hw->rdi_res[i];
+		if (res_node->res_state == CAM_ISP_RESOURCE_STATE_STREAMING) {
+			rc = cam_ife_csid_disable_rdi_path(csid_hw,
+				res_node, CAM_CSID_HALT_IMMEDIATELY);
+			res_node->res_state = CAM_ISP_RESOURCE_STATE_INIT_HW;
+		}
+	}
+
+	cam_io_w_mb(0, soc_info->reg_map[0].mem_base +
+		csid_reg->csi2_reg->csid_csi2_rx_irq_mask_addr);
+	cam_io_w_mb(0, soc_info->reg_map[0].mem_base +
+		csid_reg->csi2_reg->csid_csi2_rx_cfg0_addr);
+	cam_io_w_mb(0, soc_info->reg_map[0].mem_base +
+		csid_reg->csi2_reg->csid_csi2_rx_cfg1_addr);
+	return rc;
+}
+#endif
+
 irqreturn_t cam_ife_csid_irq(int irq_num, void *data)
 {
 	struct cam_ife_csid_hw          *csid_hw;
@@ -2730,6 +2792,10 @@ irqreturn_t cam_ife_csid_irq(int irq_num, void *data)
 	uint32_t i, irq_status_top, irq_status_rx, irq_status_ipp = 0;
 	uint32_t irq_status_rdi[4] = {0, 0, 0, 0};
 	uint32_t val, sof_irq_disable = 0;
+	#ifdef CONFIG_VENDOR_REALME
+	/*added by houyujun@Camera 20180526 for csid overflow*/
+	int rc;
+	#endif
 
 	csid_hw = (struct cam_ife_csid_hw *)data;
 
@@ -2790,21 +2856,66 @@ irqreturn_t cam_ife_csid_irq(int irq_num, void *data)
 		CAM_ERR_RATE_LIMIT(CAM_ISP, "CSID:%d lane 0 over flow",
 			 csid_hw->hw_intf->hw_idx);
 		csid_hw->error_irq_count++;
+		#ifdef CONFIG_VENDOR_REALME
+		/* houyujun@Camera.Driver, 2018/05/23, Add for [CSID cause dump] */
+		if (!(irq_status_rx & CSID_CSI2_RX_ERROR_CPHY_SOT_RECEPTION)) {
+			rc = cam_ife_csid_halt_device(csid_hw);
+			if (rc) {
+				CAM_ERR_RATE_LIMIT(CAM_ISP,
+					"CSID:%d csid halt device fail rc = %d",
+					csid_hw->hw_intf->hw_idx, rc);
+			}
+		}
+		#endif
+
 	}
 	if (irq_status_rx & CSID_CSI2_RX_ERROR_LANE1_FIFO_OVERFLOW) {
 		CAM_ERR_RATE_LIMIT(CAM_ISP, "CSID:%d lane 1 over flow",
 			 csid_hw->hw_intf->hw_idx);
 		csid_hw->error_irq_count++;
+		#ifdef CONFIG_VENDOR_REALME
+		/* houyujun@Camera.Driver, 2018/05/23, Add for [CSID cause dump] */
+		if (!(irq_status_rx & CSID_CSI2_RX_ERROR_CPHY_SOT_RECEPTION)) {
+			rc = cam_ife_csid_halt_device(csid_hw);
+			if (rc) {
+				CAM_ERR_RATE_LIMIT(CAM_ISP,
+					"CSID:%d csid halt device fail rc = %d",
+					csid_hw->hw_intf->hw_idx, rc);
+			}
+		}
+		#endif
 	}
 	if (irq_status_rx & CSID_CSI2_RX_ERROR_LANE2_FIFO_OVERFLOW) {
 		CAM_ERR_RATE_LIMIT(CAM_ISP, "CSID:%d lane 2 over flow",
 			 csid_hw->hw_intf->hw_idx);
 		csid_hw->error_irq_count++;
+		#ifdef CONFIG_VENDOR_REALME
+		/* houyujun@Camera.Driver, 2018/05/23, Add for [CSID cause dump] */
+		if (!(irq_status_rx & CSID_CSI2_RX_ERROR_CPHY_SOT_RECEPTION)) {
+			rc = cam_ife_csid_halt_device(csid_hw);
+			if (rc) {
+				CAM_ERR_RATE_LIMIT(CAM_ISP,
+					"CSID:%d csid halt device fail rc = %d",
+					csid_hw->hw_intf->hw_idx, rc);
+			}
+		}
+		#endif
 	}
 	if (irq_status_rx & CSID_CSI2_RX_ERROR_LANE3_FIFO_OVERFLOW) {
 		CAM_ERR_RATE_LIMIT(CAM_ISP, "CSID:%d lane 3 over flow",
 			 csid_hw->hw_intf->hw_idx);
 		csid_hw->error_irq_count++;
+		#ifdef CONFIG_VENDOR_REALME
+		/* houyujun@Camera.Driver, 2018/05/23, Add for [CSID cause dump] */
+		if (!(irq_status_rx & CSID_CSI2_RX_ERROR_CPHY_SOT_RECEPTION)) {
+			rc = cam_ife_csid_halt_device(csid_hw);
+			if (rc) {
+				CAM_ERR_RATE_LIMIT(CAM_ISP,
+					"CSID:%d csid halt device fail rc = %d",
+					csid_hw->hw_intf->hw_idx, rc);
+			}
+		}
+		#endif
 	}
 	if (irq_status_rx & CSID_CSI2_RX_ERROR_TG_FIFO_OVERFLOW) {
 		CAM_ERR_RATE_LIMIT(CAM_ISP, "CSID:%d TG OVER  FLOW",
@@ -2838,6 +2949,15 @@ irqreturn_t cam_ife_csid_irq(int irq_num, void *data)
 	if (irq_status_rx & CSID_CSI2_RX_ERROR_STREAM_UNDERFLOW) {
 		CAM_ERR_RATE_LIMIT(CAM_ISP, "CSID:%d ERROR_STREAM_UNDERFLOW",
 			 csid_hw->hw_intf->hw_idx);
+		#ifdef CONFIG_VENDOR_REALME
+		/*added by houyujun@Camera 20180526 for csid overflow*/
+		rc = cam_ife_csid_halt_device(csid_hw);
+		if (rc) {
+			CAM_ERR_RATE_LIMIT(CAM_ISP,
+				"CSID:%d csid halt device fail rc = %d",
+				csid_hw->hw_intf->hw_idx, rc);
+		}
+		#endif
 		csid_hw->error_irq_count++;
 	}
 	if (irq_status_rx & CSID_CSI2_RX_ERROR_UNBOUNDED_FRAME) {
@@ -2989,9 +3109,23 @@ irqreturn_t cam_ife_csid_irq(int irq_num, void *data)
 		}
 
 		if ((irq_status_rdi[i]  & CSID_PATH_INFO_INPUT_EOF) &&
-			(csid_hw->csid_debug & CSID_DEBUG_ENABLE_EOF_IRQ))
+			(csid_hw->csid_debug & CSID_DEBUG_ENABLE_EOF_IRQ)) {
+		#ifdef CONFIG_VENDOR_REALME
+			/* Xinlan.He@camera modify, 2018/07/10, add debug info for sof_freeze */
+			if (csid_hw->pkg_show_cnt < 3 && csid_hw->hw_intf->hw_idx == 2) {
+				val = cam_io_r_mb(soc_info->reg_map[0].mem_base +
+					csid_reg->csi2_reg->csid_csi2_rx_total_pkts_rcvd_addr);
+				CAM_INFO(CAM_ISP, "CSID RDI:%d total_pkts %d CSID %d", i, val,
+					csid_hw->hw_intf->hw_idx);
+				csid_hw->pkg_show_cnt++;
+			} else if (csid_hw->hw_intf->hw_idx != 2){
+			    CAM_INFO_RATE_LIMIT(CAM_ISP, "CSID RDI:%d EOF received", i);
+			}
+		#else
 			CAM_INFO_RATE_LIMIT(CAM_ISP,
 				"CSID RDI:%d EOF received", i);
+		#endif
+        }
 
 		if (irq_status_rdi[i] & CSID_PATH_ERROR_FIFO_OVERFLOW) {
 			CAM_ERR_RATE_LIMIT(CAM_ISP,
@@ -3147,6 +3281,11 @@ int cam_ife_csid_hw_probe_init(struct cam_hw_intf  *csid_hw_intf,
 
 	ife_csid_hw->csid_debug = 0;
 	ife_csid_hw->error_irq_count = 0;
+	#ifdef CONFIG_VENDOR_REALME
+		/* Xinlan.He@camera modify, 2018/07/10, add debug info for sof_freeze */
+	ife_csid_hw->pkg_show_cnt = 0;
+	#endif
+
 	return 0;
 err:
 	if (rc) {

@@ -920,12 +920,35 @@ int msm_vdec_s_ctrl(struct msm_vidc_inst *inst, struct v4l2_ctrl *ctrl)
 					HAL_BUFFER_OUTPUT);
 			return -EINVAL;
 		}
+#ifndef CONFIG_VENDOR_REALME
+//HuXin@PSW.MM.MediaServer.Player.1723993, 2018/01/22
+//Fix for some hevc video(No IDR at the video beginning) can't get
+//the thumbnail.(Check with case#03813162 for the details.)
 		bufreq->buffer_count_min =
 			MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS;
 		bufreq->buffer_count_min_host =
 			MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS;
 		bufreq->buffer_count_actual =
 			MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS;
+#else /*CONFIG_VENDOR_REALME*/
+        if (inst->fmts[OUTPUT_PORT].fourcc == V4L2_PIX_FMT_HEVC){
+            bufreq->buffer_count_min =
+                MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS + 1;
+            bufreq->buffer_count_min_host =
+                MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS + 1;
+            bufreq->buffer_count_actual =
+                MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS + 1;
+            dprintk(VIDC_ERR,"pkn here");
+        } else {
+            bufreq->buffer_count_min =
+                MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS;
+            bufreq->buffer_count_min_host =
+                MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS;
+            bufreq->buffer_count_actual =
+                MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS;
+            dprintk(VIDC_ERR,"pkn else");
+        }
+#endif /*CONFIG_VENDOR_REALME*/
 
 		if (msm_comm_get_stream_output_mode(inst) ==
 				HAL_VIDEO_DECODER_SECONDARY) {
@@ -972,12 +995,35 @@ int msm_vdec_s_ctrl(struct msm_vidc_inst *inst, struct v4l2_ctrl *ctrl)
 						HAL_BUFFER_OUTPUT);
 				return -EINVAL;
 			}
+#ifndef CONFIG_VENDOR_REALME
+//HuXin@PSW.MM.MediaServer.Player.1723993, 2018/01/22
+//Fix for some hevc video(No IDR at the video beginning) can't get
+//the thumbnail.(Check with case#03813162 for the details.)
 			bufreq->buffer_count_min =
 				MIN_NUM_THUMBNAIL_MODE_CAPTURE_BUFFERS;
 			bufreq->buffer_count_min_host =
 				MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS;
 			bufreq->buffer_count_actual =
 				MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS;
+#else /*CONFIG_VENDOR_REALME*/
+            if (inst->fmts[OUTPUT_PORT].fourcc == V4L2_PIX_FMT_HEVC){
+                bufreq->buffer_count_min =
+                    MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS + 1;
+                bufreq->buffer_count_min_host =
+                    MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS + 1;
+                bufreq->buffer_count_actual =
+                    MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS + 1;
+                dprintk(VIDC_ERR,"pkn here");
+            } else {
+                bufreq->buffer_count_min =
+                    MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS;
+                bufreq->buffer_count_min_host =
+                    MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS;
+                bufreq->buffer_count_actual =
+                    MIN_NUM_THUMBNAIL_MODE_OUTPUT_BUFFERS;
+                dprintk(VIDC_ERR,"pkn else");
+            }
+#endif /*CONFIG_VENDOR_REALME*/
 
 		}
 

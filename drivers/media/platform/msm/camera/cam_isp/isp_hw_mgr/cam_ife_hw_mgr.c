@@ -268,6 +268,30 @@ static void cam_ife_hw_mgr_stop_hw_res(
 		}
 	}
 }
+#ifdef CONFIG_VENDOR_REALME
+/*added by houyujun@Camera 20180626 for smmu dump*/
+static void cam_hw_isp_iommu_fault_handler(struct iommu_domain *domain,
+	struct device *dev,unsigned long iova, int flags, void *tocken)
+{
+	struct cam_ife_hw_mgr *ife_hw_mgr = (struct cam_ife_hw_mgr *)tocken;
+	struct cam_ife_hw_mgr_ctx *ctx = NULL;
+	int i = 0;
+
+	CAM_INFO(CAM_ISP,"E:");
+	if(!tocken) {
+		CAM_ERR(CAM_ISP,"isp page fault handler called without a valid tocken");
+		return;
+	}
+
+	list_for_each_entry(ctx,
+		&ife_hw_mgr->used_ctx_list,list) {
+		/* IFE out resources */
+		for(i = 0; i < CAM_IFE_HW_OUT_RES_MAX; i++)
+			cam_ife_hw_mgr_stop_hw_res(&ctx->res_list_ife_out[i]);
+	}
+	CAM_INFO(CAM_ISP, "X:");
+}
+#endif
 
 static void cam_ife_hw_mgr_deinit_hw_res(
 	struct cam_ife_hw_mgr_res   *isp_hw_res)
@@ -1514,7 +1538,10 @@ static int cam_ife_mgr_acquire_hw(void *hw_mgr_priv,
 		CAM_ERR(CAM_ISP, "Get ife hw context failed");
 		goto err;
 	}
-
+	#ifdef CONFIG_VENDOR_REALME
+	/*add by hongbo.dai@Camera,20180627*/
+	ife_ctx->frame_count = 0;
+	#endif
 	ife_ctx->common.cb_priv = acquire_args->context_data;
 	for (i = 0; i < CAM_ISP_HW_EVENT_MAX; i++)
 		ife_ctx->common.event_cb[i] = acquire_args->event_cb;
@@ -3014,6 +3041,12 @@ static int cam_ife_mgr_cmd(void *hw_mgr_priv, void *cmd_args)
 			cam_ife_mgr_sof_irq_debug(ctx,
 				isp_hw_cmd_args->u.sof_irq_enable);
 			break;
+	#ifdef CONFIG_VENDOR_REALME
+	/*add by hongbo.dai@Camera,20180627*/
+	case CAM_ISP_HW_MGR_CMD_SET_SYNC_MODE:
+		ctx->crm_sync_mode = 1;
+		break;
+	#endif
 		default:
 			CAM_ERR(CAM_ISP, "Invalid HW mgr command:0x%x",
 				hw_cmd_args->cmd_type);
@@ -3688,11 +3721,33 @@ static int cam_ife_hw_mgr_handle_epoch_for_camif_hw_res(
 				if (atomic_read(
 					&ife_hwr_mgr_ctx->overflow_pending))
 					break;
-				if (!epoch_status)
+				#ifdef CONFIG_VENDOR_REALME
+				/*add by hongbo.dai@camera, 20180627 for hwsync*/
+				if (!epoch_status) {
+
+					if ((ife_hwr_mgr_ctx->crm_sync_mode == 1) &&
+							(ife_hwr_mgr_ctx->frame_count == 0) &&
+							(core_idx == 0)) {
+						ife_hwr_mgr_ctx->frame_count = 1;
+						CAM_INFO(CAM_ISP,"Skipping first epoch");
+						return 0;
+					}
+
+					ife_hwr_mgr_ctx->frame_count = 1;
+
 					ife_hwr_irq_epoch_cb(
 						ife_hwr_mgr_ctx->common.cb_priv,
 						CAM_ISP_HW_EVENT_EPOCH,
 						&epoch_done_event_data);
+				}
+				#else
+				if (!epoch_status) {
+					ife_hwr_irq_epoch_cb(
+						ife_hwr_mgr_ctx->common.cb_priv,
+						CAM_ISP_HW_EVENT_EPOCH,
+						&epoch_done_event_data);
+				}
+				#endif
 			}
 
 			break;
@@ -4572,7 +4627,10 @@ int cam_ife_hw_mgr_init(struct cam_hw_mgr_intf *hw_mgr_intf, int *iommu_hdl)
 		g_ife_hw_mgr.ctx_pool[i].common.tasklet_info =
 			g_ife_hw_mgr.mgr_common.tasklet_pool[i];
 
-
+		#ifdef CONFIG_VENDOR_REALME
+		/*add by hongbo.dai@Camera,20180627 for hwsync*/
+		g_ife_hw_mgr.ctx_pool[i].crm_sync_mode = 0;
+		#endif
 		init_completion(&g_ife_hw_mgr.ctx_pool[i].config_done_complete);
 		list_add_tail(&g_ife_hw_mgr.ctx_pool[i].list,
 			&g_ife_hw_mgr.free_ctx_list);
@@ -4598,6 +4656,11 @@ int cam_ife_hw_mgr_init(struct cam_hw_mgr_intf *hw_mgr_intf, int *iommu_hdl)
 	hw_mgr_intf->hw_prepare_update = cam_ife_mgr_prepare_hw_update;
 	hw_mgr_intf->hw_config = cam_ife_mgr_config_hw;
 	hw_mgr_intf->hw_cmd = cam_ife_mgr_cmd;
+	#ifdef CONFIG_VENDOR_REALME
+	/*added by houyujun@Camera 20180626 for smmu dump*/
+	cam_smmu_reg_client_page_fault_handler(g_ife_hw_mgr.mgr_common.img_iommu_hdl,
+		cam_hw_isp_iommu_fault_handler,&g_ife_hw_mgr);
+	#endif
 
 	if (iommu_hdl)
 		*iommu_hdl = g_ife_hw_mgr.mgr_common.img_iommu_hdl;

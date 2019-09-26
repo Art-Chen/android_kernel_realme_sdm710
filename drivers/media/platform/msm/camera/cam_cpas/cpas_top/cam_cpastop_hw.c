@@ -322,7 +322,8 @@ static int cam_cpastop_disable_test_irq(struct cam_hw_info *cpas_hw)
 
 	return 0;
 }
-
+#ifndef CONFIG_VENDOR_REALME
+/*delete by houyujun@Camera 20180608 for camera dump issue*/
 static int cam_cpastop_reset_irq(struct cam_hw_info *cpas_hw)
 {
 	int i;
@@ -345,7 +346,7 @@ static int cam_cpastop_reset_irq(struct cam_hw_info *cpas_hw)
 
 	return 0;
 }
-
+#endif
 static void cam_cpastop_notify_clients(struct cam_cpas *cpas_core,
 	struct cam_cpas_irq_data *irq_data)
 {
@@ -486,9 +487,10 @@ static irqreturn_t cam_cpastop_handle_irq(int irq_num, void *data)
 
 	if (TEST_IRQ_ENABLE)
 		cam_cpastop_disable_test_irq(cpas_hw);
-
+	#ifndef CONFIG_VENDOR_REALME
+	/*delete by houyujun@Camera 20180608 for camera dump issue*/
 	cam_cpastop_reset_irq(cpas_hw);
-
+	#endif
 	queue_work(cpas_core->work_queue, &payload->work);
 done:
 	atomic_dec(&cpas_core->irq_count);
@@ -504,7 +506,10 @@ static int cam_cpastop_poweron(struct cam_hw_info *cpas_hw)
 	struct cam_cpas *cpas_core = (struct cam_cpas *) cpas_hw->core_info;
 	struct cam_cpas_private_soc *soc_private = soc_info->soc_private;
 
+	#ifndef CONFIG_VENDOR_REALME
+	/*delete by houyujun@Camera 20180608 for camera dump issue*/
 	cam_cpastop_reset_irq(cpas_hw);
+	#endif
 
 	for (i = 0; i < camnoc_info->specific_size; i++) {
 		if (camnoc_info->specific[i].enable) {

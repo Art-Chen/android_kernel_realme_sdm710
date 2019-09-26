@@ -203,6 +203,10 @@ struct cam_req_mgr_req_tbl {
 	int32_t                     pd_delta;
 	int32_t                     num_slots;
 	struct cam_req_mgr_tbl_slot slot[MAX_REQ_SLOTS];
+#ifndef CONFIG_VENDOR_REALME
+    /*add by zhenjie.li@Camera,20180525 for flash sync*/
+	uint32_t                    inject_delay;
+#endif
 };
 
 /**

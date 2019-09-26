@@ -19,6 +19,124 @@
 #include "cam_common_util.h"
 #include "cam_packet_util.h"
 
+#ifdef CONFIG_VENDOR_REALME
+/*Added by Zhengrong.Zhang@Cam.Drv, 2018/11/08, for update ak7374 PID*/
+#include <soc/oppo/oppo_project.h>
+#include "ak7374_lib.h"
+
+static void cam_actuator_cci_write(struct cam_actuator_ctrl_t *a_ctrl, uint32_t addr, uint32_t data,
+    uint32_t addr_type_write, uint32_t data_type_write)
+{
+    int32_t rc = 0;
+    struct cam_sensor_i2c_reg_array i2c_write_setting = {
+        .reg_addr = addr,
+        .reg_data = data,
+        .delay = 0x00,
+        .data_mask = 0x00,
+    };
+
+    struct cam_sensor_i2c_reg_setting i2c_write = {
+        .reg_setting = &i2c_write_setting,
+        .size = 1,
+        .addr_type = addr_type_write,
+        .data_type = data_type_write,
+        .delay = 0x00,
+    };
+
+    rc = camera_io_dev_write(&(a_ctrl->io_master_info),
+        &i2c_write);
+
+    if (rc < 0) {
+        CAM_ERR(CAM_OIS, "write 0x%x fail", addr);
+    }
+}
+
+static int32_t cam_actuator_write_firmware_ak7374(struct cam_actuator_ctrl_t *a_ctrl)
+{
+    int i = 0;
+    int32_t rc = 0;
+    uint32_t reg_val = 0;
+    bool need_update = false;
+    int retry = 0;
+
+    msleep(10);
+
+    rc = camera_io_dev_write(&(a_ctrl->io_master_info),
+        &ak7374_imx362_write_reg);
+    if (rc < 0) {
+        CAM_ERR(CAM_ACTUATOR, "write ak7374_imx362_write_reg fail");
+    }
+
+    for (i = 0; i < ak7374_imx362_check_status.size; i++) {
+        rc = camera_io_dev_read(&(a_ctrl->io_master_info), ak7374_imx362_check_status_setting[i].reg_addr, &reg_val,
+            CAMERA_SENSOR_I2C_TYPE_BYTE, CAMERA_SENSOR_I2C_TYPE_BYTE);
+        if (rc < 0) {
+            CAM_ERR(CAM_ACTUATOR, "read ak7374_imx362_check_status fail");
+        }
+
+        CAM_INFO(CAM_ACTUATOR, "read ak7374_imx362_check_status 0x%02x=0x%02x",
+            ak7374_imx362_check_status_setting[i].reg_addr, reg_val);
+
+        if (ak7374_imx362_check_status_setting[i].delay > 0)
+            msleep(ak7374_imx362_check_status_setting[i].delay);
+    }
+
+    do {
+        for (i = 0; i < (ak7374_imx362_reg.size); i++) {
+            rc = camera_io_dev_read(&(a_ctrl->io_master_info), ak7374_imx362_reg_setting[i].reg_addr, &reg_val,
+                CAMERA_SENSOR_I2C_TYPE_BYTE, CAMERA_SENSOR_I2C_TYPE_BYTE);
+            if (rc < 0) {
+                CAM_ERR(CAM_ACTUATOR, "read ak7374_imx362_reg_setting[%d] fail", i);
+            }
+
+            //CAM_INFO(CAM_ACTUATOR, "I2C read reg_addr: 0x%02x=0x%02x", ak7374_imx362_reg_setting[i].reg_addr, reg_val);
+
+            if (reg_val != ak7374_imx362_reg_setting[i].reg_data) {
+                need_update = true;
+                CAM_INFO(CAM_ACTUATOR, "reg_addr:0x%02x=0x%02x, should be:0x%02x, need to update firmware",
+                    ak7374_imx362_reg_setting[i].reg_addr, reg_val, ak7374_imx362_reg_setting[i].reg_data);
+                break;
+            }
+            if (i >= (ak7374_imx362_reg.size - 1)) {
+                need_update = false;
+                break;
+            }
+        }
+
+        if (need_update) {
+            if (retry >= 3) {
+                pr_err("retry more than 3 times,write firmware fail!!!");
+                return 0;
+            }
+
+            rc = camera_io_dev_write(&(a_ctrl->io_master_info),
+                &ak7374_imx362_reg);
+            if (rc < 0) {
+                CAM_ERR(CAM_ACTUATOR, "write ak7374_imx362_reg fail");
+            } else {
+                cam_actuator_cci_write(a_ctrl, 0x03, 0x01, CAMERA_SENSOR_I2C_TYPE_BYTE, CAMERA_SENSOR_I2C_TYPE_BYTE);
+                msleep(90);
+                cam_actuator_cci_write(a_ctrl, 0x03, 0x02, CAMERA_SENSOR_I2C_TYPE_BYTE, CAMERA_SENSOR_I2C_TYPE_BYTE);
+                msleep(90);
+                cam_actuator_cci_write(a_ctrl, 0x03, 0x04, CAMERA_SENSOR_I2C_TYPE_BYTE, CAMERA_SENSOR_I2C_TYPE_BYTE);
+                msleep(54);
+                cam_actuator_cci_write(a_ctrl, 0x03, 0x08, CAMERA_SENSOR_I2C_TYPE_BYTE, CAMERA_SENSOR_I2C_TYPE_BYTE);
+                msleep(36);
+                CAM_INFO(CAM_ACTUATOR, "write ak7374_imx362_reg success, retry=%d", retry);
+                return 0;
+            }
+
+            retry++;
+        } else {
+            CAM_INFO(CAM_ACTUATOR, "no need to update");
+            return 0;
+        }
+    } while (retry < 3);
+
+    return rc;
+}
+#endif
+
 int32_t cam_actuator_construct_default_power_setting(
 	struct cam_sensor_power_ctrl_t *power_info)
 {
@@ -35,7 +153,12 @@ int32_t cam_actuator_construct_default_power_setting(
 	power_info->power_setting[0].seq_type = SENSOR_VAF;
 	power_info->power_setting[0].seq_val = CAM_VAF;
 	power_info->power_setting[0].config_val = 1;
+#ifndef CONFIG_VENDOR_REALME
+	/*Jinshui.Liu@Camera.Driver, 2018/06/21, modify for [add more delay for hw prepare]*/
 	power_info->power_setting[0].delay = 2;
+#else
+	power_info->power_setting[0].delay = 10;
+#endif
 
 	power_info->power_down_setting_size = 1;
 	power_info->power_down_setting =
@@ -122,6 +245,251 @@ static int32_t cam_actuator_power_up(struct cam_actuator_ctrl_t *a_ctrl)
 	return rc;
 }
 
+#ifdef CONFIG_VENDOR_REALME
+/*Added by Jinshui.Liu@Camera 20161125 for [debug interface]*/
+static int32_t actuator_iris_control(struct cam_actuator_ctrl_t *a_ctrl,
+	struct cam_iris_setting *vendor_cap)
+{
+	uint16_t store_sid = 0;
+	uint32_t apertureControl = 0;
+	int rc = 0;
+	struct cam_sensor_i2c_reg_setting write_setting;
+	struct cam_sensor_i2c_reg_array reg_setting[10];
+	struct cam_actuator_ctrl_t *piris_ctrl = NULL;
+	uint32_t cver_check = 0;
+
+	apertureControl = vendor_cap->apertureControl;
+
+	if (!a_ctrl) {
+		CAM_ERR(CAM_ACTUATOR, "a_ctrl NULL!!");
+		return rc;
+	} else if (!a_ctrl->piris_ctrl) {
+		CAM_ERR(CAM_ACTUATOR, "piris_ctrl NULL!!");
+		return rc;
+	}
+    piris_ctrl = a_ctrl->piris_ctrl;
+    CAM_INFO(CAM_ACTUATOR,
+        "Using power apertureControl:%d", apertureControl);
+	/*1 init, 2 small, 3 large*/
+	if (apertureControl == 1) {
+		reg_setting[0].reg_addr = 0xae;
+		reg_setting[0].reg_data = 0x3b;
+		reg_setting[0].delay = 0;
+		reg_setting[0].data_mask = 0;
+		reg_setting[1].reg_addr = 0x00;
+		reg_setting[1].reg_data = 0x7f;
+		reg_setting[1].delay = 0;
+		reg_setting[1].data_mask = 0;
+		reg_setting[2].reg_addr = 0x01;
+		reg_setting[2].reg_data = 0xc0;
+		reg_setting[2].delay = 0;
+		reg_setting[2].data_mask = 0;
+		reg_setting[3].reg_addr = 0x02;
+		reg_setting[3].reg_data = 0x00;
+		reg_setting[3].delay = 0;
+		reg_setting[3].data_mask = 0;
+	} else if (apertureControl == 2) {
+		reg_setting[0].reg_addr = 0xa6;
+		reg_setting[0].reg_data = 0x7b;
+		reg_setting[0].delay = 0;
+		reg_setting[0].data_mask = 0;
+		reg_setting[1].reg_addr = 0x00;
+		reg_setting[1].reg_data = 0xff;
+		reg_setting[1].delay = 0;
+		reg_setting[1].data_mask = 0;
+		reg_setting[2].reg_addr = 0x01;
+		reg_setting[2].reg_data = 0xc0;
+		reg_setting[2].delay = 11;
+		reg_setting[2].data_mask = 0;
+		reg_setting[3].reg_addr = 0xa6;
+		reg_setting[3].reg_data = 0x00;
+		reg_setting[3].delay = 0;
+		reg_setting[3].data_mask = 0;
+		reg_setting[4].reg_addr = 0x00;
+		reg_setting[4].reg_data = 0x7f;
+		reg_setting[4].delay = 0;
+		reg_setting[4].data_mask = 0;
+		reg_setting[5].reg_addr = 0x01;
+		reg_setting[5].reg_data = 0xc0;
+		reg_setting[5].delay = 10;
+		reg_setting[5].data_mask = 0;
+	} else if (apertureControl == 3) {
+		reg_setting[0].reg_addr = 0xa6;
+		reg_setting[0].reg_data = 0x7b;
+		reg_setting[0].delay = 0;
+		reg_setting[0].data_mask = 0;
+		reg_setting[1].reg_addr = 0x00;
+		reg_setting[1].reg_data = 0x00;
+		reg_setting[1].delay = 0;
+		reg_setting[1].data_mask = 0;
+		reg_setting[2].reg_addr = 0x01;
+		reg_setting[2].reg_data = 0x00;
+		reg_setting[2].delay = 11;
+		reg_setting[2].data_mask = 0;
+		reg_setting[3].reg_addr = 0xa6;
+		reg_setting[3].reg_data = 0x00;
+		reg_setting[3].delay = 0;
+		reg_setting[3].data_mask = 0;
+		reg_setting[4].reg_addr = 0x00;
+		reg_setting[4].reg_data = 0x7f;
+		reg_setting[4].delay = 0;
+		reg_setting[4].data_mask = 0;
+		reg_setting[5].reg_addr = 0x01;
+		reg_setting[5].reg_data = 0xc0;
+		reg_setting[5].delay = 10;
+		reg_setting[5].data_mask = 0;
+	}  else if (apertureControl == 4) {
+		reg_setting[0].reg_addr = 0xa6;
+		reg_setting[0].reg_data = 0x7b;
+		reg_setting[0].delay = 0;
+		reg_setting[0].data_mask = 0;
+		reg_setting[1].reg_addr = 0x00;
+		reg_setting[1].reg_data = 0x00;
+		reg_setting[1].delay = 0;
+		reg_setting[1].data_mask = 0;
+		reg_setting[2].reg_addr = 0x01;
+		reg_setting[2].reg_data = 0x00;
+		reg_setting[2].delay = 11;
+		reg_setting[2].data_mask = 0;
+		reg_setting[3].reg_addr = 0xa6;
+		reg_setting[3].reg_data = 0x00;
+		reg_setting[3].delay = 0;
+		reg_setting[3].data_mask = 0;
+		reg_setting[4].reg_addr = 0x00;
+		reg_setting[4].reg_data = 0x7f;
+		reg_setting[4].delay = 0;
+		reg_setting[4].data_mask = 0;
+		reg_setting[5].reg_addr = 0x01;
+		reg_setting[5].reg_data = 0xc0;
+		reg_setting[5].delay = 10;
+		reg_setting[5].data_mask = 0;
+		reg_setting[6].reg_addr = 0x02;
+		reg_setting[6].reg_data = 0x20;
+		reg_setting[6].delay = 0;
+		reg_setting[6].data_mask = 0;
+	} else {
+		CAM_ERR(CAM_ACTUATOR, "unsupported type!!");
+		return rc;
+	}
+
+	write_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+	write_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+	write_setting.delay = reg_setting[0].delay;
+	write_setting.size = 1;
+	write_setting.reg_setting = &reg_setting[0];
+	store_sid = piris_ctrl->io_master_info.cci_client->sid;
+	piris_ctrl->io_master_info.cci_client->sid = 0x98 >> 1;
+	rc = camera_io_dev_write(&piris_ctrl->io_master_info,
+		&write_setting);
+	piris_ctrl->io_master_info.cci_client->sid = store_sid;;
+	if (rc < 0) {
+		CAM_ERR(CAM_ACTUATOR, "read/write err");
+	}
+
+	write_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+	write_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+	write_setting.delay = reg_setting[1].delay;
+	write_setting.size = 1;
+	write_setting.reg_setting = &reg_setting[1];
+	store_sid = piris_ctrl->io_master_info.cci_client->sid;
+	piris_ctrl->io_master_info.cci_client->sid = 0x98 >> 1;
+	rc = camera_io_dev_write(&piris_ctrl->io_master_info,
+		&write_setting);
+	piris_ctrl->io_master_info.cci_client->sid = store_sid;;
+	if (rc < 0) {
+		CAM_ERR(CAM_ACTUATOR, "read/write err");
+	}
+
+	write_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+	write_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+	write_setting.delay = reg_setting[2].delay;
+	write_setting.size = 1;
+	write_setting.reg_setting = &reg_setting[2];
+	store_sid = piris_ctrl->io_master_info.cci_client->sid;
+	piris_ctrl->io_master_info.cci_client->sid = 0x98 >> 1;
+	rc = camera_io_dev_write(&piris_ctrl->io_master_info,
+		&write_setting);
+	piris_ctrl->io_master_info.cci_client->sid = store_sid;;
+	if (rc < 0) {
+		CAM_ERR(CAM_ACTUATOR, "read/write err");
+	}
+
+	write_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+	write_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+	write_setting.delay = reg_setting[3].delay;
+	write_setting.size = 1;
+	write_setting.reg_setting = &reg_setting[3];
+	store_sid = piris_ctrl->io_master_info.cci_client->sid;
+	piris_ctrl->io_master_info.cci_client->sid = 0x98 >> 1;
+	rc = camera_io_dev_write(&piris_ctrl->io_master_info,
+		&write_setting);
+	piris_ctrl->io_master_info.cci_client->sid = store_sid;
+	if (rc < 0) {
+		CAM_ERR(CAM_ACTUATOR, "read/write err");
+	}
+
+	if (apertureControl == 2 || apertureControl == 3) {
+		write_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+		write_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+		write_setting.delay = reg_setting[4].delay;
+		write_setting.size = 1;
+		write_setting.reg_setting = &reg_setting[4];
+		store_sid = piris_ctrl->io_master_info.cci_client->sid;
+		piris_ctrl->io_master_info.cci_client->sid = 0x98 >> 1;
+		rc = camera_io_dev_write(&piris_ctrl->io_master_info,
+			&write_setting);
+		piris_ctrl->io_master_info.cci_client->sid = store_sid;
+		if (rc < 0) {
+			CAM_ERR(CAM_ACTUATOR, "read/write err");
+		}
+
+		write_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+		write_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+		write_setting.delay = reg_setting[5].delay;
+		write_setting.size = 1;
+		write_setting.reg_setting = &reg_setting[5];
+		store_sid = piris_ctrl->io_master_info.cci_client->sid;
+		piris_ctrl->io_master_info.cci_client->sid = 0x98 >> 1;
+		rc = camera_io_dev_write(&piris_ctrl->io_master_info,
+			&write_setting);
+		piris_ctrl->io_master_info.cci_client->sid = store_sid;
+		if (rc < 0) {
+			CAM_ERR(CAM_ACTUATOR, "read/write err");
+		}
+	}
+
+	if (apertureControl == 4) {
+		write_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+		write_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+		write_setting.delay = reg_setting[6].delay;
+		write_setting.size = 1;
+		write_setting.reg_setting = &reg_setting[6];
+		store_sid = piris_ctrl->io_master_info.cci_client->sid;
+		piris_ctrl->io_master_info.cci_client->sid = 0x98 >> 1;
+		rc = camera_io_dev_write(&piris_ctrl->io_master_info,
+			&write_setting);
+		piris_ctrl->io_master_info.cci_client->sid = store_sid;
+		if (rc < 0) {
+			CAM_ERR(CAM_ACTUATOR, "read/write err");
+		}
+	}
+
+	if (apertureControl == 2 || apertureControl == 3) {
+		store_sid = piris_ctrl->io_master_info.cci_client->sid;
+		piris_ctrl->io_master_info.cci_client->sid = 0x98 >> 1;
+		rc = camera_io_dev_read(&piris_ctrl->io_master_info, 0x84, &cver_check,
+			CAMERA_SENSOR_I2C_TYPE_BYTE, CAMERA_SENSOR_I2C_TYPE_WORD);
+		piris_ctrl->io_master_info.cci_client->sid = store_sid;;
+		if (rc < 0) {
+			CAM_ERR(CAM_ACTUATOR, "read/write err");
+		} else {
+			vendor_cap->get_hall_value = cver_check;
+			CAM_ERR(CAM_ACTUATOR, "cver_check calc :%d", vendor_cap->get_hall_value);
+		}
+	}
+	return rc;
+}
+#endif
 static int32_t cam_actuator_power_down(struct cam_actuator_ctrl_t *a_ctrl)
 {
 	int32_t rc = 0;
@@ -564,6 +932,13 @@ int32_t cam_actuator_i2c_pkt_parse(struct cam_actuator_ctrl_t *a_ctrl,
 				return rc;
 			}
 			a_ctrl->cam_act_state = CAM_ACTUATOR_CONFIG;
+			#ifdef CONFIG_VENDOR_REALME
+			/*Added by Zhengrong.Zhang@Cam.Drv, 2018/11/08, for update ak7374 PID*/
+			if (is_project(OPPO_18181) && a_ctrl->is_check_firmware_update && a_ctrl->soc_info.index == 0) {
+				cam_actuator_write_firmware_ak7374(a_ctrl);
+				a_ctrl->is_check_firmware_update = 0;
+			}
+			#endif
 		}
 
 		rc = cam_actuator_apply_settings(a_ctrl,
@@ -882,6 +1257,24 @@ int32_t cam_actuator_driver_cmd(struct cam_actuator_ctrl_t *a_ctrl,
 		}
 	}
 		break;
+#ifdef CONFIG_VENDOR_REALME
+/*Modified by Yingpiao.Lin@Cam.Drv, 20180717, for iris flow*/
+	case CAM_VENDOR_DATA: {
+		struct cam_iris_setting vendor_cap;
+		rc = copy_from_user(&vendor_cap,
+			(void __user *) cmd->handle,
+			sizeof(struct cam_iris_setting));
+		if (rc < 0) {
+			CAM_ERR(CAM_ACTUATOR, "Failed Copy from User");
+		}
+		actuator_iris_control(a_ctrl, &vendor_cap);
+		if (copy_to_user((void __user *) cmd->handle, &vendor_cap,
+			sizeof(struct cam_iris_setting))) {
+			CAM_ERR(CAM_ACTUATOR, "Failed Copy to User");
+		}
+	}
+		break;
+#endif
 	default:
 		CAM_ERR(CAM_ACTUATOR, "Invalid Opcode %d", cmd->op_code);
 	}

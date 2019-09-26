@@ -166,10 +166,19 @@ int32_t cam_cci_i2c_write_continuous_table(
 	return rc;
 }
 
+#ifndef VENDOR_EDIT
+/*Jinshui.Liu@Camera.Driver, 2018/03/21, modify for [add register read debug]*/
 static int32_t cam_cci_i2c_compare(struct cam_sensor_cci_client *client,
 	uint32_t addr, uint16_t data, uint16_t data_mask,
 	enum camera_sensor_i2c_type data_type,
 	enum camera_sensor_i2c_type addr_type)
+#else
+static int32_t cam_cci_i2c_compare(struct cam_sensor_cci_client *client,
+	uint32_t addr, uint16_t data, uint16_t data_mask,
+	enum camera_sensor_i2c_type data_type,
+	enum camera_sensor_i2c_type addr_type,
+	uint32_t *read_data)
+#endif
 {
 	int32_t rc;
 	uint32_t reg_data = 0;
@@ -180,6 +189,10 @@ static int32_t cam_cci_i2c_compare(struct cam_sensor_cci_client *client,
 		return rc;
 
 	reg_data = reg_data & 0xFFFF;
+#ifdef VENDOR_EDIT
+	/*Jinshui.Liu@Camera.Driver, 2018/03/21, add for [add register read debug]*/
+	*read_data = reg_data;
+#endif
 	if (data == (reg_data & ~data_mask))
 		return I2C_COMPARE_MATCH;
 	return I2C_COMPARE_MISMATCH;
@@ -193,6 +206,10 @@ int32_t cam_cci_i2c_poll(struct cam_sensor_cci_client *client,
 {
 	int32_t rc = -EINVAL;
 	int32_t i = 0;
+#ifdef VENDOR_EDIT
+	/*Jinshui.Liu@Camera.Driver, 2018/03/21, add for [add register read debug]*/
+	uint32_t read_data = 0;
+#endif
 
 	CAM_DBG(CAM_SENSOR, "addr: 0x%x data: 0x%x dt: %d",
 		addr, data, data_type);
@@ -203,8 +220,14 @@ int32_t cam_cci_i2c_poll(struct cam_sensor_cci_client *client,
 		return -EINVAL;
 	}
 	for (i = 0; i < delay_ms; i++) {
+#ifndef VENDOR_EDIT
+		/*Jinshui.Liu@Camera.Driver, 2018/03/21, modify for [add register read debug]*/
 		rc = cam_cci_i2c_compare(client,
 			addr, data, data_mask, data_type, addr_type);
+#else
+		rc = cam_cci_i2c_compare(client,
+			addr, data, data_mask, data_type, addr_type, &read_data);
+#endif
 		if (!rc)
 			return rc;
 
@@ -212,11 +235,20 @@ int32_t cam_cci_i2c_poll(struct cam_sensor_cci_client *client,
 	}
 
 	/* If rc is 1 then read is successful but poll is failure */
+#ifndef VENDOR_EDIT
+	/*Jinshui.Liu@Camera.Driver, 2018/03/21, modify for [add register read debug]*/
 	if (rc == 1)
 		CAM_ERR(CAM_SENSOR, "poll failed rc=%d(non-fatal)",	rc);
 
 	if (rc < 0)
 		CAM_ERR(CAM_SENSOR, "poll failed rc=%d", rc);
+#else
+	if (rc == 1)
+		CAM_ERR(CAM_SENSOR, "poll failed rc=%d(non-fatal) 0x%x 0x%x, read value 0x%x", rc, addr, data, read_data);
+
+	if (rc < 0)
+		CAM_ERR(CAM_SENSOR, "poll failed rc=%d 0x%x 0x%x,read value 0x%x", rc, addr, data, read_data);
+#endif
 
 	return rc;
 }

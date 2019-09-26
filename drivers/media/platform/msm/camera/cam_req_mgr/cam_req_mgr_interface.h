@@ -190,6 +190,10 @@ enum cam_req_mgr_link_evt_type {
 	CAM_REQ_MGR_LINK_EVT_RESUME,
 	CAM_REQ_MGR_LINK_EVT_SOF_FREEZE,
 	CAM_REQ_MGR_LINK_EVT_MAX,
+	#ifdef VENDOR_EDIT
+	/*add by hongbo.dai@camera, 20180627 for hwsync*/
+	CAM_REQ_MGR_SYNC_SKIP_REQ,
+	#endif
 };
 
 /**

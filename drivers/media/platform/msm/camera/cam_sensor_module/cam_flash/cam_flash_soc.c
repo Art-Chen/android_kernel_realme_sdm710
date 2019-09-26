@@ -206,6 +206,16 @@ int cam_flash_get_dt_data(struct cam_flash_ctrl *fctrl,
 		CAM_ERR(CAM_FLASH, "Get_dt_properties failed rc %d", rc);
 		goto free_soc_private;
 	}
+	
+	#ifdef CONFIG_VENDOR_REALME
+	/*Add by Zhengrong.Zhang@Camera 20160630 for flash*/
+	rc = of_property_read_string(of_node, "qcom,flash-name",
+		&fctrl->flash_name);
+	if (rc < 0) {
+		pr_err("get flash_name failed rc %d\n", rc);
+	}
+	#endif
+
 
 	rc = cam_get_source_node_info(of_node, fctrl, soc_info->soc_private);
 	if (rc) {

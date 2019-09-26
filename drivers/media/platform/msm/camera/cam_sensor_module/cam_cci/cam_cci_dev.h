@@ -67,7 +67,12 @@
 /* Max bytes that can be read per CCI read transaction */
 #define CCI_READ_MAX 256
 #define CCI_I2C_READ_MAX_RETRIES 3
+#ifndef VENDOR_EDIT
 #define CCI_I2C_MAX_READ 8192
+#else
+//add by yufeng@camera, 20190211 for backup eeprom data
+#define CCI_I2C_MAX_READ 16384
+#endif
 #define CCI_I2C_MAX_WRITE 8192
 #define CCI_I2C_MAX_BYTE_COUNT 65535
 
@@ -204,6 +209,10 @@ struct cci_device {
 	struct cam_hw_soc_info soc_info;
 	uint32_t hw_version;
 	uint8_t ref_count;
+	#ifdef VENDOR_EDIT
+	/*Added by houyujun@Camera 20180616 for cci sync*/
+	struct mutex cci_lock;
+	#endif
 	enum cam_cci_state_t cci_state;
 	struct cam_cci_i2c_queue_info
 		cci_i2c_queue_info[NUM_MASTERS][NUM_QUEUES];
