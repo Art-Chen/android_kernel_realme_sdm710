@@ -26,7 +26,7 @@
 #define I2C_COMPARE_MATCH 0
 #define I2C_COMPARE_MISMATCH 1
 
-#ifndef VENDOR_EDIT
+#ifndef CONFIG_VENDOR_REALME
 #define I2C_REG_DATA_MAX       (8*1024)
 #else
 //add by yufeng@camera, 20190211 for backup eeprom data

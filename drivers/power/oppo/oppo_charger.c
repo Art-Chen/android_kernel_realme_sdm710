@@ -1,6 +1,6 @@
 /**********************************************************************************
 * Copyright (c)  2008-2015  Guangdong OPPO Mobile Comm Corp., Ltd
-* VENDOR_EDIT
+* CONFIG_VENDOR_REALME
 * Description: Charger IC management module for charger system framework.
 *                          Manage all charger IC and define abstarct function flow.
 * Version   : 1.0
@@ -1398,11 +1398,11 @@ static void oppo_chg_vfloat_over_check(struct oppo_chg_chip *chip)
 		if (oppo_vooc_get_fastchg_ing() == true) {
 				return;
 		}
-		#ifdef VENDOR_EDIT/* OuYangBaiLi@BSP.CHG.Basic, 2019/03/15,Add for charging */
+		#ifdef CONFIG_VENDOR_REALME/* OuYangBaiLi@BSP.CHG.Basic, 2019/03/15,Add for charging */
 		if(!(chip->total_time%60)){
 			chip->chg_ops->float_voltage_write(chip->limits.vfloat_sw_set * chip->vbatt_num);
 		}
-		#endif /* VENDOR_EDIT */
+		#endif /* CONFIG_VENDOR_REALME */
 		//if (!((oppo_vooc_get_fastchg_to_normal()== true) || (oppo_vooc_get_fastchg_to_warm() == true))) {
 
 			if(chip->limits.sw_vfloat_over_protect_enable) {
@@ -2220,13 +2220,13 @@ static void oppo_chg_get_battery_data(struct oppo_chg_chip *chip)
         static int soc_load = 0;
         int remain_100_thresh = 97;
         static int retry_counts = 0;
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 //OuYangBaiLi@BSP.POWER.Basic 2019/01/04 modify for engineermode charge
 		if(!chip->authenticate){
 			chip->authenticate = oppo_gauge_get_batt_authenticate();
 			pr_err("%s: battery authenticate =%d \n", __func__,chip->authenticate);
 		}
-#endif /* VENDOR_EDIT */
+#endif /* CONFIG_VENDOR_REALME */
         if (oppo_vooc_get_fastchg_started() == true) {
                 chip->batt_volt = oppo_gauge_get_prev_batt_mvolts();
                 chip->batt_volt_max = oppo_gauge_get_prev_batt_mvolts_2cell_max();

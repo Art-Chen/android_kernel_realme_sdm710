@@ -1,6 +1,6 @@
 /************************************************************************************
 ** File: - fingerprints_hal\drivers\goodix_fp\gf_spi_tee.c
-** VENDOR_EDIT
+** CONFIG_VENDOR_REALME
 ** Copyright (C), 2008-2016, OPPO Mobile Comm Corp., Ltd
 **
 ** Description:

@@ -1312,7 +1312,7 @@ static void ufs_qcom_dev_ref_clk_ctrl(struct ufs_qcom_host *host, bool enable)
 		 * hibern8 enter for pre UFS3.0 devices
 		 */
 		if (!enable)
-#ifndef VENDOR_EDIT
+#ifndef CONFIG_VENDOR_REALME
 //yh@PSW.BSP.Storage.UFS, 2019-03-09, Add for merge CR:2337239 patch
 			udelay(1);
 #else
@@ -1329,7 +1329,7 @@ static void ufs_qcom_dev_ref_clk_ctrl(struct ufs_qcom_host *host, bool enable)
 		 * device ref_clk is stable for a given time before the hibern8
 		 * exit command.
 		 */
-#ifndef VENDOR_EDIT
+#ifndef CONFIG_VENDOR_REALME
 //yh@PSW.BSP.Storage.UFS, 2019-03-09, Add for merge CR:2379411 patch
 		if (enable)
 			udelay(1);

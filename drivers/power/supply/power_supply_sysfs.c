@@ -196,7 +196,7 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(voocchg_ing),
 	POWER_SUPPLY_ATTR(chargerid_volt),
 	POWER_SUPPLY_ATTR(ship_mode),
-#endif  /* VENDOR_EDIT */
+#endif  /* CONFIG_VENDOR_REALME */
 	POWER_SUPPLY_ATTR(status),
 	POWER_SUPPLY_ATTR(charge_type),
 	POWER_SUPPLY_ATTR(health),

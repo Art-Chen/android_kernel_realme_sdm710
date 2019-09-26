@@ -676,7 +676,7 @@ void oppo_set_fg_device_type(int device_type)
 EXPORT_SYMBOL(oppo_set_fg_device_type);
 
 
-#endif /*VENDOR_EDIT*/
+#endif /*CONFIG_VENDOR_REALME*/
 
 static int geni_i2c_xfer(struct i2c_adapter *adap,
 			 struct i2c_msg msgs[],

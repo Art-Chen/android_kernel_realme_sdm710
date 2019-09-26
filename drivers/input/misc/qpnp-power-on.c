@@ -2158,7 +2158,7 @@ static int pon_register_twm_notifier(struct qpnp_pon *pon)
 extern char pon_reason[];
 extern char poff_reason[];
 int preason_initialized;
-#endif /*VENDOR_EDIT*/
+#endif /*CONFIG_VENDOR_REALME*/
 
 static int qpnp_pon_probe(struct platform_device *pdev)
 {
@@ -2307,7 +2307,7 @@ static int qpnp_pon_probe(struct platform_device *pdev)
 			snprintf(pon_reason, 128, "Unable to read PON_RESASON1 reg rc: %d\n", rc);
 			preason_initialized = 1;
 		}
-#endif /*VENDOR_EDIT*/
+#endif /*CONFIG_VENDOR_REALME*/
 		goto err_out;
 	}
 
@@ -2319,7 +2319,7 @@ static int qpnp_pon_probe(struct platform_device *pdev)
 /* fanhui@PhoneSW.BSP, 2016/05/18, when KPDPWR_N is set it is PWK start*/
 	if (pon_sts & 0x80)
 		index = 7;
-#endif /*VENDOR_EDIT*/
+#endif /*CONFIG_VENDOR_REALME*/
 	cold_boot = !qpnp_pon_is_warm_reset();
 	if (index >= ARRAY_SIZE(qpnp_pon_reason) || index < 0) {
 		dev_info(&pon->pdev->dev,
@@ -2330,7 +2330,7 @@ static int qpnp_pon_probe(struct platform_device *pdev)
 /* fanhui@PhoneSW.BSP, 2016/05/16, interface to read PMIC reg PON_REASON and POFF_REASON */
 		if (!preason_initialized)
 			snprintf(pon_reason, 128, "Unknown[0x%02X] and '%s' boot\n", pon_sts, cold_boot ? "cold" : "warm");
-#endif /*VENDOR_EDIT*/
+#endif /*CONFIG_VENDOR_REALME*/
 	} else {
 		pon->pon_trigger_reason = index;
 		dev_info(&pon->pdev->dev,
@@ -2343,7 +2343,7 @@ static int qpnp_pon_probe(struct platform_device *pdev)
 		if (!preason_initialized)
 			snprintf(pon_reason, 128, "[0x%02X]%s and '%s' boot\n", pon_sts,
 				qpnp_pon_reason[index],	cold_boot ? "cold" : "warm");
-#endif /*VENDOR_EDIT*/
+#endif /*CONFIG_VENDOR_REALME*/
 	}
 
 	/* POFF reason */
@@ -2364,7 +2364,7 @@ static int qpnp_pon_probe(struct platform_device *pdev)
 				snprintf(poff_reason, 128, "Unable to read POFF_RESASON regs rc:%d\n", rc);
 				preason_initialized = 1;
 			}
-#endif /*VENDOR_EDIT*/
+#endif /*CONFIG_VENDOR_REALME*/
 			goto err_out;
 		}
 		poff_sts = buf[0] | (buf[1] << 8);
@@ -2380,7 +2380,7 @@ static int qpnp_pon_probe(struct platform_device *pdev)
 			snprintf(poff_reason, 128, "Unknown[0x%04X]\n", poff_sts);
 			preason_initialized = 1;
 		}
-#endif /*VENDOR_EDIT*/
+#endif /*CONFIG_VENDOR_REALME*/
 	} else {
 		pon->pon_power_off_reason = index;
 		dev_info(&pon->pdev->dev,
@@ -2393,7 +2393,7 @@ static int qpnp_pon_probe(struct platform_device *pdev)
 			snprintf(poff_reason, 128, "[0x%04X]%s\n", poff_sts, qpnp_poff_reason[index]);
 			preason_initialized = 1;
 		}
-#endif /*VENDOR_EDIT*/
+#endif /*CONFIG_VENDOR_REALME*/
 	}
 
 	if (pon->pon_trigger_reason == PON_SMPL ||

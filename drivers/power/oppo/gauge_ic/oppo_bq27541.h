@@ -1,6 +1,6 @@
 /************************************************************************************
 ** File:  \\192.168.144.3\Linux_Share\12015\ics2\development\mediatek\custom\oppo77_12015\kernel\battery\battery
-** VENDOR_EDIT
+** CONFIG_VENDOR_REALME
 ** Copyright (C), 2008-2012, OPPO Mobile Comm Corp., Ltd
 **
 ** Description:
@@ -353,10 +353,10 @@ struct chip_bq27541 {
         int                         opchg_reset_gpio;
         int                         opchg_clock_gpio;
         int                         opchg_data_gpio;
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 //OuYangBaiLi@BSP.CHG.Basic 2018/12/21 modify for vooc charge and normal charge compatibility
         int                         bq27541_i2c_error;
-#endif /* VENDOR_EDIT */
+#endif /* CONFIG_VENDOR_REALME */
         struct pinctrl              *pinctrl;
         struct pinctrl_state        *gpio_switch1_act_switch2_act;
         struct pinctrl_state        *gpio_switch1_sleep_switch2_sleep;

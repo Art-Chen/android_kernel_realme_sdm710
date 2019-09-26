@@ -1,5 +1,5 @@
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 #Added by Tong.han@Bsp.group.Tp for synaptics ic driver
 
 #config TOUCHPANEL_OPPO

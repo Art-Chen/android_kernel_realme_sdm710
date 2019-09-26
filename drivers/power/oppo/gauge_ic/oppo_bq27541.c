@@ -1,6 +1,6 @@
 /************************************************************************************
 ** File:  \\192.168.144.3\Linux_Share\12015\ics2\development\mediatek\custom\oppo77_12015\kernel\battery\battery
-** VENDOR_EDIT
+** CONFIG_VENDOR_REALME
 ** Copyright (C), 2008-2012, OPPO Mobile Comm Corp., Ltd
 **
 ** Description:
@@ -1644,7 +1644,7 @@ bool oppo_gauge_ic_chip_is_null(void)
                 return false;
         }
 }
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 //OuYangBaiLi@BSP.CHG.Basic 2018/12/21 modify for vooc charge and normal charge compatibility
 int bq27541_i2c_check(void)
 {
@@ -1652,17 +1652,17 @@ int bq27541_i2c_check(void)
 	return gauge_ic->bq27541_i2c_error;
 }
 EXPORT_SYMBOL(bq27541_i2c_check);
-#endif /* VENDOR_EDIT */
+#endif /* CONFIG_VENDOR_REALME */
 static int bq27541_driver_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
         struct chip_bq27541 *fg_ic;
         struct oppo_gauge_chip        *chip;
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 //OuYangBaiLi@BSP.CHG.Basic 2018/12/21 modify for vooc charge and normal charge compatibility
 		int temp;
 		unsigned char pcb_version = get_PCB_Version();
 		pr_err("%s:get_PCB_Version, pcb_version:%d\n", __func__,pcb_version);
-#endif /* VENDOR_EDIT */
+#endif /* CONFIG_VENDOR_REALME */
         fg_ic = kzalloc(sizeof(*fg_ic), GFP_KERNEL);
         if (!fg_ic) {
                 dev_err(&client->dev, "failed to allocate device info data\n");
@@ -1676,12 +1676,12 @@ static int bq27541_driver_probe(struct i2c_client *client, const struct i2c_devi
 		gauge_ic = fg_ic;
         bq27541_parse_dt(fg_ic);
         bq27541_hw_config(fg_ic);
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 //OuYangBaiLi@BSP.CHG.Basic 2018/12/21 modify for vooc charge and normal charge compatibility
 		gauge_ic->bq27541_i2c_error = 0;
 		gauge_ic->bq27541_i2c_error = bq27541_read_i2c(gauge_ic->cmd_addr.reg_temp, &temp);
 		pr_err("%s:bq27541_read_i2c temp = %d\n", __func__,temp);
-#endif /* VENDOR_EDIT */
+#endif /* CONFIG_VENDOR_REALME */
 /*
         INIT_DELAYED_WORK(&fg_ic->hw_config, bq27541_hw_config);
         schedule_delayed_work(&fg_ic->hw_config, 0);
@@ -1714,7 +1714,7 @@ static int bq27541_driver_probe(struct i2c_client *client, const struct i2c_devi
         chip->gauge_ops = &bq27541_gauge_ops;
         chip->device_type = gauge_ic->device_type;
         chip->device_type_for_vooc = gauge_ic->device_type_for_vooc;
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 //OuYangBaiLi@BSP.CHG.Basic 2018/12/21 modify for vooc charge and normal charge compatibility
         register_gauge_devinfo(fg_ic);
 		if(gauge_ic->bq27541_i2c_error&&(pcb_version < 4)){
@@ -1727,7 +1727,7 @@ static int bq27541_driver_probe(struct i2c_client *client, const struct i2c_devi
 #else
         oppo_gauge_init(chip);
         register_gauge_devinfo(fg_ic);
-#endif /* VENDOR_EDIT */
+#endif /* CONFIG_VENDOR_REALME */
         chg_debug(" success\n");
         return 0;
 }
@@ -1772,7 +1772,7 @@ static struct i2c_driver bq27541_i2c_driver = {
         i2c_del_driver(&bq27541_i2c_driver);
 }*/
 /*----------------------------------------------------------------------------*/
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 //OuYangBaiLi@BSP.CHG.Basic 2018/12/21 modify for vooc charge and normal charge compatibility
 static int __init bq27541_i2c_init(void)
 {
@@ -1786,6 +1786,6 @@ static void __exit bq27541_i2c_exit(void)
 module_exit(bq27541_i2c_exit);
 #else
 module_i2c_driver(bq27541_i2c_driver);
-#endif /* VENDOR_EDIT */
+#endif /* CONFIG_VENDOR_REALME */
 MODULE_DESCRIPTION("Driver for bq27541 charger chip");
 MODULE_LICENSE("GPL v2");

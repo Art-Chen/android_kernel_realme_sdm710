@@ -1,6 +1,6 @@
 /***************************************************************
 ** Copyright (C),  2018,  OPPO Mobile Comm Corp.,  Ltd
-** VENDOR_EDIT
+** CONFIG_VENDOR_REALME
 ** File : dsi_oppo_support.c
 ** Description : display driver private management
 ** Version : 1.0
@@ -22,10 +22,10 @@
 static enum oppo_display_support_list  oppo_display_vendor = OPPO_17107_SAMSUNG_DISPLAY_FHD_DSC_CMD_PANEL;
 static enum oppo_display_power_status oppo_display_status = OPPO_DISPLAY_POWER_OFF;
 static enum oppo_display_scene oppo_siaplay_save_scene = OPPO_DISPLAY_NORMAL_SCENE;
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*LiPing-M@PSW.MM.Display.LCD.Stable,2019-1-10 add for panel id*/
 extern int oppo_panel_id;
-#endif /* VENDOR_EDIT */
+#endif /* CONFIG_VENDOR_REALME */
 
 static BLOCKING_NOTIFIER_HEAD(oppo_display_notifier_list);
 

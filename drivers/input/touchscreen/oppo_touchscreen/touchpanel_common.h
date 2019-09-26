@@ -1,6 +1,6 @@
 /**************************************************************
  * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.£¬
- * VENDOR_EDIT
+ * CONFIG_VENDOR_REALME
  * File       : touchpanel_common_driver.c
  * Description: Source file for Touch common driver
  * Version   : 1.0

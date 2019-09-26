@@ -1,6 +1,6 @@
 /***************************************************
  * File:synaptics_drivers_s3508.h
- * VENDOR_EDIT
+ * CONFIG_VENDOR_REALME
  * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
  * Description:
  *                         synaptics s3508 driver

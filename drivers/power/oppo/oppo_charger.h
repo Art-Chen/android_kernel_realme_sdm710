@@ -1,6 +1,6 @@
 /**********************************************************************************
 * Copyright (c)  2008-2015  Guangdong OPPO Mobile Comm Corp., Ltd
-* VENDOR_EDIT
+* CONFIG_VENDOR_REALME
 * Description: Charger IC management module for charger system framework.
 *                  Manage all charger IC and define abstarct function flow.
 * Version   : 1.0

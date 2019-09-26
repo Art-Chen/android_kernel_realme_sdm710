@@ -1,6 +1,6 @@
 /************************************************************************************
 ** Copyright (C), 2008-2017, OPPO Mobile Comm Corp., Ltd
-** VENDOR_EDIT
+** CONFIG_VENDOR_REALME
 ** File: oppo_drv8834.h
 **
 ** Description:

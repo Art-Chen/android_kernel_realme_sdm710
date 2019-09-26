@@ -1,6 +1,6 @@
 /************************************************************************************
  ** File: - vendor/fingerprint/goodix/gf_hal/gf_queue.c
- ** VENDOR_EDIT
+ ** CONFIG_VENDOR_REALME
  ** Copyright (C), 2008-2018, OPPO Mobile Comm Corp., Ltd
  **
  ** Description:

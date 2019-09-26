@@ -1,6 +1,6 @@
 /***************************************************************
 ** Copyright (C),  2018,  OPPO Mobile Comm Corp.,  Ltd
-** VENDOR_EDIT
+** CONFIG_VENDOR_REALME
 ** File : oppo_display_private_api.h
 ** Description : oppo display private api implement
 ** Version : 1.0

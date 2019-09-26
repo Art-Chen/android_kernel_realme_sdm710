@@ -1,6 +1,6 @@
 /************************************************************************************
 ** File:  \\192.168.144.3\Linux_Share\12015\ics2\development\mediatek\custom\oppo77_12015\kernel\battery\battery
-** VENDOR_EDIT
+** CONFIG_VENDOR_REALME
 ** Copyright (C), 2008-2012, OPPO Mobile Comm Corp., Ltd
 **
 ** Description:
@@ -66,11 +66,11 @@
 #include <soc/oppo/device_info.h>
 #endif
 #include "oppo_vooc_fw.h"
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 //OuYangBaiLi@BSP.CHG.Basic 2018/12/21 modify for vooc charge and normal charge compatibility
 #include "../gauge_ic/oppo_bq27541.h"
 extern int bq27541_i2c_check(void);
-#endif /* VENDOR_EDIT */
+#endif /* CONFIG_VENDOR_REALME */
 
 #if defined(CONFIG_OPPO_CHARGER_MTK6763) || defined(CONFIG_OPPO_CHARGER_MTK6771)
 #define I2C_MASK_FLAG	(0x00ff)
@@ -678,7 +678,7 @@ static int init_proc_vooc_fw_check(void)
 static int stm8s_driver_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
         struct oppo_vooc_chip *chip;
-		#ifdef VENDOR_EDIT
+		#ifdef CONFIG_VENDOR_REALME
 		//OuYangBaiLi@BSP.CHG.Basic 2018/12/21 modify for vooc charge and normal charge compatibility
 		int ret=0;
 		unsigned char pcb_version = get_PCB_Version();
@@ -689,7 +689,7 @@ static int stm8s_driver_probe(struct i2c_client *client, const struct i2c_device
 			return -ENOMEM;
 		}
 		//chg_err("bq27541_i2c_check pass!\n");
-		#endif /* VENDOR_EDIT */
+		#endif /* CONFIG_VENDOR_REALME */
         chip = devm_kzalloc(&client->dev, sizeof(*chip), GFP_KERNEL);
         if (!chip) {
                 dev_err(&client->dev, "Couldn't allocate memory\n");

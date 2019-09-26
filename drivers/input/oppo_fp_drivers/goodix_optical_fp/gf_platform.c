@@ -1,6 +1,6 @@
 /************************************************************************************
  ** File: - SDM660.LA.1.0\android\vendor\oppo_app\fingerprints_hal\drivers\goodix_fp\gf_platform.c
- ** VENDOR_EDIT
+ ** CONFIG_VENDOR_REALME
  ** Copyright (C), 2008-2017, OPPO Mobile Comm Corp., Ltd
  **
  ** Description:

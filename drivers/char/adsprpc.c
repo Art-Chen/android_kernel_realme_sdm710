@@ -3452,7 +3452,7 @@ static int fastrpc_device_open(struct inode *inode, struct file *filp)
 #ifdef CONFIG_VENDOR_REALME
 	if (buf_size < UL_SIZE)
 		buf_size = UL_SIZE;
-#endif /*VENDOR_EDIT*/
+#endif /*CONFIG_VENDOR_REALME*/
 
 	fl->debug_buf = kzalloc(buf_size, GFP_KERNEL);
 	snprintf(fl->debug_buf, UL_SIZE, "%.10s%s%d",

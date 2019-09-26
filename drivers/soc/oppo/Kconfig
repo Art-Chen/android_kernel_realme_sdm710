@@ -1,4 +1,4 @@
-# ifdef VENDOR_EDIT 
+# ifdef CONFIG_VENDOR_REALME 
 # yixue.ge add for config oppo software common soft
 config OPPO_ARCH_FILE
 	bool "for build directory oppo"

@@ -1,6 +1,6 @@
 /***************************************************
  * File:touch_interfaces.c
- * VENDOR_EDIT
+ * CONFIG_VENDOR_REALME
  * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
  * Description:
  *             Touch interface
