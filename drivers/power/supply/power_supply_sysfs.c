@@ -176,6 +176,27 @@ static ssize_t power_supply_store_property(struct device *dev,
 /* Must be in the same order as POWER_SUPPLY_PROP_* */
 static struct device_attribute power_supply_attrs[] = {
 	/* Properties of type `int' */
+#ifdef CONFIG_VENDOR_REALME
+/* Jianchao,Shi@BSP.CHG.Basic, 2016/12/20, sjc Add for charging */
+	POWER_SUPPLY_ATTR(charge_technology),
+	POWER_SUPPLY_ATTR(fastcharger),
+	POWER_SUPPLY_ATTR(mmi_charging_enable),
+	POWER_SUPPLY_ATTR(otg_switch),
+	POWER_SUPPLY_ATTR(otg_online),
+        POWER_SUPPLY_ATTR(fast_chg_type),
+	POWER_SUPPLY_ATTR(batt_fcc),
+	POWER_SUPPLY_ATTR(batt_soh),
+	POWER_SUPPLY_ATTR(batt_cc),
+	POWER_SUPPLY_ATTR(batt_rm),
+	POWER_SUPPLY_ATTR(batt_soc),
+	POWER_SUPPLY_ATTR(authenticate),
+	POWER_SUPPLY_ATTR(charge_timeout),
+	POWER_SUPPLY_ATTR(notify_code),
+	POWER_SUPPLY_ATTR(adapter_fw_update),
+	POWER_SUPPLY_ATTR(voocchg_ing),
+	POWER_SUPPLY_ATTR(chargerid_volt),
+	POWER_SUPPLY_ATTR(ship_mode),
+#endif  /* VENDOR_EDIT */
 	POWER_SUPPLY_ATTR(status),
 	POWER_SUPPLY_ATTR(charge_type),
 	POWER_SUPPLY_ATTR(health),
