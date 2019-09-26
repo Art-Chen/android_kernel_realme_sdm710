@@ -3335,6 +3335,38 @@ static inline void exit_thread(struct task_struct *tsk)
 }
 #endif
 
+#if defined(CONFIG_VENDOR_REALME) && defined(CONFIG_ELSA_STUB)
+//zhoumingjun@Swdp.shanghai, 2017/04/19, add process_event_notifier support
+#define PROCESS_EVENT_CREATE 1
+#define PROCESS_EVENT_EXIT 2
+#define PROCESS_EVENT_UID 3
+#define PROCESS_EVENT_SOCKET 4
+#define PROCESS_EVENT_BINDER 5
+#define PROCESS_EVENT_BINDER_NO_WORK 6
+#define PROCESS_EVENT_SIGNAL_FROZEN 7
+
+#define BINDER_DESCRIPTOR_SIZE	70
+struct process_event_data {
+    pid_t pid;
+    kuid_t uid;
+    kuid_t old_uid;
+    long reason;
+    long reason2;
+    __u32 binder_flag;
+    int freeze_binder_count;
+    char buf[BINDER_DESCRIPTOR_SIZE];
+    void *priv;
+};
+extern int process_event_register_notifier(struct notifier_block *nb);
+extern int process_event_unregister_notifier(struct notifier_block *nb);
+extern int process_event_notifier_call_chain(unsigned long action, struct process_event_data *pe_data);
+
+//zhoumingjun@Swdp.shanghai, 2017/07/06, add process_event_notifier_atomic support
+extern int process_event_register_notifier_atomic(struct notifier_block *nb);
+extern int process_event_unregister_notifier_atomic(struct notifier_block *nb);
+extern int process_event_notifier_call_chain_atomic(unsigned long action, struct process_event_data *pe_data);
+#endif
+
 extern void exit_files(struct task_struct *);
 extern void __cleanup_sighand(struct sighand_struct *);
 
