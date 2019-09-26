@@ -193,9 +193,6 @@ else
 		sxr1130-qrd-overlay.dtbo
 endif
 
-ifdef CONFIG_VENDOR_REALME
-sdm710-pm660a-mtp-overlay.dtbo-base := sdm710.dtb
-endif
 sdm670-cdp-overlay.dtbo-base := sdm670.dtb
 sdm670-mtp-overlay.dtbo-base := sdm670.dtb
 sdm670-rumi-overlay.dtbo-base := sdm670.dtb
@@ -344,6 +341,7 @@ dtb-$(CONFIG_ARCH_SDM670) += sdm670-rumi.dtb \
 	sxr1130-usbc-mtp.dtb \
 	sxr1130-usbc-pm660a-mtp.dtb \
 	sxr1130-qrd.dtb
+endif
 endif
 
 ifeq ($(CONFIG_BUILD_ARM64_DT_OVERLAY),y)
