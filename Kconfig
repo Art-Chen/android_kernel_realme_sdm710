@@ -8,4 +8,9 @@ config SRCARCH
 	string
 	option env="SRCARCH"
 
+config VENDOR_REALME
+	bool "REALME support"
+	help
+	  This feature enables Realme specific hacks
+
 source "arch/$SRCARCH/Kconfig"
