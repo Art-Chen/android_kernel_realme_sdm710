@@ -49,6 +49,10 @@
 #include "ufs-debugfs.h"
 #include "ufs-qcom.h"
 
+#ifdef VENDOR_EDIT
+//zhenjian Jiang@PSW.BSP.Storage.UFS, 2018-05-04 add for ufs device in /proc/devinfo 
+#include <soc/oppo/device_info.h>
+#endif
 #define CREATE_TRACE_POINTS
 #include <trace/events/ufs.h>
 

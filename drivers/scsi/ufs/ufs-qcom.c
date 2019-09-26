@@ -1312,7 +1312,12 @@ static void ufs_qcom_dev_ref_clk_ctrl(struct ufs_qcom_host *host, bool enable)
 		 * hibern8 enter for pre UFS3.0 devices
 		 */
 		if (!enable)
+#ifndef VENDOR_EDIT
+//yh@PSW.BSP.Storage.UFS, 2019-03-09, Add for merge CR:2337239 patch
+			udelay(1);
+#else
 			udelay(host->hba->dev_ref_clk_gating_wait);
+#endif
 
 		writel_relaxed(temp, host->dev_ref_clk_ctrl_mmio);
 
@@ -1324,6 +1329,11 @@ static void ufs_qcom_dev_ref_clk_ctrl(struct ufs_qcom_host *host, bool enable)
 		 * device ref_clk is stable for a given time before the hibern8
 		 * exit command.
 		 */
+#ifndef VENDOR_EDIT
+//yh@PSW.BSP.Storage.UFS, 2019-03-09, Add for merge CR:2379411 patch
+		if (enable)
+			udelay(1);
+#else
 		if (enable) {
 			if (host->hba->dev_info.quirks &
 			    UFS_DEVICE_QUIRK_WAIT_AFTER_REF_CLK_UNGATE)
@@ -1331,6 +1341,7 @@ static void ufs_qcom_dev_ref_clk_ctrl(struct ufs_qcom_host *host, bool enable)
 			else
 				udelay(1);
 		}
+#endif
 
 		host->is_dev_ref_clk_enabled = enable;
 	}
