@@ -1454,7 +1454,12 @@ static void _sde_encoder_update_vsync_source(struct sde_encoder_virt *sde_enc,
 	struct msm_mode_info mode_info;
 	int i, rc = 0;
 
+	#ifndef CONFIG_VENDOR_REALME
+	/*LiPing-m@PSW.MM.Display.LCD.Stable,2018-10-16 fix null pointer error */
+	if (!sde_enc || !disp_info) {
+	#else
 	if (!sde_enc || !sde_enc->cur_master || !disp_info) {
+	#endif /* CONFIG_VENDOR_REALME */
 		SDE_ERROR("invalid param sde_enc:%d or disp_info:%d\n",
 					sde_enc != NULL, disp_info != NULL);
 		return;
@@ -3909,6 +3914,10 @@ int sde_encoder_poll_line_counts(struct drm_encoder *drm_enc)
 	return -ETIMEDOUT;
 }
 
+#ifdef CONFIG_VENDOR_REALME
+/*Liping-m@PSW.MM.Display.LCD.Stable,2019-04-26 add for dc backlight */
+extern int sde_connector_update_backlight(struct drm_connector *conn);
+#endif /* CONFIG_VENDOR_REALME */
 int sde_encoder_prepare_for_kickoff(struct drm_encoder *drm_enc,
 		struct sde_encoder_kickoff_params *params)
 {
@@ -3940,6 +3949,11 @@ int sde_encoder_prepare_for_kickoff(struct drm_encoder *drm_enc,
 	else
 		ln_cnt1 = -EINVAL;
 
+#ifdef CONFIG_VENDOR_REALME
+/*Liping-m@PSW.MM.Display.LCD.Stable,2019-04-26 add for dc backlight */
+	if (sde_enc->cur_master)
+		sde_connector_update_backlight(sde_enc->cur_master->connector);
+#endif /* CONFIG_VENDOR_REALME */
 	/* prepare for next kickoff, may include waiting on previous kickoff */
 	SDE_ATRACE_BEGIN("enc_prepare_for_kickoff");
 	for (i = 0; i < sde_enc->num_phys_encs; i++) {
