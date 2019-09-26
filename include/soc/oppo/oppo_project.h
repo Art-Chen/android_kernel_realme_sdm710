@@ -61,7 +61,7 @@ enum OPPO_OPERATOR {
         OPERATOR_CHINA_UNICOM              = 3,
         OPERATOR_CHINA_TELECOM                = 4,
         OPERATOR_FOREIGN                             = 5,
-/*#ifdef VENDOR_EDIT*/
+/*#ifdef CONFIG_VENDOR_REALME*/
 /*TongJing.Shi@EXP.DataComm.Phone, 2014.04.18, Add for exp just 3G no 4G*/
         OPERATOR_FOREIGN_WCDMA         = 6,   /*qifeng.liu 2014.08.07 FOR MAC*/
         OPERATOR_FOREIGN_RESERVED   = 7,    /*shaoming 2014/10/04 add for 14085's dual sim version*/

@@ -38,6 +38,15 @@
 #include "sde_power_handle.h"
 #include "sde_core_perf.h"
 #include "sde_trace.h"
+#ifdef CONFIG_VENDOR_REALME
+/*liping-m@PSW.MM.Display.Lcd.Stability, 2018/9/26,add for drm notifier for display connect*/
+#include <linux/msm_drm_notify.h>
+#include <linux/notifier.h>
+#include <linux/dsi_oppo_support.h>
+extern int msm_drm_notifier_call_chain(unsigned long val, void *v);
+int oppo_underbrightness_alpha = 0;
+#endif
+
 
 #define SDE_PSTATES_MAX (SDE_STAGE_MAX * 4)
 #define SDE_MULTIRECT_PLANE_MAX (SDE_STAGE_MAX * 2)

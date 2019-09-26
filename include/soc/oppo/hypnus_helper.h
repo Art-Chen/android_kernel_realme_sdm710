@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2016 OPPO, Inc.
- * VENDOR_EDIT :
+ * CONFIG_VENDOR_REALME :
  * Author : Jie Cheng <jie.cheng@oppo.com>
  *
  * This software is licensed under the terms of the GNU General Public

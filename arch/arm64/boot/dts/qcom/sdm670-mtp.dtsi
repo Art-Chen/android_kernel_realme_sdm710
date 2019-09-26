@@ -276,8 +276,6 @@
 	};
 };
 
-/*ifdef CONFIG_VENDOR_REALME*/
-//Added by Tong.han@Bsp.Group.Tp for device-info,2015-4-13
 &tlmm {
 	sub_id1_active: sub_id1_active {
 		mux {
@@ -392,8 +390,9 @@
 	            debounce-interval = <15>;
 	            linux,can-disable;
 	        };
+#endif
 	};
-	/*ifdef CONFIG_VENDOR_REALME*/
+#ifdef CONFIG_VENDOR_REALME
 	//Added by Tong.han@Bsp.Group.Tp for device-info,2015-4-13
 	devinfo {
 		compatible = "oppo-devinfo";
@@ -403,8 +402,6 @@
 		sub_id1-gpio = <&tlmm 96 0>;
 		sub_id2-gpio = <&tlmm 97 0>;
 	};
-	/*endif*/
-	// #ifdef CONFIG_VENDOR_REALME
 	/* luhongyu@Bsp.Fingerprint.Basic 2018-10-30 add for fingerprint */
 	oppo_fp_common { //Slave driver and CS ID
 	        compatible = "oppo,fp_common"; //Manufacture, and Model
@@ -412,14 +409,10 @@
 	        pinctrl-names = "default";
 	        pinctrl-0 = <&gpio_id2_default>;
 	};
-	// #endif CONFIG_VENDOR_REALME
-	// #ifdef CONFIG_VENDOR_REALME
 	/* Ping.Liu@Bsp.Fingerprint.Secure 2018-12-13 add for secure proc */
 	oppo_secure_common {
 		compatible = "oppo,secure_common";
 	};
-	//#endif //CONFIG_VENDOR_REALME
-	// #ifdef CONFIG_VENDOR_REALME
 	/* luhongyu@Bsp.Fingerprint.Basic 2018-10-30 add for fingerprint */
 	goodix_fp {
 		compatible = "goodix,goodix_fp";
@@ -431,9 +424,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&gpio_goodix_irq_default>;
 	};
-	// #endif CONFIG_VENDOR_REALME
 
-        // #ifdef CONFIG_VENDOR_REALME
 	/* Qing.Guan@BSP.Fingerprint.Basic 2019/02/20 add for egis optical fingerprint */
 	egis_fp {
 		compatible = "egis,egis_fp";
@@ -445,9 +436,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&gpio_egis_irq_default>;
 	};
-	// #endif //CONFIG_VENDOR_REALME
 
-        // #ifdef CONFIG_VENDOR_REALME
 	/* luhongyu@Bsp.Fingerprint.Basic 2018-10-30 add for fingerprint */
 	silead_fp {
 		compatible = "sil,silead_fp";

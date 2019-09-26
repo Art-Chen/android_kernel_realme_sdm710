@@ -1,6 +1,6 @@
 /**********************************************************************
 ** Copyright 2008-2013 OPPO Mobile Comm Corp., Ltd, All rights reserved.
-** VENDOR_EDIT :                                                                                             
+** CONFIG_VENDOR_REALME :                                                                                             
 ** File : - SDM660_8.0_LA_2.0\android\kernel\msm-4.4\include\soc\device_info.h
 ** ModuleName:devinfo
 ** Author : wangjc
