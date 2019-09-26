@@ -1564,12 +1564,22 @@ static void subsys_up(struct glink_transport_if *if_ptr)
 	struct edge_info *einfo;
 
 	einfo = container_of(if_ptr, struct edge_info, xprt_if);
+#ifndef CONFIG_VENDOR_REALME
 	einfo->in_ssr = false;
+#endif
 	if (!einfo->rx_fifo) {
 		if (!get_rx_fifo(einfo))
 			return;
+
+#ifdef CONFIG_VENDOR_REALME
+		einfo->in_ssr = false;
+#endif
 		einfo->xprt_if.glink_core_if_ptr->link_up(&einfo->xprt_if);
 	}
+#ifdef CONFIG_VENDOR_REALME
+	else
+		einfo->in_ssr = false;
+#endif
 }
 
 /**
