@@ -37,3 +37,4 @@ ifdef CONFIG_VENDOR_REALME
 obj-y += misc/oppo_seccommon_drivers/
 endif
 
+obj-$(CONFIG_OPPO_FINGERPRINT)  += oppo_fp_drivers/
