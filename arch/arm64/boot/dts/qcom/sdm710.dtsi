@@ -16,7 +16,12 @@
 	model = "Qualcomm Technologies, Inc. SDM710";
 	compatible = "qcom,sdm670";
 	qcom,msm-id =	<360 0x0>,
+#ifdef CONFIG_VENDOR_REALME
+			<393 0x0>,
+			<336 0x0>;
+#else
 			<393 0x0>;
+#endif
 };
 
 &msm_gpu {
