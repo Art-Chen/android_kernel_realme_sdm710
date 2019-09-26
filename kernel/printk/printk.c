@@ -66,7 +66,19 @@ int console_printk[4] = {
 	CONSOLE_LOGLEVEL_MIN,		/* minimum_console_loglevel */
 	CONSOLE_LOGLEVEL_DEFAULT,	/* default_console_loglevel */
 };
+#ifdef CONFIG_VENDOR_REALME
+//Nanwei.Deng@BSP.CHG.Basic 2018/05/01,add for get disable uart value from cmdline
+#if defined(CONFIG_OPPO_DAILY_BUILD) && (!defined(CONFIG_OPPO_SPECIAL_BUILD))
+bool printk_disable_uart = false;
+#else
+bool printk_disable_uart = true;
+#endif
 
+bool oem_get_uartlog_status(void)
+{
+	return !printk_disable_uart;
+}
+#endif /*CONFIG_VENDOR_REALME*/
 /*
  * Low level drivers may need that to know if they can schedule in
  * their unblank() callback or not. So let's export it.
@@ -543,6 +555,20 @@ static int log_store(int facility, int level,
 	u32 size, pad_len;
 	u16 trunc_msg_len = 0;
 
+	#ifdef CONFIG_VENDOR_REALME
+	//part 1/2: yixue.ge 2015-04-22 add for add cpu number and current id and current comm to kmsg
+	int this_cpu = smp_processor_id();
+	char tbuf[64];
+	unsigned tlen;
+
+	if (console_suspended == 0) {
+		tlen = snprintf(tbuf, sizeof(tbuf), " (%x)[%d:%s]",
+			this_cpu, current->pid, current->comm);
+	} else {
+		tlen = snprintf(tbuf, sizeof(tbuf), " %x)", this_cpu);
+	}
+	text_len += tlen;
+	#endif //add end part 1/3
 	/* number of '\0' padding bytes to next message */
 	size = msg_used_size(text_len, dict_len, &pad_len);
 
@@ -567,7 +593,13 @@ static int log_store(int facility, int level,
 
 	/* fill message */
 	msg = (struct printk_log *)(log_buf + log_next_idx);
+	#ifndef CONFIG_VENDOR_REALME
+	//part 2/2: yixue.ge 2015-04-22 add for add cpu number and current id and current comm to kmsg
 	memcpy(log_text(msg), text, text_len);
+	#else
+	memcpy(log_text(msg), tbuf, tlen);
+	memcpy(log_text(msg) + tlen, text, text_len-tlen);
+	#endif //add end part 3/3
 	msg->text_len = text_len;
 	if (trunc_msg_len) {
 		memcpy(log_text(msg) + text_len, trunc_msg, trunc_msg_len);
