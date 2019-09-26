@@ -108,7 +108,7 @@
 		};
 	};
 	// #endif VENDOR_EDIT
-	
+
         //ifdef VENDOR_EDIT
 	/* Qing.Guan@BSP.Fingerprint.Basic, 2019/02/20, add for egis et713 */
 	egis_fp{
@@ -2886,6 +2886,19 @@
 				};
 			};
 
+      shortc_active: shortc_active {
+        mux {
+          pins = "gpio43";
+          function = "gpio";
+        };
+
+        config {
+          pins = "gpio43";
+          drive-strength = <2>;
+          input-enable;
+          bias-pull-up;
+        };
+      };
 
 			vooc_mcu_id_default: vooc_mcu_id_default {
 				mux {

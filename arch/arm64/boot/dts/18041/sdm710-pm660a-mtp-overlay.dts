@@ -42,10 +42,10 @@
 
 / {
  	reserved-memory {
- 		ramoops_mem: ramoops_mem@ac000000 {
+ 		ramoops_mem: ramoops_mem@b5000000 {
  			compatible = "removed-dma-pool";
  			no-map;
- 			reg = <0 0xAC000000 0 0x00200000>;
+ 			reg = <0 0xB5000000 0 0x00200000>;
  			label = "ramoops_mem";
  		};
  	};
