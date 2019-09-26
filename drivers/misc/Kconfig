@@ -812,7 +812,27 @@ config QPNP_MISC
 	  peripheral. The MISC peripheral holds the USB ID interrupt
 	  and the driver provides an API to check if this interrupt
 	  is available on the current PMIC chip.
+ifdef CONFIG_VENDOR_REALME
+config OPPO_TPS6128XD_RF
+	bool "OPPO rf power control system"
+	depends on I2C
+	select REGMAP_I2C
+	default n
+	help
+	  Say Y here to enable OPPO rf power control system support
 
+config OPPO_RF_CABLE_MONITOR
+	bool "OPPO rf cable monitor system"
+	depends on OF
+	select PINMUX
+	default n
+	help
+	  Say Y here to enable OPPO rf cable monitor system support
+
+source "drivers/misc/oppo_motor/Kconfig"
+
+endif
+	  
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
 source "drivers/misc/cb710/Kconfig"
