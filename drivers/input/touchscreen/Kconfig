@@ -1302,9 +1302,7 @@ config TOUCHSCREEN_HIMAX_CHIPSET
           If unsure, say N.
 
 source "drivers/input/touchscreen/hxchipset/Kconfig"
-ifdef CONFIG_VENDOR_REALME
 source "drivers/input/touchscreen/oppo_touchscreen/Kconfig"
-endif
 
 config TOUCHSCREEN_EKTF3XXX_CHIPSET
 	bool "Elan EKTF3XXX touchpanel CHIPSET"

@@ -3,7 +3,6 @@ source "drivers/power/reset/Kconfig"
 source "drivers/power/supply/Kconfig"
 source "drivers/power/qcom/Kconfig"
 
-ifdef CONFIG_VENDOR_REALME
 config OPPO_SDM670P_CHARGER
 	tristate "OPPO SDM670 charger driver"
 	depends on MFD_SPMI_PMIC
@@ -57,4 +56,3 @@ config OPPO_SHORT_USERSPACE
 	help
 	  Say Y to include support
 source "drivers/power/oppo/Kconfig"
-endif
