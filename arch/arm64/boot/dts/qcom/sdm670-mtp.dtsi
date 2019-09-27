@@ -276,6 +276,7 @@
 	};
 };
 
+#ifdef CONFIG_VENDOR_REALME
 &tlmm {
 	sub_id1_active: sub_id1_active {
 		mux {
@@ -326,7 +327,7 @@
 		};
 	};
 };
-//#endif
+#endif
 &soc {
 	gpio_keys {
 		compatible = "gpio-keys";
@@ -610,11 +611,9 @@
 #ifdef CONFIG_VENDOR_REALME
 &qupv3_se10_i2c {
 	status = "okay";
-//#ifdef CONFIG_VENDOR_REALME /* Jianchao.Shi@PSW.BSP.CHG.Basic, 2018/04/05, sjc Add for charging */
 	pinctrl-names = "default", "sleep", "pulldown", "pullup";
 	pinctrl-2 = <&qupv3_se10_i2c_pulldown>;
 	pinctrl-3 = <&qupv3_se10_i2c_pullup>;
-//#endif //CONFIG_VENDOR_REALME
 
 	tps6128xd-rf@75 {
 		status = "okay";
@@ -752,7 +751,7 @@
 	};
 };
 //#endif
-//#ifdef VENDOR_EDIT
+//#ifdef CONFIG_VENDOR_REALME
 //Fei.Mo@PSW.BSP.Sensor 2018-01-11 add for dhall device and motor control
 &qupv3_se4_i2c {
 	status = "okay";
@@ -1013,7 +1012,7 @@
 		};
 	};
 
-//#ifdef VENDOR_EDIT
+//#ifdef CONFIG_VENDOR_REALME
 /* Fuchun.Liao@BSP.CHG.Basic 2018/11/27 modify for rf-cable */
 	rf_cable0_active: rf_cable0_active {
         mux {
@@ -1040,7 +1039,7 @@
             bias-pull-up;
         };
     };
-//#endif /* VENDOR_EDIT */
+//#endif /* CONFIG_VENDOR_REALME */
 
 };
 

@@ -141,7 +141,7 @@
 			compatible = "qcom,leds-qpnp";
 			reg = <0xd000 0x100>;
 			label = "rgb";
-
+#ifndef CONFIG_VENDOR_REALME
 			red_led: qcom,rgb_0 {
 				label = "rgb";
 				qcom,id = <3>;
@@ -159,6 +159,7 @@
 				qcom,use-blink;
 			};
 
+#endif
 			green_led: qcom,rgb_1 {
 				label = "rgb";
 				qcom,id = <4>;
@@ -169,7 +170,7 @@
 				qcom,default-state = "off";
 				linux,name = "green";
 			};
-
+#ifndef CONFIG_VENDOR_REALME
 			blue_led: qcom,rgb_2 {
 				label = "rgb";
 				qcom,id = <5>;
@@ -180,6 +181,7 @@
 				qcom,default-state = "off";
 				linux,name = "blue";
 			};
+#endif
 		};
 
 		flash_led: qcom,leds@d300 {

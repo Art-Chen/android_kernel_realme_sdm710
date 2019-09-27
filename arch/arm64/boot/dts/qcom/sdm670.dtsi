@@ -530,7 +530,7 @@
 			no-map;
 			reg = <0 0x94B00000 0 0x100000>;
 		};
-// #ifdef VENDOR_EDIT 
+// #ifdef CONFIG_VENDOR_REALME 
 // luhongyu@BSP.Fingerprint.Secure 2018/12/26, add for secure dsp
 		pil_cdsp_mem: cdsp_regions@94c00000 {
 			compatible = "removed-dma-pool";
@@ -567,6 +567,12 @@
 			no-map;
 			reg = <0 0x98a15000 0 0x2000>;
 		};
+		qseecom_mem: qseecom_region@0x9e400000 {
+			compatible = "shared-dma-pool";
+			no-map;
+			reg = <0 0x9e400000 0 0x1400000>;
+		};
+
 #else
 		pil_camera_mem: camera_region@8ab00000 {
 			compatible = "removed-dma-pool";
