@@ -4,6 +4,7 @@
 
 #ifndef _DT_BINDINGS_INTERRUPT_CONTROLLER_ARM_GIC_H
 #define _DT_BINDINGS_INTERRUPT_CONTROLLER_ARM_GIC_H
+#define CONFIG_VENDOR_REALME
 
 #include <dt-bindings/interrupt-controller/irq.h>
 
