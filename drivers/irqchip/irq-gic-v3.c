@@ -44,6 +44,17 @@
 
 #include "irq-gic-common.h"
 
+#ifdef CONFIG_VENDOR_REALME
+//liuhd@PSW.CN.WiFi.Hardware.1202765,2017/12/10,add for the irq of wlan when system wakeuped by wlan
+#define WLAN_WAKEUP_IRQ_NUMBER	723
+
+#define WAKEUP_SOURCE_WIFI_1ST 123
+#define WAKEUP_SOURCE_WIFI_2ND 129
+#define WAKEUP_SOURCE_WIFI_3RD 131
+#define WAKEUP_SOURCE_WIFI_4TH 134
+extern u64 wakeup_source_count_wifi ;
+#endif /*CONFIG_VENDOR_REALME*/
+
 #define MAX_IRQ			1020U	/* Max number of SGI+PPI+SPI */
 #define SPI_START_IRQ		32	/* SPI start irq number */
 #define GICD_ICFGR_BITS		2	/* 2 bits per irq in GICD_ICFGR */
