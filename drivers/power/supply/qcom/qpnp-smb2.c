@@ -55,7 +55,7 @@ extern 	bool fg_oppo_set_input_current;
 #endif
 
 #define SMB2_DEFAULT_WPWR_UW	8000000
-#ifdef CONFIG_VENDOR_REALME//OuYangBaiLi@BSP.CHG.Basic 2019/03/05 modify for factory otg
+#ifdef CONFIG_VENDOR_REALME
 bool oppo_ccdetect_check_is_gpio(struct oppo_chg_chip *chip);
 int oppo_ccdetect_gpio_init(struct oppo_chg_chip *chip);
 void oppo_ccdetect_irq_init(struct oppo_chg_chip *chip);
@@ -205,6 +205,7 @@ static struct smb_params pm660_params = {
 	},
 };
 
+#ifndef CONFIG_VENDOR_REALME
 struct smb_dt_props {
 	int	usb_icl_ua;
 	int	dc_icl_ua;
@@ -227,7 +228,7 @@ struct smb2 {
 	struct smb_dt_props	dt;
 	bool			bad_part;
 };
-
+#endif
 static int __debug_mask;
 module_param_named(
 	debug_mask, __debug_mask, int, 0600
@@ -1850,6 +1851,7 @@ static int smb2_init_ac_psy(struct smb2 *chip)
 }
 #endif /* CONFIG_VENDOR_REALME */
 
+/*************************
  * BATT PSY REGISTRATION *
  *************************/
 
@@ -1885,15 +1887,7 @@ static enum power_supply_property smb2_batt_props[] = {
 
 #ifdef CONFIG_VENDOR_REALME
 /*oppo own battery props*/
-	POWER_SUPPLY_PROP_STATUS,
-	POWER_SUPPLY_PROP_HEALTH,
-	POWER_SUPPLY_PROP_PRESENT,
-	POWER_SUPPLY_PROP_TECHNOLOGY,
-	POWER_SUPPLY_PROP_CAPACITY,
-	POWER_SUPPLY_PROP_TEMP,
-	POWER_SUPPLY_PROP_VOLTAGE_NOW,
 	POWER_SUPPLY_PROP_VOLTAGE_MIN,
-	POWER_SUPPLY_PROP_CURRENT_NOW,
 
 	POWER_SUPPLY_PROP_CHARGE_NOW,
 	POWER_SUPPLY_PROP_AUTHENTICATE,
@@ -1938,6 +1932,7 @@ static int smb2_batt_get_prop(struct power_supply *psy,
 #endif
 
 	switch (psp) {
+#ifndef CONFIG_VENDOR_REALME
 	case POWER_SUPPLY_PROP_STATUS:
 		rc = smblib_get_prop_batt_status(chg, val);
 		break;
@@ -1947,15 +1942,18 @@ static int smb2_batt_get_prop(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_PRESENT:
 		rc = smblib_get_prop_batt_present(chg, val);
 		break;
+#endif
 	case POWER_SUPPLY_PROP_INPUT_SUSPEND:
 		rc = smblib_get_prop_input_suspend(chg, val);
 		break;
 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
 		rc = smblib_get_prop_batt_charge_type(chg, val);
 		break;
+#ifndef CONFIG_VENDOR_REALME
 	case POWER_SUPPLY_PROP_CAPACITY:
 		rc = smblib_get_prop_batt_capacity(chg, val);
 		break;
+#endif
 	case POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT:
 		rc = smblib_get_prop_system_temp_level(chg, val);
 		break;
@@ -2045,22 +2043,26 @@ static int smb2_batt_get_prop(struct power_supply *psy,
 		val->intval = 0;
 		break;
 	case POWER_SUPPLY_PROP_CHARGE_COUNTER:
+#ifndef CONFIG_VENDOR_REALME
 	case POWER_SUPPLY_PROP_CHARGE_FULL:
 	case POWER_SUPPLY_PROP_CYCLE_COUNT:
 	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
 	case POWER_SUPPLY_PROP_TEMP:
-		
+#endif
 		#ifdef CONFIG_VENDOR_REALME
         val->intval = g_oppo_chip->ui_soc * g_oppo_chip->batt_capacity_mah * 1000 / 100;
 		#else
 		rc = smblib_get_prop_from_bms(chg, psp, val);
 		#endif
 		break;
+#ifndef CONFIG_VENDOR_REALME
 	case POWER_SUPPLY_PROP_CURRENT_NOW:
 		rc = smblib_get_prop_from_bms(chg, psp, val);
 		if (!rc)
 			val->intval *= (-1);
 		break;
+#endif
+
 #ifdef CONFIG_VENDOR_REALME
 /* Jianchao.Shi@PSW.BSP.CHG.Basic, 2018/04/19, sjc Add for CTS */
 	case POWER_SUPPLY_PROP_CURRENT_MAX:
@@ -4881,7 +4883,7 @@ static int smb2_probe(struct platform_device *pdev)
 	}
 #endif
 
-#ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_VENDOR_REALME
 	rc = smb2_init_usb_psy(chip);
 	if (rc < 0) {
 		pr_err("Couldn't initialize usb psy rc=%d\n", rc);

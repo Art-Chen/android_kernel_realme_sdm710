@@ -733,7 +733,7 @@ static int fg_get_battery_current(struct fg_chip *chip, int *val)
 	pr_debug("buf: %x %x temp: %llx\n", buf[0], buf[1], temp);
 	/* Sign bit is bit 15 */
 	temp = twos_compliment_extend(temp, 15);
-#ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_VENDOR_REALME
 	*val = div_s64((s64)temp * BATT_CURRENT_NUMR, BATT_CURRENT_DENR);
 #else
 	*val = (div_s64((s64)temp * BATT_CURRENT_NUMR, BATT_CURRENT_DENR))/1000;

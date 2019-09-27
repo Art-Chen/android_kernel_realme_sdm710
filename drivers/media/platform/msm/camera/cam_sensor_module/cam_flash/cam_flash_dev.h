@@ -208,6 +208,11 @@ struct cam_flash_ctrl {
 	enum   cci_i2c_master_t             cci_i2c_master;
 	struct camera_io_master             io_master_info;
 	struct i2c_data_settings            i2c_data;
+	#ifdef CONFIG_VENDOR_REALME
+	/*Add by Zhengrong.Zhang@Camera 20160809 for flash*/
+	const char *flash_name;
+	#endif
+
 };
 
 int cam_flash_pmic_pkt_parser(struct cam_flash_ctrl *fctrl, void *arg);

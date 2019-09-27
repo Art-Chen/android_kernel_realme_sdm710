@@ -303,7 +303,7 @@ int cam_tasklet_start(void  *tasklet_info)
 		list_add_tail(&tasklet->cmd_queue[i].list,
 			&tasklet->free_cmd_list);
 	}
-
+	#endif
 	atomic_set(&tasklet->tasklet_active, 1);
 
 	tasklet_enable(&tasklet->tasklet);

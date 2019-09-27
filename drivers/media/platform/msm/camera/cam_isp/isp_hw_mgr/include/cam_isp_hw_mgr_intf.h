@@ -211,6 +211,9 @@ enum cam_isp_hw_mgr_command {
  * @get_context            Get context type information
  */
 struct cam_isp_hw_cmd_args {
+	#ifdef CONFIG_VENDOR_REALME
+	void                               *ctxt_to_hw_map;
+	#endif
 	uint32_t                              cmd_type;
 	union {
 		uint32_t                      is_rdi_only_context;

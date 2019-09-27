@@ -305,8 +305,6 @@ static void msm_restart_prepare(const char *cmd)
 	if (in_panic){
 		//warm reset
 		need_warm_reset = true;
-		qpnp_pon_set_restart_reason(
-					PON_RESTART_REASON_KERNEL);
 
 	}
 #endif /* CONFIG_VENDOR_REALME */

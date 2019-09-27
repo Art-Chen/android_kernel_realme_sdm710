@@ -4658,7 +4658,7 @@ int cam_ife_hw_mgr_init(struct cam_hw_mgr_intf *hw_mgr_intf, int *iommu_hdl)
 	hw_mgr_intf->hw_cmd = cam_ife_mgr_cmd;
 	#ifdef CONFIG_VENDOR_REALME
 	/*added by houyujun@Camera 20180626 for smmu dump*/
-	cam_smmu_reg_client_page_fault_handler(g_ife_hw_mgr.mgr_common.img_iommu_hdl,
+	cam_smmu_set_client_page_fault_handler(g_ife_hw_mgr.mgr_common.img_iommu_hdl,
 		cam_hw_isp_iommu_fault_handler,&g_ife_hw_mgr);
 	#endif
 
