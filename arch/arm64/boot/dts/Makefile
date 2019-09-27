@@ -1,4 +1,3 @@
-ifndef CONFIG_VENDOR_REALME
 dts-dirs += al
 dts-dirs += altera
 dts-dirs += amd
@@ -21,9 +20,6 @@ dts-dirs += sprd
 dts-dirs += xilinx
 dts-dirs += lg
 dts-dirs += zte
-else
-dts-dirs += 18041
-endif
 
 subdir-y	:= $(dts-dirs)
 
