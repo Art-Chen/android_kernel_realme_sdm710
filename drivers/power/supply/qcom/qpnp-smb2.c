@@ -1,4 +1,4 @@
-/* Copyright (c) 2016-2019 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2016-2018 The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -55,7 +55,6 @@ extern 	bool fg_oppo_set_input_current;
 #endif
 
 #define SMB2_DEFAULT_WPWR_UW	8000000
-#ifdef CONFIG_VENDOR_REALME
 bool oppo_ccdetect_check_is_gpio(struct oppo_chg_chip *chip);
 int oppo_ccdetect_gpio_init(struct oppo_chg_chip *chip);
 void oppo_ccdetect_irq_init(struct oppo_chg_chip *chip);
@@ -69,8 +68,9 @@ extern  bool oppo_get_otg_switch_status_dwc3(void);
 bool oppo_get_otg_switch_status(void);
 int oppo_ccdetect_support_check(void);
 void otg_disable_id_value (void);
+#ifdef CONFIG_VENDOR_REALME//OuYangBaiLi@BSP.CHG.Basic 2019/03/05 modify for factory otg
 extern bool otg_count;
-
+#endif /* CONFIG_VENDOR_REALME */
 #define OPPO_CHG_MONITOR_INTERVAL round_jiffies_relative(msecs_to_jiffies(5000))
 #define OPPO_SUPPORT_CCDETECT_IN_FTM_MODE	2
 #define OPPO_SUPPORT_CCDETECT_NOT_FTM_MODE	1
@@ -79,7 +79,6 @@ extern bool otg_count;
 #define OPPO_DIVIDER_WORK_MODE_FIXED		0
 #define POWER_SUPPLY_TYPEC_PLUGIN 			1
 #define POWER_SUPPLY_TYPEC_PLUGOUT 			0
-#endif /* CONFIG_VENDOR_REALME */
 static struct smb_params v1_params = {
 	.fcc			= {
 		.name	= "fast charge current",
@@ -206,30 +205,11 @@ static struct smb_params pm660_params = {
 };
 
 #ifndef CONFIG_VENDOR_REALME
-struct smb_dt_props {
-	int	usb_icl_ua;
-	int	dc_icl_ua;
-	int	boost_threshold_ua;
-	int	wipower_max_uw;
-	int	min_freq_khz;
-	int	max_freq_khz;
-	struct	device_node *revid_dev_node;
-	int	float_option;
-	int	chg_inhibit_thr_mv;
-	bool	no_battery;
-	bool	hvdcp_disable;
-	bool	auto_recharge_soc;
-	int	wd_bark_time;
-};
-
-struct smb2 {
-	struct smb_charger	chg;
-	struct dentry		*dfs_root;
-	struct smb_dt_props	dt;
-	bool			bad_part;
-};
-#endif
+/* Jianchao.Shi@BSP.CHG.Basic, 2017/03/15, sjc Add for OTG debug */
+static int __debug_mask = PR_MISC | PR_OTG | PR_INTERRUPT | PR_REGISTER;
+#else
 static int __debug_mask;
+#endif
 module_param_named(
 	debug_mask, __debug_mask, int, 0600
 );
@@ -248,6 +228,11 @@ module_param_named(
 	audio_headset_drp_wait_ms, __audio_headset_drp_wait_ms, int, 0600
 );
 
+/************************************************
+ ************************************************
+ *** THE SECOND PART:  driver sector ***
+ ************************************************
+ ************************************************/
 #ifdef CONFIG_VENDOR_REALME
 /* Jianchao.Shi@BSP.CHG.Basic, 2018/03/02, sjc Add for using gpio as shipmode stm6620 */
 extern 	bool boot_with_console(void);
@@ -927,6 +912,8 @@ static int smb2_parse_dt(struct smb2 *chip)
 
 	chg->use_extcon = of_property_read_bool(node,
 						"qcom,use-extcon");
+	chg->fcc_stepper_enable = of_property_read_bool(node,
+					"qcom,fcc-stepping-enable");
 
 #ifndef CONFIG_VENDOR_REALME
 	/* Jianchao.Shi@BSP.CHG.Basic, 2017/04/28, sjc Modify for charging */
@@ -945,9 +932,6 @@ static int smb2_parse_dt(struct smb2 *chip)
 
 	chg->disable_stat_sw_override = of_property_read_bool(node,
 					"qcom,disable-stat-sw-override");
-
-	chg->fcc_stepper_enable = of_property_read_bool(node,
-					"qcom,fcc-stepping-enable");
 
 	return 0;
 }
@@ -1180,6 +1164,7 @@ static int smb2_usb_get_prop(struct power_supply *psy,
 #else
 		rc = smblib_get_prop_usb_online(chg, val);
 #endif
+
 		if (!val->intval)
 			break;
 
@@ -1857,23 +1842,14 @@ static int smb2_init_ac_psy(struct smb2 *chip)
 
 static enum power_supply_property smb2_batt_props[] = {
 	POWER_SUPPLY_PROP_INPUT_SUSPEND,
-	POWER_SUPPLY_PROP_STATUS,
-	POWER_SUPPLY_PROP_HEALTH,
-	POWER_SUPPLY_PROP_PRESENT,
 	POWER_SUPPLY_PROP_CHARGE_TYPE,
-	POWER_SUPPLY_PROP_CAPACITY,
 	POWER_SUPPLY_PROP_CHARGER_TEMP,
 	POWER_SUPPLY_PROP_CHARGER_TEMP_MAX,
 	POWER_SUPPLY_PROP_INPUT_CURRENT_LIMITED,
-	POWER_SUPPLY_PROP_VOLTAGE_NOW,
 	POWER_SUPPLY_PROP_VOLTAGE_MAX,
 	POWER_SUPPLY_PROP_VOLTAGE_QNOVO,
-	POWER_SUPPLY_PROP_CURRENT_NOW,
 	POWER_SUPPLY_PROP_CURRENT_QNOVO,
 	POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX,
-	POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT,
-	POWER_SUPPLY_PROP_TEMP,
-	POWER_SUPPLY_PROP_TECHNOLOGY,
 	POWER_SUPPLY_PROP_STEP_CHARGING_ENABLED,
 	POWER_SUPPLY_PROP_SW_JEITA_ENABLED,
 	POWER_SUPPLY_PROP_CHARGE_DONE,
@@ -1884,10 +1860,19 @@ static enum power_supply_property smb2_batt_props[] = {
 	POWER_SUPPLY_PROP_DP_DM,
 	POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT_MAX,
 	POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT,
+	POWER_SUPPLY_PROP_FCC_STEPPER_ENABLE,
 
 #ifdef CONFIG_VENDOR_REALME
 /*oppo own battery props*/
+	POWER_SUPPLY_PROP_STATUS,
+	POWER_SUPPLY_PROP_HEALTH,
+	POWER_SUPPLY_PROP_PRESENT,
+	POWER_SUPPLY_PROP_TECHNOLOGY,
+	POWER_SUPPLY_PROP_CAPACITY,
+	POWER_SUPPLY_PROP_TEMP,
+	POWER_SUPPLY_PROP_VOLTAGE_NOW,
 	POWER_SUPPLY_PROP_VOLTAGE_MIN,
+	POWER_SUPPLY_PROP_CURRENT_NOW,
 
 	POWER_SUPPLY_PROP_CHARGE_NOW,
 	POWER_SUPPLY_PROP_AUTHENTICATE,
@@ -1907,6 +1892,16 @@ static enum power_supply_property smb2_batt_props[] = {
 	POWER_SUPPLY_PROP_CHARGE_COUNTER,
 	POWER_SUPPLY_PROP_CURRENT_MAX,
 
+#if defined(CONFIG_OPPO_CHARGER_MTK6763) || defined(CONFIG_OPPO_CHARGER_MTK6771)
+	POWER_SUPPLY_PROP_STOP_CHARGING_ENABLE,
+	POWER_SUPPLY_PROP_adjust_power,
+#endif
+#if defined(CONFIG_OPPO_CHARGER_MTK6771)
+	POWER_SUPPLY_PROP_CHARGE_COUNTER,
+	POWER_SUPPLY_PROP_CURRENT_MAX,
+#endif
+    POWER_SUPPLY_PROP_CHARGE_FULL,
+
 #ifdef CONFIG_OPPO_CHECK_CHARGERID_VOLT
 	POWER_SUPPLY_PROP_CHARGERID_VOLT,
 #endif
@@ -1915,9 +1910,6 @@ static enum power_supply_property smb2_batt_props[] = {
 #endif
 
 #endif//CONFIG_VENDOR_REALME
-	POWER_SUPPLY_PROP_CHARGE_FULL,
-	POWER_SUPPLY_PROP_CYCLE_COUNT,
-	POWER_SUPPLY_PROP_FCC_STEPPER_ENABLE,
 };
 
 static int smb2_batt_get_prop(struct power_supply *psy,
@@ -1932,28 +1924,12 @@ static int smb2_batt_get_prop(struct power_supply *psy,
 #endif
 
 	switch (psp) {
-#ifndef CONFIG_VENDOR_REALME
-	case POWER_SUPPLY_PROP_STATUS:
-		rc = smblib_get_prop_batt_status(chg, val);
-		break;
-	case POWER_SUPPLY_PROP_HEALTH:
-		rc = smblib_get_prop_batt_health(chg, val);
-		break;
-	case POWER_SUPPLY_PROP_PRESENT:
-		rc = smblib_get_prop_batt_present(chg, val);
-		break;
-#endif
 	case POWER_SUPPLY_PROP_INPUT_SUSPEND:
 		rc = smblib_get_prop_input_suspend(chg, val);
 		break;
 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
 		rc = smblib_get_prop_batt_charge_type(chg, val);
 		break;
-#ifndef CONFIG_VENDOR_REALME
-	case POWER_SUPPLY_PROP_CAPACITY:
-		rc = smblib_get_prop_batt_capacity(chg, val);
-		break;
-#endif
 	case POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT:
 		rc = smblib_get_prop_system_temp_level(chg, val);
 		break;
@@ -2010,11 +1986,7 @@ static int smb2_batt_get_prop(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX:
 		val->intval = get_client_vote(chg->fcc_votable,
-					      BATT_PROFILE_VOTER);
-		break;
-	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT:
-		val->intval = get_client_vote(chg->fcc_votable,
-					      FG_ESR_VOTER);
+						  BATT_PROFILE_VOTER);
 		break;
 	case POWER_SUPPLY_PROP_TECHNOLOGY:
 		val->intval = POWER_SUPPLY_TECHNOLOGY_LION;
@@ -2024,7 +1996,7 @@ static int smb2_batt_get_prop(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_PARALLEL_DISABLE:
 		val->intval = get_client_vote(chg->pl_disable_votable,
-					      USER_VOTER);
+						  USER_VOTER);
 		break;
 	case POWER_SUPPLY_PROP_SET_SHIP_MODE:
 		/* Not in ship mode as long as device is active */
@@ -2043,26 +2015,9 @@ static int smb2_batt_get_prop(struct power_supply *psy,
 		val->intval = 0;
 		break;
 	case POWER_SUPPLY_PROP_CHARGE_COUNTER:
-#ifndef CONFIG_VENDOR_REALME
-	case POWER_SUPPLY_PROP_CHARGE_FULL:
-	case POWER_SUPPLY_PROP_CYCLE_COUNT:
-	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-	case POWER_SUPPLY_PROP_TEMP:
-#endif
-		#ifdef CONFIG_VENDOR_REALME
+		//rc = smblib_get_prop_batt_charge_counter(chg, val);
         val->intval = g_oppo_chip->ui_soc * g_oppo_chip->batt_capacity_mah * 1000 / 100;
-		#else
-		rc = smblib_get_prop_from_bms(chg, psp, val);
-		#endif
 		break;
-#ifndef CONFIG_VENDOR_REALME
-	case POWER_SUPPLY_PROP_CURRENT_NOW:
-		rc = smblib_get_prop_from_bms(chg, psp, val);
-		if (!rc)
-			val->intval *= (-1);
-		break;
-#endif
-
 #ifdef CONFIG_VENDOR_REALME
 /* Jianchao.Shi@PSW.BSP.CHG.Basic, 2018/04/19, sjc Add for CTS */
 	case POWER_SUPPLY_PROP_CURRENT_MAX:
@@ -2072,6 +2027,7 @@ static int smb2_batt_get_prop(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_FCC_STEPPER_ENABLE:
 		val->intval = chg->fcc_stepper_enable;
 		break;
+
 	default:
 #ifdef CONFIG_VENDOR_REALME
 /*oppo own battery props*/
@@ -2147,12 +2103,6 @@ static int smb2_batt_set_prop(struct power_supply *psy,
 		chg->batt_profile_fcc_ua = val->intval;
 		vote(chg->fcc_votable, BATT_PROFILE_VOTER, true, val->intval);
 		break;
-	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT:
-		if (val->intval)
-			vote(chg->fcc_votable, FG_ESR_VOTER, true, val->intval);
-		else
-			vote(chg->fcc_votable, FG_ESR_VOTER, false, 0);
-		break;
 	case POWER_SUPPLY_PROP_SET_SHIP_MODE:
 		/* Not in ship mode as long as the device is active */
 		if (!val->intval)
@@ -2184,6 +2134,7 @@ static int smb2_batt_set_prop(struct power_supply *psy,
 
 	return rc;
 }
+
 
 static int smb2_batt_prop_is_writeable(struct power_supply *psy,
 		enum power_supply_property psp)
@@ -2290,7 +2241,7 @@ static int smb2_init_vbus_regulator(struct smb2 *chip)
 	int rc = 0;
 
 	chg->vbus_vreg = devm_kzalloc(chg->dev, sizeof(*chg->vbus_vreg),
-				      GFP_KERNEL);
+					  GFP_KERNEL);
 	if (!chg->vbus_vreg)
 		return -ENOMEM;
 
@@ -2335,7 +2286,7 @@ static int smb2_init_vconn_regulator(struct smb2 *chip)
 		return 0;
 
 	chg->vconn_vreg = devm_kzalloc(chg->dev, sizeof(*chg->vconn_vreg),
-				      GFP_KERNEL);
+					  GFP_KERNEL);
 	if (!chg->vconn_vreg)
 		return -ENOMEM;
 
@@ -2790,8 +2741,7 @@ static int smb2_init_hw(struct smb2 *chip)
 	/* Connector types based votes */
 	vote(chg->hvdcp_disable_votable_indirect, PD_INACTIVE_VOTER,
 		(chg->connector_type == POWER_SUPPLY_CONNECTOR_TYPEC), 0);
-	vote(chg->hvdcp_disable_votable_indirect, VBUS_CC_SHORT_VOTER,
-		(chg->connector_type == POWER_SUPPLY_CONNECTOR_TYPEC), 0);
+
 	vote(chg->pd_disallowed_votable_indirect, MICRO_USB_VOTER,
 		(chg->connector_type == POWER_SUPPLY_CONNECTOR_MICRO_USB), 0);
 #ifndef CONFIG_VENDOR_REALME
@@ -3058,13 +3008,13 @@ static int smb2_post_init(struct smb2 *chip)
             oppo_ccdetect_enable();
         }
     } else {
-	rc = smblib_masked_write(chg, TYPE_C_INTRPT_ENB_SOFTWARE_CTRL_REG,
-				 TYPEC_POWER_ROLE_CMD_MASK, 0);
-	if (rc < 0) {
-		dev_err(chg->dev,
-			"Couldn't configure power role for DRP rc=%d\n", rc);
-		return rc;
-	}
+        rc = smblib_masked_write(chg, TYPE_C_INTRPT_ENB_SOFTWARE_CTRL_REG,
+                     TYPEC_POWER_ROLE_CMD_MASK, 0);
+        if (rc < 0) {
+            dev_err(chg->dev,
+                "Couldn't configure power role for DRP rc=%d\n", rc);
+            return rc;
+        }
     }
 #else
     rc = smblib_masked_write(chg, TYPE_C_INTRPT_ENB_SOFTWARE_CTRL_REG,
@@ -3132,8 +3082,7 @@ static int smb2_chg_config_init(struct smb2 *chip)
 			chip->chg.wa_flags |= BOOST_BACK_WA | OTG_WA;
 		}
 #else
-		chip->chg.wa_flags |= BOOST_BACK_WA | OTG_WA | OV_IRQ_WA_BIT
-				| TYPEC_PBS_WA_BIT;
+		chip->chg.wa_flags |= BOOST_BACK_WA | OTG_WA;
 #endif
 		chg->param.freq_buck = pm660_params.freq_buck;
 		chg->param.freq_boost = pm660_params.freq_boost;
@@ -3490,7 +3439,7 @@ DEFINE_SIMPLE_ATTRIBUTE(force_usb_psy_update_ops, NULL,
 static int force_dc_psy_update_write(void *data, u64 val)
 {
 	struct smb_charger *chg = data;
-
+	
 #ifdef CONFIG_VENDOR_REALME
 /* Jianchao.Shi@BSP.CHG.Basic, 2017/05/09, sjc Add for charging */
 	if (chg->dc_psy)
@@ -4806,10 +4755,10 @@ static int smb2_probe(struct platform_device *pdev)
 			}
 		}
 	}
-	
-	g_oppo_chip = oppo_chip;
-
 #endif
+
+
+	g_oppo_chip = oppo_chip;
 	chg->regmap = dev_get_regmap(chg->dev->parent, NULL);
 	if (!chg->regmap) {
 		pr_err("parent regmap is missing\n");
@@ -4883,19 +4832,13 @@ static int smb2_probe(struct platform_device *pdev)
 	}
 #endif
 
-#ifndef CONFIG_VENDOR_REALME
-	rc = smb2_init_usb_psy(chip);
-	if (rc < 0) {
-		pr_err("Couldn't initialize usb psy rc=%d\n", rc);
-		goto cleanup;
-	}
-#else
+//kong
 	rc = oppo_power_supply_init(chip);
 	if (rc < 0) {
 			pr_err("Couldn't initialize usb main psy rc=%d\n", rc);
 			goto cleanup;
 	}
-#endif
+
 	rc = smb2_init_usb_main_psy(chip);
 	if (rc < 0) {
 		pr_err("Couldn't initialize usb main psy rc=%d\n", rc);
@@ -4908,11 +4851,6 @@ static int smb2_probe(struct platform_device *pdev)
 		goto cleanup;
 	}
 
-	rc = smb2_init_batt_psy(chip);
-	if (rc < 0) {
-		pr_err("Couldn't initialize batt psy rc=%d\n", rc);
-		goto cleanup;
-	}
 
 #ifdef CONFIG_VENDOR_REALME
 /* Jianchao.Shi@BSP.CHG.Basic, 2017/04/11, sjc Add for charging*/
@@ -5042,10 +4980,8 @@ static int smb2_probe(struct platform_device *pdev)
 
 cleanup:
 	smb2_free_interrupts(chg);
-	#ifdef CONFIG_VENDOR_REALME
 	if (chg->ac_psy)
 		power_supply_unregister(chg->ac_psy);
-	#endif
 	if (chg->batt_psy)
 		power_supply_unregister(chg->batt_psy);
 	if (chg->usb_main_psy)

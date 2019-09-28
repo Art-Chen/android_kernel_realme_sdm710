@@ -733,11 +733,7 @@ static int fg_get_battery_current(struct fg_chip *chip, int *val)
 	pr_debug("buf: %x %x temp: %llx\n", buf[0], buf[1], temp);
 	/* Sign bit is bit 15 */
 	temp = twos_compliment_extend(temp, 15);
-#ifndef CONFIG_VENDOR_REALME
-	*val = div_s64((s64)temp * BATT_CURRENT_NUMR, BATT_CURRENT_DENR);
-#else
 	*val = (div_s64((s64)temp * BATT_CURRENT_NUMR, BATT_CURRENT_DENR))/1000;
-#endif
 	return 0;
 }
 
@@ -765,9 +761,7 @@ static int fg_get_battery_voltage(struct fg_chip *chip, int *val)
 #ifdef CONFIG_VENDOR_REALME
 //OuYangBaiLi@BSP.CHG.Basic 2018/11/26 modify for charging
 	*val = ((div_u64((u64)temp * BATT_VOLTAGE_NUMR, BATT_VOLTAGE_DENR))/1000);
-#else
-	*val = div_u64((u64)temp * BATT_VOLTAGE_NUMR, BATT_VOLTAGE_DENR);
-#endif
+#endif /* CONFIG_VENDOR_REALME */
 	return 0;
 }
 
@@ -3359,6 +3353,7 @@ done:
 	fg_dbg(chip, FG_STATUS, "profile loaded successfully");
 out:
 	chip->soc_reporting_ready = true;
+	/*Jun.Wei@RM.BSP.CHG.Basic, 2018/12/07, modify for oppo gauge init*/
 	#ifdef CONFIG_VENDOR_REALME
 	pr_err("%s:oppo_gauge_init id_ohms = %d\n", __func__,chip->batt_id_ohms);
 	if((chip->batt_id_ohms<110000)&&(chip->batt_id_ohms>100000)&&(pcb_version < 4))
@@ -4835,6 +4830,7 @@ static irqreturn_t fg_delta_batt_temp_irq_handler(int irq, void *data)
 
 		chip->last_batt_temp = batt_temp;
 #ifndef CONFIG_VENDOR_REALME
+//OuYangBaiLi@BSP.CHG.Basic 2018/11/26 modify for charging
 		power_supply_changed(chip->batt_psy);
 #endif /* CONFIG_VENDOR_REALME */
 	}
@@ -4907,6 +4903,7 @@ static irqreturn_t fg_delta_msoc_irq_handler(int irq, void *data)
 	if (rc < 0)
 		pr_err("Error in adjusting timebase, rc=%d\n", rc);
 #ifndef CONFIG_VENDOR_REALME
+//OuYangBaiLi@BSP.CHG.Basic 2018/11/26 modify for charging
 	if (batt_psy_initialized(chip))
 		power_supply_changed(chip->batt_psy);
 #endif /* CONFIG_VENDOR_REALME */
@@ -4919,6 +4916,7 @@ static irqreturn_t fg_empty_soc_irq_handler(int irq, void *data)
 
 	fg_dbg(chip, FG_IRQ, "irq %d triggered\n", irq);
 #ifndef CONFIG_VENDOR_REALME
+//OuYangBaiLi@BSP.CHG.Basic 2018/11/26 modify for charging
 	if (batt_psy_initialized(chip))
 		power_supply_changed(chip->batt_psy);
 #endif /* CONFIG_VENDOR_REALME */
@@ -6103,7 +6101,7 @@ static int fg_gen3_probe(struct platform_device *pdev)
 		rc = fg_get_battery_temp(chip, &batt_temp);
 
 	if (!rc) {
-		pr_info("battery SOC:%d voltage: %duV temp: %d\n",
+		pr_err("battery SOC:%d voltage: %duV temp: %d\n",
 				msoc, volt_uv, batt_temp);
 		rc = fg_esr_filter_config(chip, batt_temp, false);
 		if (rc < 0)
