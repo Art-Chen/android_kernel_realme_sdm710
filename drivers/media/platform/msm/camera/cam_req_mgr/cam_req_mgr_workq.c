@@ -62,12 +62,15 @@ static void cam_req_mgr_workq_put_task(struct crm_workq_task *task)
 #ifndef CONFIG_VENDOR_REALME
 	/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 	WORKQ_ACQUIRE_LOCK(workq, flags);
-#endif
 	list_del_init(&task->entry);
+#endif
 	task->cancel = 0;
 	task->process_cb = NULL;
 	task->priv = NULL;
+#ifdef CONFIG_VENDOR_REALME
+	/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 	WORKQ_ACQUIRE_LOCK(workq, flags);
+#endif
 	list_add_tail(&task->entry,
 		&workq->task.empty_head);
 	atomic_add(1, &workq->task.free_cnt);
@@ -195,11 +198,15 @@ int cam_req_mgr_workq_enqueue_task(struct crm_workq_task *task,
 		? prio : CRM_TASK_PRIORITY_0;
 
 	WORKQ_ACQUIRE_LOCK(workq, flags);
-		if (!workq->job) {
-			rc = -EINVAL;
-			WORKQ_RELEASE_LOCK(workq, flags);
-			goto end;
-		}
+
+#ifdef CONFIG_VENDOR_REALME
+	/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
+	if (!workq->job) {
+		rc = -EINVAL;
+		WORKQ_RELEASE_LOCK(workq, flags);
+		goto end;
+	}
+#endif
 
 	list_add_tail(&task->entry,
 		&workq->task.process_head[task->priority]);
@@ -214,16 +221,20 @@ int cam_req_mgr_workq_enqueue_task(struct crm_workq_task *task,
 		task, atomic_read(&workq->task.pending_cnt));
 
 	queue_work(workq->job, &workq->work);
+
+#ifdef CONFIG_VENDOR_REALME
+	/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 	WORKQ_RELEASE_LOCK(workq, flags);
+#endif
+
 end:
 	return rc;
 }
 
 int cam_req_mgr_workq_create(char *name, int32_t num_tasks,
-	struct cam_req_mgr_core_workq **workq, enum crm_workq_context in_irq,
-	int flags)
+	struct cam_req_mgr_core_workq **workq, enum crm_workq_context in_irq)
 {
-	int32_t i, wq_flags = 0, max_active_tasks = 0;
+	int32_t i;
 	struct crm_workq_task  *task;
 	struct cam_req_mgr_core_workq *crm_workq = NULL;
 	char buf[128] = "crm_workq-";
@@ -235,17 +246,10 @@ int cam_req_mgr_workq_create(char *name, int32_t num_tasks,
 		if (crm_workq == NULL)
 			return -ENOMEM;
 
-		wq_flags |= WQ_UNBOUND;
-		if (flags & CAM_WORKQ_FLAG_HIGH_PRIORITY)
-			wq_flags |= WQ_HIGHPRI;
-
-		if (flags & CAM_WORKQ_FLAG_SERIAL)
-			max_active_tasks = 1;
-
 		strlcat(buf, name, sizeof(buf));
 		CAM_DBG(CAM_CRM, "create workque crm_workq-%s", name);
 		crm_workq->job = alloc_workqueue(buf,
-			wq_flags, max_active_tasks, NULL);
+			WQ_HIGHPRI | WQ_UNBOUND, 0, NULL);
 		if (!crm_workq->job) {
 			kfree(crm_workq);
 			return -ENOMEM;
@@ -270,7 +274,7 @@ int cam_req_mgr_workq_create(char *name, int32_t num_tasks,
 				crm_workq->task.num_task,
 				GFP_KERNEL);
 		if (!crm_workq->task.pool) {
-			CAM_WARN(CAM_CRM, "Insufficient memory %zu",
+			CAM_WARN(CAM_CRM, "Insufficient memory %lu",
 				sizeof(struct crm_workq_task) *
 				crm_workq->task.num_task);
 			kfree(crm_workq);
@@ -281,7 +285,6 @@ int cam_req_mgr_workq_create(char *name, int32_t num_tasks,
 			task = &crm_workq->task.pool[i];
 			task->parent = (void *)crm_workq;
 			/* Put all tasks in free pool */
-			INIT_LIST_HEAD(&task->entry);
 #ifndef CONFIG_VENDOR_REALME
 			/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 			list_add_tail(&task->entry,
@@ -299,18 +302,31 @@ int cam_req_mgr_workq_create(char *name, int32_t num_tasks,
 
 void cam_req_mgr_workq_destroy(struct cam_req_mgr_core_workq **crm_workq)
 {
+#ifdef CONFIG_VENDOR_REALME
+	/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 	unsigned long flags = 0;
 	struct workqueue_struct   *job;
+#endif
 	CAM_DBG(CAM_CRM, "destroy workque %pK", crm_workq);
 	if (*crm_workq) {
+#ifdef CONFIG_VENDOR_REALME
+		/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 		WORKQ_ACQUIRE_LOCK(*crm_workq, flags);
 		if ((*crm_workq)->job) {
 			job = (*crm_workq)->job;
 			(*crm_workq)->job = NULL;
 			WORKQ_RELEASE_LOCK(*crm_workq, flags);
+			cancel_work_sync(&(*crm_workq)->work);
 			destroy_workqueue(job);
 		} else
 			WORKQ_RELEASE_LOCK(*crm_workq, flags);
+#else
+		crm_workq_clear_q(*crm_workq);
+		if ((*crm_workq)->job) {
+			destroy_workqueue((*crm_workq)->job);
+			(*crm_workq)->job = NULL;
+		}
+#endif
 		kfree((*crm_workq)->task.pool);
 		kfree(*crm_workq);
 		*crm_workq = NULL;

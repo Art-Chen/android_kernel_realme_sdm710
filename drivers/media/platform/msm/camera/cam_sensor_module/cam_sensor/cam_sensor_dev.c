@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -15,6 +15,7 @@
 #include "cam_sensor_soc.h"
 #include "cam_sensor_core.h"
 
+/* longxiaowu@camera 2018-2-2 add for at camera test */
 #ifdef CONFIG_VENDOR_REALME
 struct cam_sensor_i2c_reg_setting_array {
 	uint16_t sensor_id;
@@ -29,12 +30,14 @@ struct cam_sensor_i2c_reg_setting_array sensor_settings[12] = {
 #include "CAM_SENSOR_SETTINGS.h"
 };
 #endif
+
 static long cam_sensor_subdev_ioctl(struct v4l2_subdev *sd,
 	unsigned int cmd, void *arg)
 {
 	int rc = 0;
 	struct cam_sensor_ctrl_t *s_ctrl =
 		v4l2_get_subdevdata(sd);
+	/* longxiaowu@camera 2018-2-2 add for at camera test */
 	#ifdef CONFIG_VENDOR_REALME
 	struct cam_sensor_i2c_reg_setting sensor_setting;
 	int i = 0;
@@ -392,7 +395,6 @@ static struct platform_driver cam_sensor_platform_driver = {
 		.name = "qcom,camera",
 		.owner = THIS_MODULE,
 		.of_match_table = cam_sensor_driver_dt_match,
-		.suppress_bind_attrs = true,
 	},
 	.remove = cam_sensor_platform_remove,
 };
