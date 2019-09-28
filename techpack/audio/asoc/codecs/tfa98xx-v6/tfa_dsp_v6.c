@@ -20,7 +20,7 @@
 #include "tfa98xx_tfafieldnames.h"
 #include "tfa_internal.h"
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*Jianfeng.Qiu@PSW.MM.AudioDriver.FTM.1226731, 2018/05/12, Add for FTM*/
 extern int ftm_mode;
 extern char ftm_SpeakerCalibration[17];
@@ -29,7 +29,7 @@ extern char ftm_spk_resistance[24];
 #ifndef BOOT_MODE_FACTORY
 #define BOOT_MODE_FACTORY 3
 #endif
-#endif /* VENDOR_EDIT */
+#endif /* CONFIG_VENDOR_REALME */
 
 /* handle macro for bitfield */
 #define TFA_MK_BF(reg, pos, len) ((reg<<8)|(pos<<4)|(len-1))
@@ -77,11 +77,11 @@ void tfa9894_ops(struct tfa_device_ops *ops);
 /* calibration done executed */
 #define TFA_MTPEX_POS           TFA98XX_KEY2_PROTECTED_MTP0_MTPEX_POS /**/
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*xiang.fei@PSW.MM.AudioDriver.Codec, 2018/03/12,
   Add for speaker resistance*/
 bool g_speaker_resistance_fail = false;
-#endif /* VENDOR_EDIT */
+#endif /* CONFIG_VENDOR_REALME */
 
 int tfa_get_calibration_info_v6(struct tfa_device *tfa, int channel)
 {
@@ -1139,15 +1139,15 @@ enum Tfa98xx_Error
 tfa_dsp_patch_v6(struct tfa_device *tfa, int patchLength,
 		 const unsigned char *patchBytes)
 {
-	#ifndef VENDOR_EDIT
+	#ifndef CONFIG_VENDOR_REALME
 	/*Jianfeng.Qiu@PSW.MM.AudioDriver.SmartPA.1514327, 2018/08/10,
 	 *Modify for smart mute issue.
 	 */
 	enum Tfa98xx_Error error;
-	#else /* VENDOR_EDIT */
+	#else /* CONFIG_VENDOR_REALME */
 	enum Tfa98xx_Error error = Tfa98xx_Error_Ok;
 	int status;
-	#endif /* VENDOR_EDIT */
+	#endif /* CONFIG_VENDOR_REALME */
 	if(tfa->in_use == 0)
 		return Tfa98xx_Error_NotOpen;
 
@@ -1158,7 +1158,7 @@ tfa_dsp_patch_v6(struct tfa_device *tfa, int patchLength,
 	if (Tfa98xx_Error_Ok != error) {
 		return error;
 	}
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/*Jianfeng.Qiu@PSW.MM.AudioDriver.SmartPA.1514327, 2018/08/10,
 	 *Add for smart mute issue.
 	 */
@@ -1177,7 +1177,7 @@ tfa_dsp_patch_v6(struct tfa_device *tfa, int patchLength,
 		}
 	}
 	/**************************/
-	#endif /* VENDOR_EDIT */
+	#endif /* CONFIG_VENDOR_REALME */
 
 	error =
 	    tfa98xx_process_patch_file(tfa, patchLength - PATCH_HEADER_LENGTH,
@@ -2647,10 +2647,10 @@ enum Tfa98xx_Error tfaRunSpeakerBoost_v6(struct tfa_device *tfa, int force, int 
 {
 	enum Tfa98xx_Error err = Tfa98xx_Error_Ok;
 	int value;
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/*xiang.fei@PSW.MM.AudioDriver.Codec, 2018/03/12, Add for speaker resistance*/
 	int calibrate_done = 0;
-	#endif /* VENDOR_EDIT */
+	#endif /* CONFIG_VENDOR_REALME */
 
 	if (force) {
 		err= tfaRunColdStartup_v6(tfa, profile);
@@ -2677,11 +2677,11 @@ enum Tfa98xx_Error tfaRunSpeakerBoost_v6(struct tfa_device *tfa, int force, int 
 		if ((tfa->tfa_family == 1) && (tfa->daimap == Tfa98xx_DAI_TDM))
 			tfa->sync_iv_delay = 1;
 
-		#ifdef VENDOR_EDIT
+		#ifdef CONFIG_VENDOR_REALME
 		/*xiang.fei@PSW.MM.AudioDriver.Codec, 2018/03/12, Add for speaker resistance*/
 		tfa_dev_set_state(tfa, TFA_STATE_OPERATING);
 		tfaRunSpeakerCalibration_result_v6(tfa, &calibrate_done);
-		#endif /* VENDOR_EDIT */
+		#endif /* CONFIG_VENDOR_REALME */
 	}
 
 	return err;
@@ -2761,7 +2761,7 @@ enum Tfa98xx_Error tfaRunSpeakerCalibration_v6(struct tfa_device *tfa)
 	return err;
 }
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*xiang.fei@PSW.MM.AudioDriver.Codec, 2018/03/12, Add for speaker resistance*/
 enum Tfa98xx_Error tfaRunSpeakerCalibration_result_v6(struct tfa_device *tfa, int *result)
 {
@@ -2830,7 +2830,7 @@ enum Tfa98xx_Error tfaRunSpeakerCalibration_result_v6(struct tfa_device *tfa, in
 
 	return err;
 }
-#endif /* VENDOR_EDIT */
+#endif /* CONFIG_VENDOR_REALME */
 
 enum Tfa98xx_Error tfaRunColdboot_v6(struct tfa_device *tfa, int state)
 {
@@ -3113,12 +3113,12 @@ enum Tfa98xx_Error tfaRunWaitCalibration_v6(struct tfa_device *tfa, int *calibra
 	}
 
 	if (*calibrateDone != 1) {
-		#ifdef VENDOR_EDIT
+		#ifdef CONFIG_VENDOR_REALME
 		/*Jianfeng.Qiu@PSW.MM.AudioDriver.FTM.1226731, 2018/05/12, Add for FTM*/
 		if (ftm_mode == BOOT_MODE_FACTORY) {
 			strcpy(ftm_SpeakerCalibration, "calibration_fail");
 		}
-		#endif /* VENDOR_EDIT */
+		#endif /* CONFIG_VENDOR_REALME */
 		pr_err("Calibration failed! \n");
 		err = Tfa98xx_Error_Bad_Parameter;
 	} else if (tries==TFA98XX_API_WAITRESULT_NTRIES) {
@@ -3188,14 +3188,14 @@ enum tfa_error tfa_dev_start(struct tfa_device *tfa, int next_profile, int vstep
 		tfa98xx_set_osc_powerdown(tfa, 0);
 
 		/* Go to the Operating state */
-		#ifndef VENDOR_EDIT
+		#ifndef CONFIG_VENDOR_REALME
 		/*Jianfeng.Qiu@PSW.MM.AudioDriver.SmartPA, 2018/06/18, Modify for mute issue
 		 *every time umute PA, because PA umute need some time.
 		 */
 		tfa_dev_set_state(tfa, TFA_STATE_OPERATING | TFA_STATE_MUTE);
-		#else /* VENDOR_EDIT */
+		#else /* CONFIG_VENDOR_REALME */
 		tfa_dev_set_state(tfa, TFA_STATE_OPERATING);
-		#endif /*VENDOR_EDIT*/
+		#endif /*CONFIG_VENDOR_REALME*/
 		}
 		active_profile = tfa_dev_get_swprof(tfa);
 
@@ -3247,11 +3247,11 @@ error_exit:
 enum tfa_error tfa_dev_stop(struct tfa_device *tfa)
 {
 	enum Tfa98xx_Error err = Tfa98xx_Error_Ok;
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/*Jianfeng.Qiu@PSW.MM.AudioDriver.SmartPA, 2018/06/18, Add for mute issue*/
 	int total_wait_count = 20;
 	int times = 0, ready = 0;
-	#endif /*VENDOR_EDIT*/
+	#endif /*CONFIG_VENDOR_REALME*/
 
 	/* mute */
 	tfaRunMute_v6(tfa);
@@ -3267,7 +3267,7 @@ enum tfa_error tfa_dev_stop(struct tfa_device *tfa)
 	/* disable I2S output on TFA1 devices without TDM */
 	err = tfa98xx_aec_output(tfa, 0);
 
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/*Jianfeng.Qiu@PSW.MM.AudioDriver.SmartPA, 2018/06/18, Add for mute issue*/
 	/* we should ensure state machine in powedown here. */
 	while ((TFA_GET_BF(tfa, MANSTATE) != 0) && (times++ < total_wait_count)) {
@@ -3285,7 +3285,7 @@ enum tfa_error tfa_dev_stop(struct tfa_device *tfa)
 	} else {
 		pr_info("tfa stop: Not in PowerDown\n");
 	}
-	#endif /*VENDOR_EDIT*/
+	#endif /*CONFIG_VENDOR_REALME*/
 
 	return err;
 }
@@ -3846,13 +3846,13 @@ enum tfa_error tfa_dev_set_state(struct tfa_device *tfa, enum tfa_state state)
 
 		if (!tfa->is_probus_device)
 		{
-			#ifdef VENDOR_EDIT
+			#ifdef CONFIG_VENDOR_REALME
 			/*xiang.fei@PSW.MM.AudioDriver.Codec, 2018/03/12, Add for speaker resistance*/
 			err = tfa98xx_set_mtp_v6(tfa, 1, TFA98XX_KEY2_PROTECTED_MTP0_MTPOTC_MSK);
 			if (err != tfa_error_ok) {
 				return err;
 			}
-			#endif /* VENDOR_EDIT */
+			#endif /* CONFIG_VENDOR_REALME */
 
 			/* Enable FAIM when clock is stable, to avoid MTP corruption */
 			err = tfa98xx_faim_protect(tfa, 1);

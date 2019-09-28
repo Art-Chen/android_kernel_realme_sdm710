@@ -1436,12 +1436,12 @@ static void *def_msm_int_wcd_mbhc_cal(void)
 		return NULL;
 
 #define S(X, Y) ((WCD_MBHC_CAL_PLUG_TYPE_PTR(msm_int_wcd_cal)->X) = (Y))
-	#ifndef VENDOR_EDIT
+	#ifndef CONFIG_VENDOR_REALME
 	/*Jianfeng.Qiu@PSW.MM.AudioDriver.HeadsetDet, 2017/03/06,
 	 *Modify for headset detect.
 	 */
 	S(v_hs_max, 1500);
-	#else /* VENDOR_EDIT */
+	#else /* CONFIG_VENDOR_REALME */
 	S(v_hs_max, 1700);
 	#endif
 #undef S
@@ -1466,7 +1466,7 @@ static void *def_msm_int_wcd_mbhc_cal(void)
 	 * 210-290 == Button 2
 	 * 360-680 == Button 3
 	 */
-	#ifndef VENDOR_EDIT
+	#ifndef CONFIG_VENDOR_REALME
 	/*Jianfeng.Qiu@PSW.MM.AudioDriver.HeadsetDet, 2017/03/03,
 	 *Modify for headset button threshold.
 	 */
@@ -1480,7 +1480,7 @@ static void *def_msm_int_wcd_mbhc_cal(void)
 	btn_high[3] = 450;
 	btn_low[4] = 500;
 	btn_high[4] = 500;
-	#else /* VENDOR_EDIT */
+	#else /* CONFIG_VENDOR_REALME */
 	btn_low[0] = 60;		/* Hook ,0 ~ 160 Ohm*/
 	btn_high[0] = 130;
 	btn_low[1] = 131;
@@ -1491,7 +1491,7 @@ static void *def_msm_int_wcd_mbhc_cal(void)
 	btn_high[3] = 425;
 	btn_low[4] = 426;
 	btn_high[4] = 426;
-	#endif /* VENDOR_EDIT */
+	#endif /* CONFIG_VENDOR_REALME */
 
 	return msm_int_wcd_cal;
 }
@@ -2185,10 +2185,10 @@ static struct snd_soc_dai_link msm_int_dai[] = {
 		.cpu_dai_name = "INT3_MI2S_TX_HOSTLESS",
 		.platform_name = "msm-pcm-hostless",
 		.dynamic = 1,
-		#ifdef VENDOR_EDIT
+		#ifdef CONFIG_VENDOR_REALME
 		/*Jianfeng.Qiu@PSW.MM.AudioDriver.Machine, 2017/02/20, Add for loopback test*/
 		.dpcm_playback = 1,
-		#endif /* VENDOR_EDIT */
+		#endif /* CONFIG_VENDOR_REALME */
 		.dpcm_capture = 1,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
@@ -3111,7 +3111,7 @@ static struct snd_soc_dai_link msm_int_common_be_dai[] = {
 	},
 };
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /* Jianfeng.Qiu@PSW.MM.AudioDriver.SmartPA, 2017/09/21, Add for tfa98xx */
 static struct snd_soc_dai_link tfa98xx_be_dai_links[] = {
 	{
@@ -3130,7 +3130,7 @@ static struct snd_soc_dai_link tfa98xx_be_dai_links[] = {
 		.ignore_pmdown_time = 1,
 	},
 };
-#endif /* VENDOR_EDIT */
+#endif /* CONFIG_VENDOR_REALME */
 
 static struct snd_soc_dai_link msm_mi2s_be_dai_links[] = {
 	{
@@ -3603,7 +3603,7 @@ static struct snd_soc_card *msm_int_populate_sndcard_dailinks(
 	int len1;
 
 
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/* Jianfeng.Qiu@PSW.MM.AudioDriver.Machine, 2017/01/23,
 	 * Add for custom audio.
 	 */
@@ -3611,7 +3611,7 @@ static struct snd_soc_card *msm_int_populate_sndcard_dailinks(
 	const char *product_name = NULL;
 	const char *oppo_speaker_type = "oppo,speaker-pa";
 	struct snd_soc_dai_link *temp_link;
-	#endif /* VENDOR_EDIT */
+	#endif /* CONFIG_VENDOR_REALME */
 
 	if (snd_card_val == INT_SND_CARD)
 		card = &sdm660_card;
@@ -3648,7 +3648,7 @@ static struct snd_soc_card *msm_int_populate_sndcard_dailinks(
 
 	if (of_property_read_bool(dev->of_node,
 				  "qcom,mi2s-audio-intf")) {
-		#ifdef VENDOR_EDIT
+		#ifdef CONFIG_VENDOR_REALME
 		/* Jianfeng.Qiu@PSW.MM.AudioDriver.Machine, 2017/01/23,
 		 * Add for custom audio.
 		 */
@@ -3668,7 +3668,7 @@ static struct snd_soc_card *msm_int_populate_sndcard_dailinks(
 				}
 			}
 		}
-		#endif /* VENDOR_EDIT */
+		#endif /* CONFIG_VENDOR_REALME */
 
 		memcpy(dailink + len1,
 		       msm_mi2s_be_dai_links,

@@ -63,7 +63,7 @@
 #define CONFIG_SND_SOC_MSM_SDW 1
 #define CONFIG_SND_SOC_MSM_HDMI_CODEC_RX 1
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*Jianfeng.Qiu@PSW.MM.AudioDriver.Codec, 2018/04/20, Add for tfa9894 codec*/
 #define CONFIG_SND_SOC_TFA9894 1
-#endif /* VENDOR_EDIT */
+#endif /* CONFIG_VENDOR_REALME */

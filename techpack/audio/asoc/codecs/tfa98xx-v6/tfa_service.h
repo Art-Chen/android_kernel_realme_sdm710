@@ -952,7 +952,7 @@ enum Tfa98xx_Error tfaRunSpeakerStartup_v6(struct tfa_device *tfa, int force, in
  * @param tfa the device struct pointer
  */
 enum Tfa98xx_Error tfaRunSpeakerCalibration_v6(struct tfa_device *tfa);
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*xiang.fei@PSW.MM.AudioDriver.Codec, 2018/03/12, Add for speaker resistance*/
 enum Tfa98xx_Error tfaRunSpeakerCalibration_result_v6(struct tfa_device *tfa, int *result);
 #endif

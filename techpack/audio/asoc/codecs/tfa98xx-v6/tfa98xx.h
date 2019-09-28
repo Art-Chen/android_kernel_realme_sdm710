@@ -124,10 +124,10 @@ struct tfa98xx {
 	unsigned int flags;
 	bool set_mtp_cal;
 	uint16_t cal_data;
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/* Jianfeng.Qiu@PSW.MM.AudioDriver.SmartPA, 2018/04/20, Add for resource*/
 	struct regulator *tfa98xx_vdd;
-	#endif /* VENDOR_EDIT */
+	#endif /* CONFIG_VENDOR_REALME */
 };
 
 
