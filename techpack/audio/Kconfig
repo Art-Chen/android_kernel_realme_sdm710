@@ -99,9 +99,6 @@ config SND_SOC_MSM_SDW
 config SND_SOC_MSM_HDMI_CODEC_RX
 	tristate "SND_SOC_MSM_HDMI_CODEC_RX"
 
-#ifdef VENDOR_EDIT
-#Jianfeng.Qiu@PSW.MM.AudioDriver.Codec, 2018/04/20, Add for tfa9894 codec
 config SND_SOC_TFA9894
 	tristate "SND_SOC_TFA9894"
-#endif /* VENDOR_EDIT */
 
