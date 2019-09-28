@@ -201,7 +201,7 @@ int cam_flash_get_dt_data(struct cam_flash_ctrl *fctrl,
 		return rc;
 	}
 
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/*Add by Zhengrong.Zhang@Camera 20160630 for flash*/
 	rc = of_property_read_string(of_node, "qcom,flash-name",
 		&fctrl->flash_name);

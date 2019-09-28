@@ -141,7 +141,7 @@ static int cam_flash_ops(struct cam_flash_ctrl *flash_ctrl,
 		flash_ctrl->soc_info.soc_private;
 
 /* add by likelong@camera 2017.11.20 force to turn on dual LED */
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 	if (op == CAMERA_SENSOR_FLASH_OP_FIRELOW) {
 		for (i = 0; i < flash_ctrl->torch_num_sources; i++) {
 			if (flash_data->led_current_ma[i]) {
@@ -299,7 +299,7 @@ static int cam_flash_high(
 	return rc;
 }
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*Add by hongbo.dai@Camera 20180319 for flash*/
 int cam_flash_on(struct cam_flash_ctrl *flash_ctrl,
 	struct cam_flash_frame_setting *flash_data,

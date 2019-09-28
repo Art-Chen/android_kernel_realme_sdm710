@@ -24,7 +24,7 @@
 #include "cam_ife_hw_mgr.h"
 #include "cam_debug_util.h"
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*added by houyujun@Camera 20180626 for smmu dump*/
 #define CAM_VFE_WM_MAX 20
 #define CAM_VFE_WM_BASE_ADDR 0x00002200
@@ -172,7 +172,7 @@ static int cam_vfe_irq_err_top_half(uint32_t    evt_id,
 
 	handler_priv = th_payload->handler_priv;
 	core_info =  handler_priv->core_info;
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/*added by houyujun@Camera 20180626 for smmu dump*/
 	CAM_ERR(CAM_ISP,"stopping WMs");
 	/* stop all the wms for this vfe */

@@ -273,7 +273,7 @@ static void cam_tasklet_flush(void  *tasklet_info)
 int cam_tasklet_start(void  *tasklet_info)
 {
 	struct cam_tasklet_info       *tasklet = tasklet_info;
-	#ifndef VENDOR_EDIT
+	#ifndef CONFIG_VENDOR_REALME
 	/*added by houyujun@Camera 20180526 for avoid leak to dump*/
 	struct cam_tasklet_queue_cmd  *tasklet_cmd;
 	struct cam_tasklet_queue_cmd  *tasklet_cmd_temp;
@@ -288,7 +288,7 @@ int cam_tasklet_start(void  *tasklet_info)
 	}
 	atomic_set(&tasklet->tasklet_active, 1);
 
-	#ifndef VENDOR_EDIT
+	#ifndef CONFIG_VENDOR_REALME
 	/*added by houyujun@Camera 20180526 for  avoid leak to dump*/
 	/* flush the command queue first */
 	list_for_each_entry_safe(tasklet_cmd, tasklet_cmd_temp,

@@ -183,7 +183,7 @@ static int __cam_req_mgr_traverse(struct cam_req_mgr_traverse *traverse_data)
 	int32_t                      curr_idx = traverse_data->idx;
 	struct cam_req_mgr_req_tbl  *tbl;
 	struct cam_req_mgr_apply    *apply_data;
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
     /*add by zhenjie.li@Camera,20180525 for flash sync*/
 	struct cam_req_mgr_tbl_slot *slot = NULL;
 #endif
@@ -196,7 +196,7 @@ static int __cam_req_mgr_traverse(struct cam_req_mgr_traverse *traverse_data)
 
 	tbl = traverse_data->tbl;
 	apply_data = traverse_data->apply_data;
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
     /*add by zhenjie.li@Camera,20180525 for flash sync*/
 	slot = &tbl->slot[curr_idx];
 #endif
@@ -205,7 +205,7 @@ static int __cam_req_mgr_traverse(struct cam_req_mgr_traverse *traverse_data)
 		tbl->pd, curr_idx, tbl->slot[curr_idx].state,
 		tbl->skip_traverse, traverse_data->in_q->slot[curr_idx].status,
 		traverse_data->in_q->slot[curr_idx].skip_idx);
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
     /*add by zhenjie.li@Camera,20180525 for flash sync*/
 	if ((slot->inject_delay > 0) &&
 		(traverse_data->self_link == true)) {
@@ -1576,7 +1576,7 @@ int cam_req_mgr_process_add_req(void *priv, void *data)
 	task_data = (struct crm_task_payload *)data;
 	add_req = (struct cam_req_mgr_add_request *)&task_data->u;
 
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/*add by houyujun@Camera,20180604 for dump*/
 	/*
 	* Validate the link
@@ -1621,7 +1621,7 @@ int cam_req_mgr_process_add_req(void *priv, void *data)
 		goto end;
 	}
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
     /*add by zhenjie.li@Camera,20180525 for flash sync*/
     slot = &tbl->slot[idx];
 	if (add_req->skip_before_applying > slot->inject_delay) {
@@ -2527,7 +2527,7 @@ int cam_req_mgr_sync_config(
 	struct cam_req_mgr_core_session *cam_session;
 	struct cam_req_mgr_core_link    *link1 = NULL;
 	struct cam_req_mgr_core_link    *link2 = NULL;
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/*add by hongbo.dai@camera 20180627, for camera hwsync*/
 	struct cam_req_mgr_connected_device *dev = NULL;
 	struct cam_req_mgr_link_evt_data     evt_data;
@@ -2594,7 +2594,7 @@ int cam_req_mgr_sync_config(
 
 	cam_session->sync_mode = sync_info->sync_mode;
 
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/*add by hongbo.dai@camera, 20180627 for hwsync*/
 	for (j = 0; j < link1->num_devs; j++) {
 		dev = &link1->l_dev[j];

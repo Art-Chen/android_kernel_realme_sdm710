@@ -846,7 +846,7 @@ int32_t cam_eeprom_driver_cmd(struct cam_eeprom_ctrl_t *e_ctrl, void *arg)
 	int                            rc = 0;
 	struct cam_eeprom_query_cap_t  eeprom_cap = {0};
 	struct cam_control            *cmd = (struct cam_control *)arg;
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 //add by yufeng@camera, 20190115 for write eeprom
     uint32_t i = 0 ;
     int idx = 0;
@@ -938,7 +938,7 @@ int32_t cam_eeprom_driver_cmd(struct cam_eeprom_ctrl_t *e_ctrl, void *arg)
 			goto release_mutex;
 		}
 		break;
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 //add by yufeng@camera, 20190115 for write eeprom
     case CAM_WRITE_EEPROM_DATA:
         memset(&cam_write_eeprom, 0, sizeof(struct cam_write_eeprom_t));

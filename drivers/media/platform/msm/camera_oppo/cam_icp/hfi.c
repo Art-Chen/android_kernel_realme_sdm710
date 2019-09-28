@@ -468,7 +468,7 @@ void cam_hfi_disable_cpu(void __iomem *icp_base)
 	uint32_t data;
 	uint32_t val;
 	uint32_t try = 0;
-        #ifdef VENDOR_EDIT
+        #ifdef CONFIG_VENDOR_REALME
         /*weifeng.hua@Camera 201806014 add for reduce time for destory session, qcom patch*/
         while (try < 50) {
             data = cam_io_r_mb(icp_base + HFI_REG_A5_CSR_A5_STATUS);

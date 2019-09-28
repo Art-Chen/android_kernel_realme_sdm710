@@ -16,7 +16,7 @@
 #include "cam_ois_core.h"
 #include "cam_debug_util.h"
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*Added by zhengrong.zhang@Camera.Drv, 20180821, for lc898123f40 firmware update*/
 struct cam_ois_ctrl_t *g_ois_ctrl = NULL;
 #endif
@@ -310,7 +310,7 @@ static int32_t cam_ois_platform_driver_probe(
 
 	o_ctrl->cam_ois_state = CAM_OIS_INIT;
 
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/*Added by zhengrong.zhang@Camera.Drv, 20180821, for lc898123f40 firmware update*/
 	g_ois_ctrl = o_ctrl;
 	#endif

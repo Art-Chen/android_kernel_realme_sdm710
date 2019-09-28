@@ -3107,7 +3107,7 @@ static int cam_icp_mgr_process_io_cfg(struct cam_icp_hw_mgr *hw_mgr,
 
 	for (i = 0, j = 0, k = 0; i < packet->num_io_configs; i++) {
 		if (io_cfg_ptr[i].direction == CAM_BUF_INPUT) {
-			#ifdef VENDOR_EDIT
+			#ifdef CONFIG_VENDOR_REALME
 			/*Jindian.Guan@Camera, 2018/07/05, [qcom patch] add for fix hfr drop frame*/
 			if (io_cfg_ptr[i].resource_type ==
 				CAM_ICP_IPE_INPUT_IMAGE_FULL_REF ||
@@ -3124,7 +3124,7 @@ static int cam_icp_mgr_process_io_cfg(struct cam_icp_hw_mgr *hw_mgr,
 				io_cfg_ptr[i].fence;
 			prepare_args->num_out_map_entries++;
 		}
-		#ifndef VENDOR_EDIT
+		#ifndef CONFIG_VENDOR_REALME
 		/*Jindian.Guan@Camera, 2018/07/05, [qcom patch] add for fix hfr drop frame*/
 		CAM_DBG(CAM_ICP, "dir[%d]: %u, fence: %u",
 			i, io_cfg_ptr[i].direction, io_cfg_ptr[i].fence);

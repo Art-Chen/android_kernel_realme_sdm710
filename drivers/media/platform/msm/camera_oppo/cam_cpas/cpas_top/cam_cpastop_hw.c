@@ -281,7 +281,7 @@ static int cam_cpastop_disable_test_irq(struct cam_hw_info *cpas_hw)
 
 	return 0;
 }
-#ifndef VENDOR_EDIT
+#ifndef CONFIG_VENDOR_REALME
 /*delete by houyujun@Camera 20180608 for camera dump issue*/
 static int cam_cpastop_reset_irq(struct cam_hw_info *cpas_hw)
 {
@@ -446,7 +446,7 @@ static irqreturn_t cam_cpastop_handle_irq(int irq_num, void *data)
 
 	if (TEST_IRQ_ENABLE)
 		cam_cpastop_disable_test_irq(cpas_hw);
-	#ifndef VENDOR_EDIT
+	#ifndef CONFIG_VENDOR_REALME
 	/*delete by houyujun@Camera 20180608 for camera dump issue*/
 	cam_cpastop_reset_irq(cpas_hw);
 	#endif
@@ -461,7 +461,7 @@ done:
 static int cam_cpastop_poweron(struct cam_hw_info *cpas_hw)
 {
 	int i;
-	#ifndef VENDOR_EDIT
+	#ifndef CONFIG_VENDOR_REALME
 	/*delete by houyujun@Camera 20180608 for camera dump issue*/
 	cam_cpastop_reset_irq(cpas_hw);
 	#endif
