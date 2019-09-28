@@ -13,4 +13,5 @@ config VENDOR_REALME
 	help
 	  This feature enables Realme specific hacks
 
+source techpack/audio/Kconfig
 source "arch/$SRCARCH/Kconfig"
