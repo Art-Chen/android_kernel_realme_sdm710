@@ -4863,7 +4863,7 @@ static int sde_crtc_onscreenfinger_atomic_check(struct sde_crtc_state *cstate,
 	
 	if (fp_mode == 1) {
 		oppo_force_screenfp = true;
-		//dimlayer_hbm = true;
+		dimlayer_hbm = true;
 		cstate->fingerprint_mode = true;
 		cstate->fingerprint_pressed = true;
 		return 0;
@@ -4872,13 +4872,13 @@ static int sde_crtc_onscreenfinger_atomic_check(struct sde_crtc_state *cstate,
 		cstate->fingerprint_dim_layer = NULL;
 		cstate->fingerprint_mode = false;
 		oppo_force_screenfp = false;
-		//dimlayer_hbm = false;
+		dimlayer_hbm = false;
 		cstate->fingerprint_pressed = false;
 
 		return 0;
 	} else {
 		oppo_force_screenfp = false;
-		//dimlayer_hbm = false;
+		dimlayer_hbm = false;
 		cstate->fingerprint_pressed = false;
 	}
 
