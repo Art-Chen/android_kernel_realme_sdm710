@@ -27,7 +27,9 @@
 #define CLIENT_ID_PROP "qcom,client-id"
 
 #define MPSS_RMTS_CLIENT_ID 1
-
+#ifdef CONFIG_VENDOR_REALME
+#define MPSS_OEMBACK_CLIENT_ID 4
+#endif
 static int uio_get_mem_index(struct uio_info *info, struct vm_area_struct *vma)
 {
 	if (vma->vm_pgoff >= MAX_UIO_MAPS)
@@ -85,8 +87,11 @@ static void setup_shared_ram_perms(u32 client_id, phys_addr_t addr, u32 size)
 	int dest_vmids[2] = {VMID_HLOS, VMID_MSS_MSA};
 	int dest_perms[2] = {PERM_READ|PERM_WRITE,
 			     PERM_READ|PERM_WRITE};
-
+#ifdef CONFIG_VENDOR_REALME
+	if ((client_id != MPSS_RMTS_CLIENT_ID) && (client_id != MPSS_OEMBACK_CLIENT_ID))
+#else
 	if (client_id != MPSS_RMTS_CLIENT_ID)
+#endif
 		return;
 
 	ret = hyp_assign_phys(addr, size, source_vmlist, 1, dest_vmids,
