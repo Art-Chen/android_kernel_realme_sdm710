@@ -16,7 +16,6 @@
 	status = "disabled";
 #else
 	status = "okay";
-#endif
 };
 
 /* disable LCDB */
@@ -25,7 +24,6 @@
 	status = "disabled";
 #else
 	status = "okay";
-#endif
 };
 
 &pm660a_oledb {
