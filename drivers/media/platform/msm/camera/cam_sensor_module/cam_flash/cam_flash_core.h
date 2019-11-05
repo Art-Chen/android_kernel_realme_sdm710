@@ -26,7 +26,7 @@ int cam_flash_apply_setting(struct cam_flash_ctrl *fctrl, uint64_t req_id);
 int cam_flash_apply_request(struct cam_req_mgr_apply_request *apply);
 int cam_flash_process_evt(struct cam_req_mgr_link_evt_data *event_data);
 int cam_flash_flush_request(struct cam_req_mgr_flush_request *flush);
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 /*Add by hongbo.dai@Camera 20180319 for flash*/
 int cam_flash_on(struct cam_flash_ctrl *flash_ctrl,
 	struct cam_flash_frame_setting *flash_data,

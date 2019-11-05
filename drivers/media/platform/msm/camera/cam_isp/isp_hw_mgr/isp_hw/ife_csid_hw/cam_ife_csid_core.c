@@ -40,7 +40,7 @@
  */
 #define CAM_IFE_CSID_QTIMER_MUL_FACTOR                 10000
 #define CAM_IFE_CSID_QTIMER_DIV_FACTOR                 192
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 /* houyujun@Camera.Driver, 2018/05/23, Add for [CSID cause dump] */
 /* Max CSI Rx irq error count threshold value */
 #define CAM_IFE_CSID_MAX_IRQ_ERROR_COUNT               100
@@ -442,7 +442,7 @@ static int cam_ife_csid_global_reset(struct cam_ife_csid_hw *csid_hw)
 	if (val != 0)
 		CAM_ERR(CAM_ISP, "CSID:%d IRQ value after reset rc = %d",
 			csid_hw->hw_intf->hw_idx, val);
-	#ifdef CONFIG_VENDOR_REALME
+	#ifdef VENDOR_EDIT
 	/* houyujun@Camera.Driver, 2018/05/23, Add for [CSID cause dump] */
 	csid_hw->error_irq_count = 0;
 	/* Xinlan.He@camera modify, 2018/07/10, add debug info for sof_freeze */
@@ -1054,7 +1054,7 @@ static int cam_ife_csid_disable_hw(struct cam_ife_csid_hw *csid_hw)
 			csid_hw->hw_intf->hw_idx);
 
 	csid_hw->hw_info->hw_state = CAM_HW_STATE_POWER_DOWN;
-	#ifdef CONFIG_VENDOR_REALME
+	#ifdef VENDOR_EDIT
 	/* houyujun@Camera.Driver, 2018/05/23, Add for [CSID cause dump] */
 	csid_hw->error_irq_count = 0;
 	/* Xinlan.He@camera modify, 2018/07/10, add debug info for sof_freeze */
@@ -1355,7 +1355,7 @@ static int cam_ife_csid_disable_csi2(
 	cam_io_w_mb(0, soc_info->reg_map[0].mem_base +
 		csid_reg->csi2_reg->csid_csi2_rx_irq_mask_addr);
 
-	#ifdef CONFIG_VENDOR_REALME
+	#ifdef VENDOR_EDIT
 	/*added by houyujun@Camera 20180526 for csid overflow*/
 	cam_io_w_mb(0, soc_info->reg_map[0].mem_base +
 		csid_reg->csi2_reg->csid_csi2_rx_cfg0_addr);
@@ -1876,7 +1876,7 @@ static int cam_ife_csid_disable_rdi_path(
 	soc_info = &csid_hw->hw_info->soc_info;
 	id = res->res_id;
 
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 /*Modified by Zhengrong.Zhang@Cam.Drv, 2019/01/14, for coverity issue[58182]*/
 	if (res->res_id >= CAM_IFE_CSID_RDI_MAX) {
 		CAM_ERR_RATE_LIMIT(CAM_ISP, "CSID:%d Invalid res id%d",
@@ -1996,7 +1996,7 @@ static int cam_ife_csid_set_csid_debug(struct cam_ife_csid_hw   *csid_hw,
 
 	csid_debug = (uint32_t  *) cmd_args;
 	csid_hw->csid_debug = *csid_debug;
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 	/* Xinlan.He@camera modify, 2018/07/10, add debug info for sof_freeze */
 	if (csid_hw->hw_intf->hw_idx == 2) {
 		csid_hw->csid_debug |= CSID_DEBUG_ENABLE_EOF_IRQ;
@@ -2537,7 +2537,7 @@ static int cam_ife_csid_process_cmd(void *hw_priv,
 
 }
 
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 /*added by houyujun@Camera 20180526 for csid overflow*/
 static int cam_ife_csid_halt_device(
 	struct cam_ife_csid_hw *csid_hw)
@@ -2585,7 +2585,7 @@ irqreturn_t cam_ife_csid_irq(int irq_num, void *data)
 	uint32_t i, irq_status_top, irq_status_rx, irq_status_ipp = 0;
 	uint32_t irq_status_rdi[4] = {0, 0, 0, 0};
 	uint32_t val;
-	#ifdef CONFIG_VENDOR_REALME
+	#ifdef VENDOR_EDIT
 	/*added by houyujun@Camera 20180526 for csid overflow*/
 	int rc;
 	#endif
@@ -2648,7 +2648,7 @@ irqreturn_t cam_ife_csid_irq(int irq_num, void *data)
 	if (irq_status_rx & CSID_CSI2_RX_ERROR_LANE0_FIFO_OVERFLOW) {
 		CAM_ERR_RATE_LIMIT(CAM_ISP, "CSID:%d lane 0 over flow",
 			 csid_hw->hw_intf->hw_idx);
-		#ifdef CONFIG_VENDOR_REALME
+		#ifdef VENDOR_EDIT
 		csid_hw->error_irq_count++;
 		/* houyujun@Camera.Driver, 2018/05/23, Add for [CSID cause dump] */
 		if (!(irq_status_rx & CSID_CSI2_RX_ERROR_CPHY_SOT_RECEPTION)) {
@@ -2664,7 +2664,7 @@ irqreturn_t cam_ife_csid_irq(int irq_num, void *data)
 	if (irq_status_rx & CSID_CSI2_RX_ERROR_LANE1_FIFO_OVERFLOW) {
 		CAM_ERR_RATE_LIMIT(CAM_ISP, "CSID:%d lane 1 over flow",
 			 csid_hw->hw_intf->hw_idx);
-		#ifdef CONFIG_VENDOR_REALME
+		#ifdef VENDOR_EDIT
 		/* houyujun@Camera.Driver, 2018/05/23, Add for [CSID cause dump] */
 		csid_hw->error_irq_count++;
 		if (!(irq_status_rx & CSID_CSI2_RX_ERROR_CPHY_SOT_RECEPTION)) {
@@ -2680,7 +2680,7 @@ irqreturn_t cam_ife_csid_irq(int irq_num, void *data)
 	if (irq_status_rx & CSID_CSI2_RX_ERROR_LANE2_FIFO_OVERFLOW) {
 		CAM_ERR_RATE_LIMIT(CAM_ISP, "CSID:%d lane 2 over flow",
 			 csid_hw->hw_intf->hw_idx);
-		#ifdef CONFIG_VENDOR_REALME
+		#ifdef VENDOR_EDIT
 		/* houyujun@Camera.Driver, 2018/05/23, Add for [CSID cause dump] */
 		csid_hw->error_irq_count++;
 		if (!(irq_status_rx & CSID_CSI2_RX_ERROR_CPHY_SOT_RECEPTION)) {
@@ -2696,7 +2696,7 @@ irqreturn_t cam_ife_csid_irq(int irq_num, void *data)
 	if (irq_status_rx & CSID_CSI2_RX_ERROR_LANE3_FIFO_OVERFLOW) {
 		CAM_ERR_RATE_LIMIT(CAM_ISP, "CSID:%d lane 3 over flow",
 			 csid_hw->hw_intf->hw_idx);
-		#ifdef CONFIG_VENDOR_REALME
+		#ifdef VENDOR_EDIT
 		/* houyujun@Camera.Driver, 2018/05/23, Add for [CSID cause dump] */
 		csid_hw->error_irq_count++;
 		if (!(irq_status_rx & CSID_CSI2_RX_ERROR_CPHY_SOT_RECEPTION)) {
@@ -2740,7 +2740,7 @@ irqreturn_t cam_ife_csid_irq(int irq_num, void *data)
 	if (irq_status_rx & CSID_CSI2_RX_ERROR_STREAM_UNDERFLOW) {
 		CAM_ERR_RATE_LIMIT(CAM_ISP, "CSID:%d ERROR_STREAM_UNDERFLOW",
 			 csid_hw->hw_intf->hw_idx);
-		#ifdef CONFIG_VENDOR_REALME
+		#ifdef VENDOR_EDIT
 		/*added by houyujun@Camera 20180526 for csid overflow*/
 		rc = cam_ife_csid_halt_device(csid_hw);
 		if (rc) {
@@ -2879,7 +2879,7 @@ irqreturn_t cam_ife_csid_irq(int irq_num, void *data)
 
 		if ((irq_status_rdi[i]  & CSID_PATH_INFO_INPUT_EOF) &&
 			(csid_hw->csid_debug & CSID_DEBUG_ENABLE_EOF_IRQ)) {
-		#ifdef CONFIG_VENDOR_REALME
+		#ifdef VENDOR_EDIT
 			/* Xinlan.He@camera modify, 2018/07/10, add debug info for sof_freeze */
 			if (csid_hw->pkg_show_cnt < 3 && csid_hw->hw_intf->hw_idx == 2) {
 				val = cam_io_r_mb(soc_info->reg_map[0].mem_base +
@@ -2904,7 +2904,7 @@ irqreturn_t cam_ife_csid_irq(int irq_num, void *data)
 				csid_reg->rdi_reg[i]->csid_rdi_ctrl_addr);
 		}
 	}
-	#ifdef CONFIG_VENDOR_REALME
+	#ifdef VENDOR_EDIT
 	/* houyujun@Camera.Driver, 2018/05/23, Add for [CSID cause dump] */
 	if (csid_hw->error_irq_count >
 		CAM_IFE_CSID_MAX_IRQ_ERROR_COUNT) {
@@ -3036,7 +3036,7 @@ int cam_ife_csid_hw_probe_init(struct cam_hw_intf  *csid_hw_intf,
 	}
 
 	ife_csid_hw->csid_debug = 0;
-	#ifdef CONFIG_VENDOR_REALME
+	#ifdef VENDOR_EDIT
 	/* houyujun@Camera.Driver, 2018/05/23, Add for [CSID cause dump] */
 	ife_csid_hw->error_irq_count = 0;
 	/* Xinlan.He@camera modify, 2018/07/10, add debug info for sof_freeze */

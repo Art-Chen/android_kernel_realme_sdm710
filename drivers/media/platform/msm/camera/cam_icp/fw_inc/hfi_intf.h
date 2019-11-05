@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -37,7 +37,6 @@ struct hfi_mem {
  * @dbg_q: debug queue hfi memory for firmware debug information
  * @sec_heap: secondary heap hfi memory for firmware
  * @qdss: qdss mapped memory for fw
- * @io_mem: io memory info
  * @icp_base: icp base address
  */
 struct hfi_mem_info {
@@ -48,7 +47,6 @@ struct hfi_mem_info {
 	struct hfi_mem sec_heap;
 	struct hfi_mem shmem;
 	struct hfi_mem qdss;
-	struct hfi_mem io_mem;
 	void __iomem *icp_base;
 };
 

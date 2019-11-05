@@ -171,7 +171,7 @@ struct cam_req_mgr_tbl_slot {
 	int32_t             idx;
 	uint32_t            req_ready_map;
 	enum crm_req_state  state;
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
     /*add by zhenjie.li@Camera,20180525 for flash sync*/
 	uint32_t            inject_delay;
 #endif
@@ -201,7 +201,7 @@ struct cam_req_mgr_req_tbl {
 	int32_t                     pd_delta;
 	int32_t                     num_slots;
 	struct cam_req_mgr_tbl_slot slot[MAX_REQ_SLOTS];
-#ifndef CONFIG_VENDOR_REALME
+#ifndef VENDOR_EDIT
     /*add by zhenjie.li@Camera,20180525 for flash sync*/
 	uint32_t                    inject_delay;
 #endif

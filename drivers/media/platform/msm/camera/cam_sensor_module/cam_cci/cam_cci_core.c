@@ -1350,13 +1350,13 @@ int32_t cam_cci_core_cfg(struct v4l2_subdev *sd,
 	struct cam_cci_ctrl *cci_ctrl)
 {
 	int32_t rc = 0;
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 	/*Jinshui.Liu@Camera.Driver, 2019/03/21, add for [cci concurrency]*/
 	struct cci_device *cci_dev;
 #endif
 
 	CAM_DBG(CAM_CCI, "cmd %d", cci_ctrl->cmd);
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 	/*Jinshui.Liu@Camera.Driver, 2019/03/21, add for [cci concurrency]*/
 	cci_dev = v4l2_get_subdevdata(sd);
 	if (!cci_dev) {
@@ -1398,7 +1398,7 @@ int32_t cam_cci_core_cfg(struct v4l2_subdev *sd,
 
 	cci_ctrl->status = rc;
 
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 	/*Jinshui.Liu@Camera.Driver, 2019/03/21, add for [cci concurrency]*/
 	mutex_unlock(&cci_dev->cci_lock);
 #endif

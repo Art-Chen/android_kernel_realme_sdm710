@@ -152,7 +152,7 @@ enum msm_camera_power_seq_type {
 	SENSOR_SEQ_TYPE_MAX,
 };
 
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 /*Jindian.Guan@Camera.Driver, 2019/01/04, add for [malloc imx586 qsc memory early]*/
 enum cam_sensor_i2creg_type {
     SENSOR_INIT,
@@ -291,7 +291,7 @@ struct i2c_settings_list {
 	struct cam_sensor_i2c_reg_setting i2c_settings;
 	enum cam_sensor_i2c_cmd_type op_code;
 	struct list_head list;
-	#ifdef CONFIG_VENDOR_REALME
+	#ifdef VENDOR_EDIT
 	/*Jindian.Guan@Camera.Driver, 2019/01/04, add for [malloc imx586 qsc memory early]*/
 	uint32_t resident;
 	#endif
@@ -327,7 +327,7 @@ struct cam_camera_slave_info {
 	uint16_t sensor_id_reg_addr;
 	uint16_t sensor_id;
 	uint16_t sensor_id_mask;
-	#ifdef CONFIG_VENDOR_REALME
+	#ifdef VENDOR_EDIT
 	/*add by hongbo.dai@camera 20180831, for support multi camera resource*/
 	uint16_t eeprom_slave_addr;
 	uint16_t vendor_id;
@@ -382,7 +382,7 @@ struct cam_sensor_board_info {
 	int32_t  subdev_intf[SUB_MODULE_MAX];
 	const char *misc_regulator;
 	struct cam_sensor_power_ctrl_t power_info;
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 	/*Jinshui.Liu@Camera.Driver, 2018/06/23, add for [tof watchdog]*/
 	int32_t watchdog_gpio;
 #endif

@@ -39,7 +39,7 @@ int cam_sensor_i2c_command_parser(struct camera_io_master *io_master,
 	struct i2c_settings_array *i2c_reg_settings,
 	struct cam_cmd_buf_desc *cmd_desc, int32_t num_cmd_buffers);
 
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 /*Jindian.Guan@Camera.Driver, 2019/01/04, add for [malloc imx586 qsc memory early]*/
 int cam_sensor_i2c_command_parser_vendor(struct camera_io_master *io_master,
 	struct i2c_settings_array *i2c_reg_settings,

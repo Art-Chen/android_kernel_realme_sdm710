@@ -54,7 +54,7 @@ static int cam_vfe_camif_validate_pix_pattern(uint32_t pattern)
 	case CAM_ISP_PATTERN_YUV_YCRYCB:
 	case CAM_ISP_PATTERN_YUV_CBYCRY:
 	case CAM_ISP_PATTERN_YUV_CRYCBY:
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 /* Kaizhu.Liang@Camera.Driver, 2018/06/07, add QCOM patch for 18081 Rear_Aux camera mono mode */
 	case CAM_ISP_PATTERN_BAYER_Y:
 #endif

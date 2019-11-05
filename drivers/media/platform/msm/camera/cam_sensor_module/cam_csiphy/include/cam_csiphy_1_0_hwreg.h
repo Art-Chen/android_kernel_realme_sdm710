@@ -223,7 +223,7 @@ struct csiphy_reg_t
 
 struct csiphy_reg_t csiphy_3ph_v1_0_reg[MAX_LANES][MAX_SETTINGS_PER_LANE] = {
 	{
-		#ifdef CONFIG_VENDOR_REALME
+		#ifdef VENDOR_EDIT
 		/*Modified by ZhengrongZhang@Cam.Drv, 2018/05/09, for [csid crc error]*/
 		{0x015C, 0x43, 0x00, CSIPHY_DEFAULT_PARAMS},
 		{0x0168, 0xA0, 0x00, CSIPHY_DEFAULT_PARAMS},
@@ -251,7 +251,7 @@ struct csiphy_reg_t csiphy_3ph_v1_0_reg[MAX_LANES][MAX_SETTINGS_PER_LANE] = {
 		{0x01DC, 0x51, 0x00, CSIPHY_DEFAULT_PARAMS},
 	},
 	{
-		#ifdef CONFIG_VENDOR_REALME
+		#ifdef VENDOR_EDIT
 		/*Modified by ZhengrongZhang@Cam.Drv, 2018/05/09, for [csid crc error]*/
 		{0x035C, 0x43, 0x00, CSIPHY_DEFAULT_PARAMS},
 		{0x0368, 0xA0, 0x00, CSIPHY_DEFAULT_PARAMS},
@@ -279,7 +279,7 @@ struct csiphy_reg_t csiphy_3ph_v1_0_reg[MAX_LANES][MAX_SETTINGS_PER_LANE] = {
 		{0x03DC, 0x51, 0x00, CSIPHY_DEFAULT_PARAMS},
 	},
 	{
-		#ifdef CONFIG_VENDOR_REALME
+		#ifdef VENDOR_EDIT
 		/*Modified by ZhengrongZhang@Cam.Drv, 2018/05/09, for [csid crc error]*/
 		{0x055C, 0x43, 0x00, CSIPHY_DEFAULT_PARAMS},
 		{0x0568, 0xA0, 0x00, CSIPHY_DEFAULT_PARAMS},

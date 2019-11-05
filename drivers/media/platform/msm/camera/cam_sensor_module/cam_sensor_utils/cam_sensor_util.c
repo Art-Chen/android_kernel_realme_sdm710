@@ -15,7 +15,7 @@
 #include <cam_mem_mgr.h>
 #include "cam_res_mgr_api.h"
 
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 /*Jindian.Guan@Camera.Driver, 2019/01/04, add for [malloc imx586 qsc memory early]*/
 extern struct i2c_settings_list *i2c_settings_list_vendor;
 extern struct cam_sensor_i2c_reg_array *reg_setting_vendor;
@@ -57,7 +57,7 @@ static struct i2c_settings_list*
 	return tmp;
 }
 
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 /*Jindian.Guan@Camera.Driver, 2019/01/04, add for [malloc imx586 qsc memory early]*/
 static struct i2c_settings_list*
 	cam_sensor_get_i2c_ptr_vendor(struct i2c_settings_array *i2c_reg_settings,
@@ -124,7 +124,7 @@ int32_t delete_request(struct i2c_settings_array *i2c_array)
 
 	list_for_each_entry_safe(i2c_list, i2c_next,
 		&(i2c_array->list_head), list) {
-		#ifdef CONFIG_VENDOR_REALME
+		#ifdef VENDOR_EDIT
 		/*Jindian.Guan@Camera.Driver, 2019/01/04, add for [malloc imx586 qsc memory early]*/
 		if (i2c_list->resident) {
 		    list_del(&(i2c_list->list));
@@ -234,7 +234,7 @@ int32_t cam_sensor_handle_random_write(
 	struct i2c_settings_list  *i2c_list;
 	int32_t rc = 0, cnt;
 
-	#ifdef CONFIG_VENDOR_REALME
+	#ifdef VENDOR_EDIT
 	/*Jindian.Guan@Camera.Driver, 2019/01/04, add for [malloc imx586 qsc memory early]*/
 	if (cam_cmd_i2c_random_wr->header.reserved == SENSOR_SPC)
 		i2c_list = cam_sensor_get_i2c_ptr_vendor(i2c_reg_settings,
@@ -524,7 +524,7 @@ int cam_sensor_i2c_command_parser(
 	return rc;
 }
 
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 /*Jindian.Guan@Camera.Driver, 2019/01/04, add for [malloc imx586 qsc memory early]*/
 int cam_sensor_i2c_command_parser_vendor(
 	struct camera_io_master *io_master,

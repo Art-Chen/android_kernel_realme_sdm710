@@ -428,23 +428,10 @@ static int32_t cam_eeprom_parse_memory_map(
 	switch (cmm_hdr->cmd_type) {
 	case CAMERA_SENSOR_CMD_TYPE_I2C_RNDM_WR:
 		i2c_random_wr = (struct cam_cmd_i2c_random_wr *)cmd_buf;
-
-		if (i2c_random_wr->header.count == 0 ||
-		    i2c_random_wr->header.count >= MSM_EEPROM_MAX_MEM_MAP_CNT ||
-		    (size_t)*num_map >= ((MSM_EEPROM_MAX_MEM_MAP_CNT *
-				MSM_EEPROM_MEMORY_MAP_MAX_SIZE) -
-				i2c_random_wr->header.count)) {
-			CAM_ERR(CAM_EEPROM, "OOB Error");
-			return -EINVAL;
-		}
 		cmd_length_in_bytes   = sizeof(struct cam_cmd_i2c_random_wr) +
 			((i2c_random_wr->header.count - 1) *
 			sizeof(struct i2c_random_wr_payload));
 
-		if (cmd_length_in_bytes > remain_buf_len) {
-			CAM_ERR(CAM_EEPROM, "Not enough buffer remaining");
-			return -EINVAL;
-		}
 		for (cnt = 0; cnt < (i2c_random_wr->header.count);
 			cnt++) {
 			map[*num_map + cnt].page.addr =
@@ -467,11 +454,6 @@ static int32_t cam_eeprom_parse_memory_map(
 		i2c_cont_rd = (struct cam_cmd_i2c_continuous_rd *)cmd_buf;
 		cmd_length_in_bytes = sizeof(struct cam_cmd_i2c_continuous_rd);
 
-		if (i2c_cont_rd->header.count >= U32_MAX - data->num_data) {
-			CAM_ERR(CAM_EEPROM,
-				"int overflow on eeprom memory block");
-			return -EINVAL;
-		}
 		map[*num_map].mem.addr = i2c_cont_rd->reg_addr;
 		map[*num_map].mem.addr_type = i2c_cont_rd->header.addr_type;
 		map[*num_map].mem.data_type = i2c_cont_rd->header.data_type;
@@ -864,7 +846,7 @@ int32_t cam_eeprom_driver_cmd(struct cam_eeprom_ctrl_t *e_ctrl, void *arg)
 	int                            rc = 0;
 	struct cam_eeprom_query_cap_t  eeprom_cap = {0};
 	struct cam_control            *cmd = (struct cam_control *)arg;
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 //add by yufeng@camera, 20190115 for write eeprom
     uint32_t i = 0 ;
     int idx = 0;
@@ -956,7 +938,7 @@ int32_t cam_eeprom_driver_cmd(struct cam_eeprom_ctrl_t *e_ctrl, void *arg)
 			goto release_mutex;
 		}
 		break;
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 //add by yufeng@camera, 20190115 for write eeprom
     case CAM_WRITE_EEPROM_DATA:
         memset(&cam_write_eeprom, 0, sizeof(struct cam_write_eeprom_t));
@@ -1207,3 +1189,4 @@ release_mutex:
 
 	return rc;
 }
+

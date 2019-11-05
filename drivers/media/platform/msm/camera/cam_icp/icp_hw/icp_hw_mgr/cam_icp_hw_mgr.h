@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -89,7 +89,6 @@ struct icp_hfi_mem_info {
 	struct cam_mem_mgr_memory_desc fw_buf;
 	struct cam_mem_mgr_memory_desc qdss_buf;
 	struct cam_smmu_region_info shmem;
-	struct cam_smmu_region_info io_mem;
 };
 
 /**

@@ -59,7 +59,7 @@ static void cam_req_mgr_workq_put_task(struct crm_workq_task *task)
 		(struct cam_req_mgr_core_workq *)task->parent;
 	unsigned long flags = 0;
 
-#ifndef CONFIG_VENDOR_REALME
+#ifndef VENDOR_EDIT
 	/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 	WORKQ_ACQUIRE_LOCK(workq, flags);
 	list_del_init(&task->entry);
@@ -67,7 +67,7 @@ static void cam_req_mgr_workq_put_task(struct crm_workq_task *task)
 	task->cancel = 0;
 	task->process_cb = NULL;
 	task->priv = NULL;
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 	/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 	WORKQ_ACQUIRE_LOCK(workq, flags);
 #endif
@@ -134,7 +134,7 @@ static void cam_req_mgr_process_workq(struct work_struct *w)
 	}
 }
 
-#ifndef CONFIG_VENDOR_REALME
+#ifndef VENDOR_EDIT
 /*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 void crm_workq_clear_q(struct cam_req_mgr_core_workq *workq)
 {
@@ -178,7 +178,7 @@ int cam_req_mgr_workq_enqueue_task(struct crm_workq_task *task,
 		goto end;
 	}
 
-#ifndef CONFIG_VENDOR_REALME
+#ifndef VENDOR_EDIT
 	/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 	if (!workq->job) {
 		rc = -EINVAL;
@@ -199,7 +199,7 @@ int cam_req_mgr_workq_enqueue_task(struct crm_workq_task *task,
 
 	WORKQ_ACQUIRE_LOCK(workq, flags);
 
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 	/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 	if (!workq->job) {
 		rc = -EINVAL;
@@ -211,7 +211,7 @@ int cam_req_mgr_workq_enqueue_task(struct crm_workq_task *task,
 	list_add_tail(&task->entry,
 		&workq->task.process_head[task->priority]);
 
-#ifndef CONFIG_VENDOR_REALME
+#ifndef VENDOR_EDIT
 	/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 	WORKQ_RELEASE_LOCK(workq, flags);
 #endif
@@ -222,7 +222,7 @@ int cam_req_mgr_workq_enqueue_task(struct crm_workq_task *task,
 
 	queue_work(workq->job, &workq->work);
 
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 	/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 	WORKQ_RELEASE_LOCK(workq, flags);
 #endif
@@ -285,7 +285,7 @@ int cam_req_mgr_workq_create(char *name, int32_t num_tasks,
 			task = &crm_workq->task.pool[i];
 			task->parent = (void *)crm_workq;
 			/* Put all tasks in free pool */
-#ifndef CONFIG_VENDOR_REALME
+#ifndef VENDOR_EDIT
 			/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 			list_add_tail(&task->entry,
 			&crm_workq->task.process_head[CRM_TASK_PRIORITY_0]);
@@ -302,14 +302,14 @@ int cam_req_mgr_workq_create(char *name, int32_t num_tasks,
 
 void cam_req_mgr_workq_destroy(struct cam_req_mgr_core_workq **crm_workq)
 {
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 	/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 	unsigned long flags = 0;
 	struct workqueue_struct   *job;
 #endif
 	CAM_DBG(CAM_CRM, "destroy workque %pK", crm_workq);
 	if (*crm_workq) {
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 		/*Modified by Zhenrong.Zhang@Cam.Drv, 2018/04/30, for [Kernel panic - not syncing: object poison overwritten]*/
 		WORKQ_ACQUIRE_LOCK(*crm_workq, flags);
 		if ((*crm_workq)->job) {

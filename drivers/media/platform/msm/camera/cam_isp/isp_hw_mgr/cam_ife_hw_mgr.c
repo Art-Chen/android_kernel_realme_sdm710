@@ -262,7 +262,7 @@ static void cam_ife_hw_mgr_stop_hw_res(
 		}
 	}
 }
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 /*added by houyujun@Camera 20180626 for smmu dump*/
 static void cam_hw_isp_iommu_fault_handler(struct iommu_domain *domain,
 	struct device *dev,unsigned long iova, int flags, void *tocken)
@@ -1355,8 +1355,8 @@ void cam_ife_cam_cdm_callback(uint32_t handle, void *userdata,
 	if (status == CAM_CDM_CB_STATUS_BL_SUCCESS) {
 		complete(&ctx->config_done_complete);
 		CAM_DBG(CAM_ISP,
-			"Called by CDM hdl=%x, udata=%pK, status=%d, cookie=%llu ctx_index=%d",
-			 handle, userdata, status, cookie, ctx->ctx_index);
+			"Called by CDM hdl=%x, udata=%pK, status=%d, cookie=%llu",
+			 handle, userdata, status, cookie);
 	} else {
 		CAM_WARN(CAM_ISP,
 			"Called by CDM hdl=%x, udata=%pK, status=%d, cookie=%llu",
@@ -1394,7 +1394,7 @@ static int cam_ife_mgr_acquire_hw(void *hw_mgr_priv,
 		CAM_ERR(CAM_ISP, "Get ife hw context failed");
 		goto err;
 	}
-	#ifdef CONFIG_VENDOR_REALME
+	#ifdef VENDOR_EDIT
 	/*add by hongbo.dai@Camera,20180627*/
 	ife_ctx->frame_count = 0;
 	#endif
@@ -1638,7 +1638,7 @@ static int cam_ife_mgr_config_hw(void *hw_mgr_priv,
 			cdm_cmd->cmd[i].len = cmd->len;
 		}
 
-	#ifdef CONFIG_VENDOR_REALME
+	#ifdef VENDOR_EDIT
 		/*Xinlan.He@Camera case 03543839 for issue config done completion timeout*/
 		if (cfg->init_packet == 1)
 	#else
@@ -1653,7 +1653,7 @@ static int cam_ife_mgr_config_hw(void *hw_mgr_priv,
 			return rc;
 		}
 
-	#ifdef CONFIG_VENDOR_REALME
+	#ifdef VENDOR_EDIT
 		/*Xinlan.He@Camera case 03543839 for issue config done completion timeout*/
 		if (cfg->init_packet == 1)
 	#else
@@ -1665,15 +1665,15 @@ static int cam_ife_mgr_config_hw(void *hw_mgr_priv,
 				msecs_to_jiffies(30));
 			if (rc <= 0) {
 				CAM_ERR(CAM_ISP,
-					"config done completion timeout for req_id=%llu rc=%d ctx_index %d",
-					cfg->request_id, rc, ctx->ctx_index);
+					"config done completion timeout for req_id=%llu rc = %d",
+					cfg->request_id, rc);
 				if (rc == 0)
 					rc = -ETIMEDOUT;
 			} else {
 				rc = 0;
 				CAM_DBG(CAM_ISP,
-					"config done Success for req_id=%llu ctx_index %d",
-					cfg->request_id, ctx->ctx_index);
+					"config done Success for req_id=%llu",
+					cfg->request_id);
 			}
 
 			rc = 0;
@@ -2721,7 +2721,7 @@ static int cam_ife_mgr_cmd(void *hw_mgr_priv, void *cmd_args)
 	case CAM_ISP_HW_MGR_CMD_RESUME_HW:
 		cam_ife_mgr_resume_hw(ctx);
 		break;
-	#ifdef CONFIG_VENDOR_REALME
+	#ifdef VENDOR_EDIT
 	/*add by hongbo.dai@Camera,20180627*/
 	case CAM_ISP_HW_MGR_CMD_SET_SYNC_MODE:
 		ctx->crm_sync_mode = 1;
@@ -3389,7 +3389,7 @@ static int cam_ife_hw_mgr_handle_epoch_for_camif_hw_res(
 					&ife_hwr_mgr_ctx->overflow_pending))
 					break;
 
-				#ifdef CONFIG_VENDOR_REALME
+				#ifdef VENDOR_EDIT
 				/*add by hongbo.dai@camera, 20180627 for hwsync*/
 				if (!epoch_status) {
 
@@ -4265,7 +4265,7 @@ int cam_ife_hw_mgr_init(struct cam_hw_mgr_intf *hw_mgr_intf)
 		g_ife_hw_mgr.ctx_pool[i].common.tasklet_info =
 			g_ife_hw_mgr.mgr_common.tasklet_pool[i];
 
-		#ifdef CONFIG_VENDOR_REALME
+		#ifdef VENDOR_EDIT
 		/*add by hongbo.dai@Camera,20180627 for hwsync*/
 		g_ife_hw_mgr.ctx_pool[i].crm_sync_mode = 0;
 		#endif
@@ -4294,7 +4294,7 @@ int cam_ife_hw_mgr_init(struct cam_hw_mgr_intf *hw_mgr_intf)
 	hw_mgr_intf->hw_prepare_update = cam_ife_mgr_prepare_hw_update;
 	hw_mgr_intf->hw_config = cam_ife_mgr_config_hw;
 	hw_mgr_intf->hw_cmd = cam_ife_mgr_cmd;
-	#ifdef CONFIG_VENDOR_REALME
+	#ifdef VENDOR_EDIT
 	/*added by houyujun@Camera 20180626 for smmu dump*/
 	cam_smmu_reg_client_page_fault_handler(g_ife_hw_mgr.mgr_common.img_iommu_hdl,
 		cam_hw_isp_iommu_fault_handler,&g_ife_hw_mgr);

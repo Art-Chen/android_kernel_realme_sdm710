@@ -19,7 +19,7 @@
 #include "cam_debug_util.h"
 #include "cam_res_mgr_api.h"
 
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 /*Added by zhengrong.zhang@Camera.Drv, 20180821, for lc898123f40 firmware update*/
 #include "PhoneUpdate.h"
 
@@ -235,7 +235,7 @@ static int cam_ois_power_up(struct cam_ois_ctrl_t *o_ctrl)
 		(struct cam_ois_soc_private *)o_ctrl->soc_info.soc_private;
 	power_info = &soc_private->power_info;
 
-#ifndef CONFIG_VENDOR_REALME
+#ifndef VENDOR_EDIT
 	/*Jinshui.Liu@Camera.Driver, 2018/03/20, modify for [oppo ois]*/
 	if ((power_info->power_setting == NULL) &&
 		(power_info->power_down_setting == NULL)) {
@@ -355,7 +355,7 @@ static int cam_ois_power_down(struct cam_ois_ctrl_t *o_ctrl)
 	power_info = &soc_private->power_info;
 	soc_info = &o_ctrl->soc_info;
 
-#ifndef CONFIG_VENDOR_REALME
+#ifndef VENDOR_EDIT
 	/*Jinshui.Liu@Camera.Driver, 2018/03/20, modify for [oppo ois]*/
 	if (!power_info) {
 		CAM_ERR(CAM_OIS, "failed: power_info %pK", power_info);
@@ -511,7 +511,7 @@ static int cam_ois_fw_download(struct cam_ois_ctrl_t *o_ctrl)
 	}
 
 	total_bytes = fw->size;
-#ifndef CONFIG_VENDOR_REALME
+#ifndef VENDOR_EDIT
 /*Jinshui.Liu@Camera.Driver, 2018/03/21, modify for [oppo ois]*/
 	i2c_reg_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
 #else
@@ -533,7 +533,7 @@ static int cam_ois_fw_download(struct cam_ois_ctrl_t *o_ctrl)
 	i2c_reg_setting.reg_setting = (struct cam_sensor_i2c_reg_array *)(
 		page_address(page));
 
-#ifndef CONFIG_VENDOR_REALME
+#ifndef VENDOR_EDIT
 	/*Jinshui.Liu@Camera.Driver, 2018/03/21, modify for [oppo ois]*/
 	for (cnt = 0, ptr = (uint8_t *)fw->data; cnt < total_bytes;
 		cnt++, ptr++) {
@@ -576,7 +576,7 @@ static int cam_ois_fw_download(struct cam_ois_ctrl_t *o_ctrl)
 	}
 
 	total_bytes = fw->size;
-#ifndef CONFIG_VENDOR_REALME
+#ifndef VENDOR_EDIT
 	/*Jinshui.Liu@Camera.Driver, 2018/03/21, modify for [oppo ois]*/
 	i2c_reg_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
 #else
@@ -598,7 +598,7 @@ static int cam_ois_fw_download(struct cam_ois_ctrl_t *o_ctrl)
 	i2c_reg_setting.reg_setting = (struct cam_sensor_i2c_reg_array *)(
 		page_address(page));
 
-#ifndef CONFIG_VENDOR_REALME
+#ifndef VENDOR_EDIT
 	/*Jinshui.Liu@Camera.Driver, 2018/03/21, modify for [oppo ois]*/
 	for (cnt = 0, ptr = (uint8_t *)fw->data; cnt < total_bytes;
 		cnt++, ptr++) {
@@ -662,7 +662,7 @@ static int cam_ois_pkt_parse(struct cam_ois_ctrl_t *o_ctrl, void *arg)
 	struct cam_ois_soc_private     *soc_private =
 		(struct cam_ois_soc_private *)o_ctrl->soc_info.soc_private;
 	struct cam_sensor_power_ctrl_t  *power_info = &soc_private->power_info;
-	#ifdef CONFIG_VENDOR_REALME
+	#ifdef VENDOR_EDIT
 	/*Added by Zhengrong.Zhang@Cam.Drv, 20180721, for ois*/
 	uint32_t ois_information = 0;
 	uint32_t ois_sub_version = 0;
@@ -787,7 +787,7 @@ static int cam_ois_pkt_parse(struct cam_ois_ctrl_t *o_ctrl, void *arg)
 				return rc;
 			}
 			o_ctrl->cam_ois_state = CAM_OIS_CONFIG;
-			#ifdef CONFIG_VENDOR_REALME
+			#ifdef VENDOR_EDIT
 			/*Added by Zhengrong.Zhang@Cam.Drv, 20180721, for ois*/
 			msleep(5);
 
@@ -846,7 +846,7 @@ static int cam_ois_pkt_parse(struct cam_ois_ctrl_t *o_ctrl, void *arg)
 			#endif
 		}
 
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 		/*Jinshui.Liu@Camera.Driver, 2018/03/20, add for [ois sequence]*/
 		rc = cam_ois_apply_settings(o_ctrl, &o_ctrl->i2c_init_data);
 		if (rc < 0) {
@@ -863,7 +863,7 @@ static int cam_ois_pkt_parse(struct cam_ois_ctrl_t *o_ctrl, void *arg)
 			}
 		}
 
-#ifndef CONFIG_VENDOR_REALME
+#ifndef VENDOR_EDIT
 		/*Jinshui.Liu@Camera.Driver, 2018/03/20, delete for [ois sequence]*/
 		rc = cam_ois_apply_settings(o_ctrl, &o_ctrl->i2c_init_data);
 		if (rc < 0) {
@@ -1022,7 +1022,7 @@ int cam_ois_driver_cmd(struct cam_ois_ctrl_t *o_ctrl, void *arg)
 		rc = cam_ois_pkt_parse(o_ctrl, arg);
 		if (rc) {
 			CAM_ERR(CAM_OIS, "Failed in ois pkt Parsing");
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 			/*Jinshui.Liu@Camera.Driver, 2018/03/28, add for [dont notify config err]*/
 			rc = 0;
 #endif
@@ -1060,7 +1060,7 @@ int cam_ois_driver_cmd(struct cam_ois_ctrl_t *o_ctrl, void *arg)
 		o_ctrl->bridge_intf.session_hdl = -1;
 		o_ctrl->cam_ois_state = CAM_OIS_INIT;
 
-		#ifdef CONFIG_VENDOR_REALME
+		#ifdef VENDOR_EDIT
 		/*Feng.Hu@Camera.Driver 20180515 modify for ois init costs too long time*/
 		if (o_ctrl->i2c_mode_data.is_settings_valid == 1)
 		{
@@ -1088,7 +1088,7 @@ int cam_ois_driver_cmd(struct cam_ois_ctrl_t *o_ctrl, void *arg)
 		o_ctrl->cam_ois_state = CAM_OIS_CONFIG;
 		break;
 
-#ifdef CONFIG_VENDOR_REALME
+#ifdef VENDOR_EDIT
 	/*Added by Zhengrong.Zhang@Cam.Drv, 20180421, for [ois calibration]*/
 	case CAM_GET_OIS_GYRO_OFFSET: {
 		uint32_t gyro_offset = 0;
