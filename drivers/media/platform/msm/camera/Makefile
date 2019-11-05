@@ -9,7 +9,7 @@ obj-$(CONFIG_SPECTRA_CAMERA) += cam_isp/
 obj-$(CONFIG_SPECTRA_CAMERA) += cam_sensor_module/
 obj-$(CONFIG_SPECTRA_CAMERA) += cam_icp/
 obj-$(CONFIG_SPECTRA_CAMERA) += cam_jpeg/
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 #add by hongbo.dai@Camera.Drv, 20180315, for IR flash and LDMP
 obj-$(CONFIG_SPECTRA_CAMERA) += cam_fd/
 obj-$(CONFIG_SPECTRA_CAMERA) += cam_lrme/

@@ -2019,6 +2019,28 @@ static int cam_icp_allocate_qdss_mem(void)
 	return rc;
 }
 
+#ifdef CONFIG_VENDOR_REALME
+//zemin.lai add for qcom patch caseID03917490
+static int cam_icp_get_io_mem_info(void)
+{
+   int rc;
+   size_t len;
+   dma_addr_t iova;
+
+    rc = cam_smmu_get_io_region_info(icp_hw_mgr.iommu_hdl,
+         &iova, &len);
+    if (rc)
+        return rc;
+
+    icp_hw_mgr.hfi_mem.io_mem.iova_len = len;
+    icp_hw_mgr.hfi_mem.io_mem.iova_start = iova;
+
+    CAM_DBG(CAM_ICP, "iova: %llx, len: %zu", iova, len);
+
+    return rc;
+}
+#endif
+
 static int cam_icp_allocate_hfi_mem(void)
 {
 	int rc;
@@ -2072,8 +2094,20 @@ static int cam_icp_allocate_hfi_mem(void)
 		CAM_ERR(CAM_ICP, "Unable to allocate sec heap memory");
 		goto sec_heap_alloc_failed;
 	}
+#ifdef CONFIG_VENDOR_REALME
+//zemin.lai add for qcom patch caseID03917490
+	rc = cam_icp_get_io_mem_info();
+	if (rc) {
+		CAM_ERR(CAM_ICP, "Unable to get I/O region info");
+ 	goto get_io_mem_failed;
+	}
 
 	return rc;
+	get_io_mem_failed:
+	cam_mem_mgr_free_memory_region(&icp_hw_mgr.hfi_mem.sec_heap);
+#else
+    return rc;
+#endif
 sec_heap_alloc_failed:
 	cam_mem_mgr_release_mem(&icp_hw_mgr.hfi_mem.dbg_q);
 dbg_q_alloc_failed:
@@ -2280,6 +2314,14 @@ static int cam_icp_mgr_hfi_resume(struct cam_icp_hw_mgr *hw_mgr)
 
 	hfi_mem.qdss.iova = icp_hw_mgr.hfi_mem.qdss_buf.iova;
 	hfi_mem.qdss.len = icp_hw_mgr.hfi_mem.qdss_buf.len;
+	#ifdef CONFIG_VENDOR_REALME
+//zemin.lai add for qcom patch caseID03917490
+	hfi_mem.io_mem.iova = icp_hw_mgr.hfi_mem.io_mem.iova_start;
+	hfi_mem.io_mem.len = icp_hw_mgr.hfi_mem.io_mem.iova_len;
+	CAM_DBG(CAM_ICP, "IO region IOVA = %X length = %lld",
+			hfi_mem.io_mem.iova,
+			hfi_mem.io_mem.len);
+    #endif	
 	return cam_hfi_resume(&hfi_mem,
 		a5_dev->soc_info.reg_map[A5_SIERRA_BASE].mem_base,
 		hw_mgr->a5_jtag_debug);
@@ -2654,6 +2696,11 @@ static int cam_icp_mgr_hfi_init(struct cam_icp_hw_mgr *hw_mgr)
 
 	hfi_mem.qdss.iova = icp_hw_mgr.hfi_mem.qdss_buf.iova;
 	hfi_mem.qdss.len = icp_hw_mgr.hfi_mem.qdss_buf.len;
+#ifdef CONFIG_VENDOR_REALME
+//zemin.lai add for qcom patch caseID03917490
+	hfi_mem.io_mem.iova = icp_hw_mgr.hfi_mem.io_mem.iova_start;
+	hfi_mem.io_mem.len = icp_hw_mgr.hfi_mem.io_mem.iova_len;
+#endif
 
 	return cam_hfi_init(0, &hfi_mem,
 		a5_dev->soc_info.reg_map[A5_SIERRA_BASE].mem_base,
@@ -3107,7 +3154,7 @@ static int cam_icp_mgr_process_io_cfg(struct cam_icp_hw_mgr *hw_mgr,
 
 	for (i = 0, j = 0, k = 0; i < packet->num_io_configs; i++) {
 		if (io_cfg_ptr[i].direction == CAM_BUF_INPUT) {
-			#ifdef VENDOR_EDIT
+			#ifdef CONFIG_VENDOR_REALME
 			/*Jindian.Guan@Camera, 2018/07/05, [qcom patch] add for fix hfr drop frame*/
 			if (io_cfg_ptr[i].resource_type ==
 				CAM_ICP_IPE_INPUT_IMAGE_FULL_REF ||
@@ -3124,7 +3171,7 @@ static int cam_icp_mgr_process_io_cfg(struct cam_icp_hw_mgr *hw_mgr,
 				io_cfg_ptr[i].fence;
 			prepare_args->num_out_map_entries++;
 		}
-		#ifndef VENDOR_EDIT
+		#ifndef CONFIG_VENDOR_REALME
 		/*Jindian.Guan@Camera, 2018/07/05, [qcom patch] add for fix hfr drop frame*/
 		CAM_DBG(CAM_ICP, "dir[%d]: %u, fence: %u",
 			i, io_cfg_ptr[i].direction, io_cfg_ptr[i].fence);

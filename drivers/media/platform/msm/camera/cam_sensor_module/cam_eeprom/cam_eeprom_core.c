@@ -42,6 +42,10 @@ static int cam_eeprom_read_memory(struct cam_eeprom_ctrl_t *e_ctrl,
 		return -EINVAL;
 	}
 
+#ifdef CONFIG_VENDOR_REALME
+/* Huanyun.Tang@Camera.Driver, 20190514, add for hi846 otp */
+	memset(&i2c_reg_settings, 0, sizeof(struct cam_sensor_i2c_reg_setting));
+#endif
 	eb_info = (struct cam_eeprom_soc_private *)e_ctrl->soc_info.soc_private;
 
 	for (j = 0; j < block->num_map; j++) {
@@ -846,7 +850,7 @@ int32_t cam_eeprom_driver_cmd(struct cam_eeprom_ctrl_t *e_ctrl, void *arg)
 	int                            rc = 0;
 	struct cam_eeprom_query_cap_t  eeprom_cap = {0};
 	struct cam_control            *cmd = (struct cam_control *)arg;
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 //add by yufeng@camera, 20190115 for write eeprom
     uint32_t i = 0 ;
     int idx = 0;
@@ -938,7 +942,7 @@ int32_t cam_eeprom_driver_cmd(struct cam_eeprom_ctrl_t *e_ctrl, void *arg)
 			goto release_mutex;
 		}
 		break;
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 //add by yufeng@camera, 20190115 for write eeprom
     case CAM_WRITE_EEPROM_DATA:
         memset(&cam_write_eeprom, 0, sizeof(struct cam_write_eeprom_t));

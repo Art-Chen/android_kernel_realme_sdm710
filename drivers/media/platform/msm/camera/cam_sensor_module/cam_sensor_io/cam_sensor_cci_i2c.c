@@ -162,7 +162,7 @@ int32_t cam_cci_i2c_write_continuous_table(
 	return rc;
 }
 
-#ifndef VENDOR_EDIT
+#ifndef CONFIG_VENDOR_REALME
 /*Jinshui.Liu@Camera.Driver, 2018/03/21, modify for [add register read debug]*/
 static int32_t cam_cci_i2c_compare(struct cam_sensor_cci_client *client,
 	uint32_t addr, uint16_t data, uint16_t data_mask,
@@ -185,7 +185,7 @@ static int32_t cam_cci_i2c_compare(struct cam_sensor_cci_client *client,
 		return rc;
 
 	reg_data = reg_data & 0xFFFF;
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 	/*Jinshui.Liu@Camera.Driver, 2018/03/21, add for [add register read debug]*/
 	*read_data = reg_data;
 #endif
@@ -202,7 +202,7 @@ int32_t cam_cci_i2c_poll(struct cam_sensor_cci_client *client,
 {
 	int32_t rc = -EINVAL;
 	int32_t i = 0;
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 	/*Jinshui.Liu@Camera.Driver, 2018/03/21, add for [add register read debug]*/
 	uint32_t read_data = 0;
 #endif
@@ -216,7 +216,7 @@ int32_t cam_cci_i2c_poll(struct cam_sensor_cci_client *client,
 		return -EINVAL;
 	}
 	for (i = 0; i < delay_ms; i++) {
-#ifndef VENDOR_EDIT
+#ifndef CONFIG_VENDOR_REALME
 		/*Jinshui.Liu@Camera.Driver, 2018/03/21, modify for [add register read debug]*/
 		rc = cam_cci_i2c_compare(client,
 			addr, data, data_mask, data_type, addr_type);
@@ -231,7 +231,7 @@ int32_t cam_cci_i2c_poll(struct cam_sensor_cci_client *client,
 	}
 
 	/* If rc is 1 then read is successful but poll is failure */
-#ifndef VENDOR_EDIT
+#ifndef CONFIG_VENDOR_REALME
 	/*Jinshui.Liu@Camera.Driver, 2018/03/21, modify for [add register read debug]*/
 	if (rc == 1)
 		CAM_ERR(CAM_SENSOR, "poll failed rc=%d(non-fatal)",	rc);

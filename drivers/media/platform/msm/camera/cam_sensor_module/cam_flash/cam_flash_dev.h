@@ -176,7 +176,7 @@ struct cam_flash_ctrl {
 	bool                            is_regulator_enabled;
 	struct led_trigger           *flash_trigger[CAM_FLASH_MAX_LED_TRIGGERS];
 	struct led_trigger           *torch_trigger[CAM_FLASH_MAX_LED_TRIGGERS];
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/*Add by Zhengrong.Zhang@Camera 20160809 for flash*/
 	const char *flash_name;
 	#endif

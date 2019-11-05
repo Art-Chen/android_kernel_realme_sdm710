@@ -15,12 +15,12 @@
 #include "cam_actuator_soc.h"
 #include "cam_actuator_core.h"
 #include "cam_trace.h"
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*Added by Jinshui.Liu@Camera 20161125 for [debug interface]*/
 #include <linux/proc_fs.h>
 #endif
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*Jinshui.Liu@Camera.Driver, 2018/06/22, add for [Iris debug]*/
 struct cam_actuator_ctrl_t *g_a_ctrl = NULL;
 int Iris_value = 0;
@@ -147,7 +147,7 @@ static int cam_actuator_init_subdev(struct cam_actuator_ctrl_t *a_ctrl)
 	return rc;
 }
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*Modified by Yingpiao.Lin@Cam.Drv, 20180717, for iris flow*/
 static ssize_t actuator_proc_write(struct file *filp, const char __user *buff,
 	size_t len, loff_t *data)
@@ -451,7 +451,7 @@ static int32_t cam_actuator_platform_remove(struct platform_device *pdev)
 	kfree(a_ctrl->soc_info.soc_private);
 	kfree(a_ctrl->i2c_data.per_frame);
 	a_ctrl->i2c_data.per_frame = NULL;
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/*Modified by Yingpiao.Lin@Cam.Drv, 20180717, for iris flow*/
 	if (a_ctrl->piris_ctrl) {
 		devm_kfree(&pdev->dev, a_ctrl->piris_ctrl);
@@ -574,7 +574,7 @@ static int32_t cam_actuator_driver_platform_probe(
 	v4l2_set_subdevdata(&a_ctrl->v4l2_dev_str.sd, a_ctrl);
 	a_ctrl->cam_act_state = CAM_ACTUATOR_INIT;
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 	/*Modified by Yingpiao.Lin@Cam.Drv, 20180717, for iris flow*/
 	if (a_ctrl->soc_info.index == 0) {
 		a_ctrl->piris_ctrl = devm_kzalloc(&pdev->dev,
@@ -601,7 +601,7 @@ free_soc:
 free_cci_client:
 	kfree(a_ctrl->io_master_info.cci_client);
 free_ctrl:
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 	/*Modified by Yingpiao.Lin@Cam.Drv, 20180717, for iris flow*/
 	if (a_ctrl->piris_ctrl) {
 		devm_kfree(&pdev->dev, a_ctrl->piris_ctrl);

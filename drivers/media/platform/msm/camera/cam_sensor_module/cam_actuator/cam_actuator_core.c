@@ -17,7 +17,7 @@
 #include "cam_trace.h"
 #include "cam_res_mgr_api.h"
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*Added by Zhengrong.Zhang@Cam.Drv, 2018/11/08, for update ak7374 PID*/
 #include <soc/oppo/oppo_project.h>
 #include "ak7374_lib.h"
@@ -151,7 +151,7 @@ int32_t cam_actuator_construct_default_power_setting(
 	power_info->power_setting[0].seq_type = SENSOR_VAF;
 	power_info->power_setting[0].seq_val = CAM_VAF;
 	power_info->power_setting[0].config_val = 1;
-#ifndef VENDOR_EDIT
+#ifndef CONFIG_VENDOR_REALME
 	/*Jinshui.Liu@Camera.Driver, 2018/06/21, modify for [add more delay for hw prepare]*/
 	power_info->power_setting[0].delay = 2;
 #else
@@ -876,7 +876,7 @@ int32_t cam_actuator_i2c_pkt_parse(struct cam_actuator_ctrl_t *a_ctrl,
 				return rc;
 			}
 			a_ctrl->cam_act_state = CAM_ACTUATOR_CONFIG;
-			#ifdef VENDOR_EDIT
+			#ifdef CONFIG_VENDOR_REALME
 			/*Added by Zhengrong.Zhang@Cam.Drv, 2018/11/08, for update ak7374 PID*/
 			if (is_project(OPPO_18181) && a_ctrl->is_check_firmware_update && a_ctrl->soc_info.index == 0) {
 				cam_actuator_write_firmware_ak7374(a_ctrl);
@@ -1171,7 +1171,7 @@ int32_t cam_actuator_driver_cmd(struct cam_actuator_ctrl_t *a_ctrl,
 		}
 	}
 		break;
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*Modified by Yingpiao.Lin@Cam.Drv, 20180717, for iris flow*/
 	case CAM_VENDOR_DATA: {
 		struct cam_iris_setting vendor_cap;

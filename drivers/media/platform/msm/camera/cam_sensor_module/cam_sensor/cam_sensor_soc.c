@@ -18,7 +18,7 @@
 #include <cam_req_mgr_util.h>
 #include "cam_sensor_soc.h"
 #include "cam_soc_util.h"
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*Jinshui.Liu@Camera.Driver, 2018/08/20, add for [distinguish 18181 EVT2 or after from before]*/
 #include <soc/oppo/oppo_project.h>
 #endif
@@ -160,7 +160,7 @@ static int32_t cam_sensor_driver_get_dt_data(struct cam_sensor_ctrl_t *s_ctrl)
 		}
 	}
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 	/*Jinshui.Liu@Camera.Driver, 2018/06/23, add for [tof watchdog]*/
 	/*Jinshui.Liu@Camera.Driver, 2018/08/20, modify for [distinguish 18181 EVT2 or after from before]*/
 	if (get_project() == OPPO_18181

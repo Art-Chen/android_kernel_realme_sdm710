@@ -16,17 +16,17 @@
 #include "cam_sensor_core.h"
 
 /* longxiaowu@camera 2018-2-2 add for at camera test */
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 struct cam_sensor_i2c_reg_setting_array {
 	uint16_t sensor_id;
-	struct cam_sensor_i2c_reg_array reg_setting[1024];
+	struct cam_sensor_i2c_reg_array reg_setting[3300];
 	unsigned short size;
 	enum camera_sensor_i2c_type addr_type;
 	enum camera_sensor_i2c_type data_type;
 	unsigned short delay;
 };
 
-struct cam_sensor_i2c_reg_setting_array sensor_settings[12] = {
+struct cam_sensor_i2c_reg_setting_array sensor_settings[14] = {
 #include "CAM_SENSOR_SETTINGS.h"
 };
 #endif
@@ -38,7 +38,7 @@ static long cam_sensor_subdev_ioctl(struct v4l2_subdev *sd,
 	struct cam_sensor_ctrl_t *s_ctrl =
 		v4l2_get_subdevdata(sd);
 	/* longxiaowu@camera 2018-2-2 add for at camera test */
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	struct cam_sensor_i2c_reg_setting sensor_setting;
 	int i = 0;
 	#endif
@@ -47,7 +47,7 @@ static long cam_sensor_subdev_ioctl(struct v4l2_subdev *sd,
 	case VIDIOC_CAM_CONTROL:
 		rc = cam_sensor_driver_cmd(s_ctrl, arg);
 		break;
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/* longxiaowu@camera 2018-2-2 add for at camera test */
 	case VIDIOC_CAM_FTM_POWNER_DOWN:
 		CAM_ERR(CAM_SENSOR, "FTM power down");

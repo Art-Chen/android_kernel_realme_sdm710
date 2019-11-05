@@ -12,7 +12,7 @@
  */
 
 #include <linux/module.h>
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*Add by Zhengrong.Zhang@Camera 20160630 for flash*/
 #include <linux/proc_fs.h>
 #include <linux/time.h>
@@ -23,7 +23,7 @@ static struct cam_flash_ctrl *vendor_flash_ctrl[2] = {NULL,NULL};
 #include "cam_flash_dev.h"
 #include "cam_flash_soc.h"
 #include "cam_flash_core.h"
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*Add by hongbo.dai@Camera 20180319 for flash*/
 #include "cam_res_mgr_api.h"
 #endif
@@ -65,7 +65,7 @@ static int32_t cam_flash_driver_cmd(struct cam_flash_ctrl *fctrl,
 
 		if (fctrl->bridge_intf.device_hdl != -1) {
 			CAM_ERR(CAM_FLASH, "Device is already acquired");
-			#ifdef VENDOR_EDIT
+			#ifdef CONFIG_VENDOR_REALME
 			/*Modified by Zhengrong.Zhang@Cam.Drv, 2018/10/18, for not release flash*/
 			rc = cam_flash_release_dev(fctrl);
 			if (rc)
@@ -223,7 +223,7 @@ release_mutex:
 	return rc;
 }
 
-#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_REALME
 /*add by hongbo.dai@camera 20180319, suitable proc dev for flash as same as SDM660*/
 volatile static int flash_mode;
 volatile static int pre_flash_mode;
@@ -564,7 +564,7 @@ static int32_t cam_flash_platform_probe(struct platform_device *pdev)
 	mutex_init(&(flash_ctrl->flash_wq_mutex));
 
 	flash_ctrl->flash_state = CAM_FLASH_STATE_INIT;
-	#ifdef VENDOR_EDIT
+	#ifdef CONFIG_VENDOR_REALME
 	/*Add by Zhengrong.Zhang@Camera 20160630 for flash*/
 	flash_proc_init(flash_ctrl);
 	#endif
