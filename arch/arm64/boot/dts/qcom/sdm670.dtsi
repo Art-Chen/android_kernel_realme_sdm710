@@ -532,6 +532,49 @@
 		};
 // #ifdef CONFIG_VENDOR_REALME 
 // luhongyu@BSP.Fingerprint.Secure 2018/12/26, add for secure dsp
+#ifdef CONFIG_IS_REALMEQ
+		pil_cdsp_mem: cdsp_regions@94C00000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0 0x94C00000 0 0x800000>;
+		};
+
+		pil_mba_mem: pil_mba_region@0x95400000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0 0x95400000 0 0x200000>;
+		};
+
+		pil_adsp_mem: pil_adsp_region@95600000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0 0x95600000 0 0x1e00000>;
+		};
+
+		pil_ipa_fw_mem: ips_fw_region@0x97400000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0 0x97400000 0 0x10000>;
+		};
+
+		pil_ipa_gsi_mem: ipa_gsi_region@0x97410000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0 0x97410000 0 0x5000>;
+		};
+
+		pil_gpu_mem: gpu_region@0x97415000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0 0x97415000 0 0x2000>;
+		};
+
+		qseecom_mem: qseecom_region@0x9e400000 {
+			compatible = "shared-dma-pool";
+			no-map;
+			reg = <0 0x9e400000 0 0x1400000>;
+		};
+#else
 		pil_cdsp_mem: cdsp_regions@94c00000 {
 			compatible = "removed-dma-pool";
 			no-map;
@@ -573,6 +616,7 @@
 			reg = <0 0x9e400000 0 0x1400000>;
 		};
 
+#endif
 #else
 		pil_camera_mem: camera_region@8ab00000 {
 			compatible = "removed-dma-pool";
@@ -641,6 +685,7 @@
 		};
 #endif
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_IS_REALMEQ
 
 		secure_dsp_mem: secure_dsp_region {
 			compatible = "removed-dma-pool";
@@ -648,6 +693,8 @@
 			reg = <0 0xa7800000 0 0xc00000>;
 		};
 #endif
+#endif
+
 		adsp_mem: adsp_region {
 			compatible = "shared-dma-pool";
 			alloc-ranges = <0 0x00000000 0 0xffffffff>;
@@ -970,7 +1017,9 @@
 		clock-names = "core", "iface";
 		clock-frequency = <25000000>;
 		qcom,ipc-gpio = <&tlmm 121 0>;
+#ifndef CONFIG_IS_REALMEQ
 		qcom,finger-detect-gpio = <&tlmm 122 0>;
+#endif
 	};
 
 	qcom_seecom: qseecom@86d00000 {
@@ -1726,7 +1775,9 @@
 		qcom,xprt-linkid = <1>;
 		qcom,xprt-version = <1>;
 		qcom,fragmented-data;
+#ifndef CONFIG_IS_REALMEQ
 		qcom,dynamic-wakeup-source;
+#endif
 	};
 
 	qcom,ipc_router_cdsp_xprt {
@@ -3206,7 +3257,64 @@
 		interrupts = <5 IRQ_TYPE_NONE>;
 		nxp,long-wakeup-sec = <28800>; /* 8 hours */
 		nxp,short-wakeup-ms = <180000>; /* 3 mins */
+#ifndef CONFIG_IS_REALMEQ
 		pinctrl-names = "default";
 		pinctrl-0 = <&nx30p6093_intr_default>;
+#endif
 	};
 };
+#ifdef CONFIG_IS_REALMEQ
+&qupv3_se10_i2c {
+	status = "okay";
+
+//#ifdef VENDOR_EDIT//Fanhong.Kong@ProDrv.CHG,add 2018/04/20 for SVOO
+	bq27541-battery@55 {
+		status = "okay";
+		compatible = "oppo,bq27541-battery";
+		reg = <0x55>;
+		qcom,modify-soc-smooth;
+		//qcom,batt_bq28z610;
+	};
+
+	stm8s_fastcg@26{
+		status = "okay";
+		compatible = "oppo,stm8s-fastcg";
+		reg = <0x26>;
+		qcom,oppo_batt_4400mv;
+		qcom,vooc_fw_update_newmethod;
+		qcom,vooc-low-temp = <120>;
+		qcom,vooc-high-temp = <430>;
+		qcom,vooc-low-soc = <1>;
+		qcom,vooc-high-soc = <85>;
+		qcom,vooc-fw-type = <7>;
+
+		pinctrl-names = "switch1_act_switch2_act", "switch1_sleep_switch2_sleep",
+						"switch1_act_switch3_act", "switch1_sleep_switch3_sleep",
+						"switch1_act_switch2_sleep", "switch1_sleep_switch2_act",
+						"clock_active","clock_sleep",
+						"data_active","data_sleep",
+						"reset_active","reset_sleep";
+		pinctrl-0 = <&charging_switch1_active>;
+		pinctrl-1 = <&charging_switch1_sleep >;
+		pinctrl-2 = <&charging_switch1_active>;
+		pinctrl-3 = <&charging_switch1_sleep >;
+		pinctrl-4 = <&charging_switch1_active>;
+		pinctrl-5 = <&charging_switch1_sleep>;
+		pinctrl-6 = <&charging_clock_active >;
+		pinctrl-7 = <&charging_clock_sleep >;
+		pinctrl-8 = <&charging_data_active >;
+		pinctrl-9 = <&charging_data_sleep >;
+		pinctrl-10 = <&charging_reset_active >;
+		pinctrl-11 = <&charging_reset_sleep >;
+
+		qcom,charging_switch1-gpio = <&tlmm 116 0x00>;
+		//qcom,charging_switch2-gpio = <&tlmm 113 0x00>;
+		//qcom,charging_switch3-gpio = <&tlmm 38 0x00>;
+
+		qcom,charging_reset-gpio = <&tlmm 91 0x00>;
+		qcom,charging_clock-gpio = <&tlmm 124 0x00>;
+		qcom,charging_data-gpio = <&tlmm 123 0x00>;
+	};
+
+};
+#endif

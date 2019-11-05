@@ -520,7 +520,9 @@
 &sde_dp {
 	qcom,dp-usbpd-detection = <&pmi8998_pdphy>;
 	qcom,ext-disp = <&ext_disp>;
-
+#ifdef CONFIG_IS_REALMEQ
+	status = "disabled";/* OuYangBaiLi@BSP.Power.Basic, 2019/05/29,Add for disable usb3.0 */
+#endif
 	pinctrl-names = "mdss_dp_active", "mdss_dp_sleep";
 	pinctrl-0 = <&sde_dp_aux_active &sde_dp_usbplug_cc_active>;
 	pinctrl-1 = <&sde_dp_aux_suspend &sde_dp_usbplug_cc_suspend>;
@@ -530,7 +532,11 @@
 };
 
 &mdss_mdp {
+#ifdef CONFIG_IS_REALMEQ
+	connectors = <&sde_rscc &sde_wb>;/* OuYangBaiLi@BSP.Power.Basic, 2019/05/29,Add for disable usb3.0 */
+#else
 	connectors = <&sde_rscc &sde_wb &sde_dp>;
+#endif
 };
 
 &dsi_dual_nt35597_truly_video {

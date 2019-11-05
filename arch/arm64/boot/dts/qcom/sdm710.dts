@@ -19,6 +19,10 @@
 	compatible = "qcom,sdm670";
 	qcom,board-id = <0 0>;
 #ifdef CONFIG_VENDOR_REALME
+#ifdef CONFIG_IS_REALMEQ
+	oppo,prjversion = <1 19691>;
+#else
 	oppo,prjversion = <1 18041>;
+#endif
 #endif
 };

@@ -11,8 +11,13 @@
  */
 
 qcom,demo_6000mah {
+#ifdef CONFIG_IS_REALMEQ
+	qcom,max-voltage-uv = <4390000>;
+	qcom,fg-cc-cv-threshold-mv = <4385>;
+#else
 	qcom,max-voltage-uv = <4350000>;
 	qcom,fg-cc-cv-threshold-mv = <4340>;
+#endif
 	qcom,fastchg-current-ma = <6000>;
 	qcom,batt-id-kohm = <75>;
 	qcom,battery-beta = <3435>;

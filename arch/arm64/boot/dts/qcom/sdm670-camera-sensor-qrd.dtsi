@@ -66,7 +66,9 @@
 		regulator-max-microvolt = <1200000>;
 		regulator-enable-ramp-delay = <233>;
 		enable-active-high;
+#ifndef CONFIG_IS_REALMEQ
 		gpio = <&pm660l_gpios 4 0>;
+#endif
 		vin-supply = <&pm660_s6>;
 	};
 
@@ -78,7 +80,9 @@
 		regulator-max-microvolt = <1800000>;
 		regulator-enable-ramp-delay = <233>;
 		enable-active-high;
+#ifndef CONFIG_IS_REALMEQ
 		gpio = <&tlmm 29 0>;
+#endif
 		vin-supply = <&pm660_s4>;
 	};
 
@@ -102,7 +106,9 @@
 		regulator-max-microvolt = <1200000>;
 		regulator-enable-ramp-delay = <233>;
 		enable-active-high;
+#ifndef CONFIG_IS_REALMEQ
 		gpio = <&pm660l_gpios 3 0>;
+#endif
 		vin-supply = <&pm660_s6>;
 	};
 };
@@ -198,7 +204,6 @@
 		compatible = "qcom,cam-res-mgr";
 		status = "ok";
 	};
-
 	actuator_rear: qcom,actuator@0 {
 		cell-index = <0>;
 		reg = <0x0>;
@@ -481,6 +486,7 @@
 	};
 };
 
+#ifndef CONFIG_IS_REALMEQ
 &pm660l_gpios {
 	gpio@c300 { /* GPIO4 -CAMERA SENSOR 1/2 VDIG*/
 		qcom,mode = <1>;                /* Output */
@@ -502,3 +508,4 @@
 		status = "ok";
 	};
 };
+#endif

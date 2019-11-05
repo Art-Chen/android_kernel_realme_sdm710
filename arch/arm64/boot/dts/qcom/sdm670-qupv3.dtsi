@@ -60,10 +60,16 @@
 			<&clock_gcc GCC_QUPV3_WRAP_0_M_AHB_CLK>,
 			<&clock_gcc GCC_QUPV3_WRAP_0_S_AHB_CLK>;
 		pinctrl-names = "default", "sleep";
+#ifdef CONFIG_IS_REALMEQ
+		pinctrl-0 = <&qupv3_se7_4uart_tx_active>;
+		pinctrl-1 = <&qupv3_se7_4uart_tx_sleep>;
+		interrupts-extended = <&pdc GIC_SPI 608 0>;
+#else
 		pinctrl-0 = <&qupv3_se7_4uart_active>;
 		pinctrl-1 = <&qupv3_se7_4uart_sleep>;
 		interrupts-extended = <&pdc GIC_SPI 608 0>,
 				<&tlmm 96 0>;
+#endif
 		status = "disabled";
 		qcom,wakeup-byte = <0xFD>;
 		qcom,wrapper-core = <&qupv3_0>;
@@ -289,9 +295,11 @@
 		clocks = <&clock_gcc GCC_QUPV3_WRAP0_S2_CLK>,
 			<&clock_gcc GCC_QUPV3_WRAP_0_M_AHB_CLK>,
 			<&clock_gcc GCC_QUPV3_WRAP_0_S_AHB_CLK>;
+#ifndef CONFIG_VENDOR_REALME
 		pinctrl-names = "default", "sleep";
 		pinctrl-0 = <&qupv3_se2_spi_active>;
 		pinctrl-1 = <&qupv3_se2_spi_sleep>;
+#endif
 		interrupts = <GIC_SPI 603 0>;
 		spi-max-frequency = <50000000>;
 		qcom,wrapper-core = <&qupv3_0>;
@@ -401,9 +409,11 @@
 		clocks = <&clock_gcc GCC_QUPV3_WRAP0_S7_CLK>,
 			<&clock_gcc GCC_QUPV3_WRAP_0_M_AHB_CLK>,
 			<&clock_gcc GCC_QUPV3_WRAP_0_S_AHB_CLK>;
+#ifndef CONFIG_VENDOR_REALME
 		pinctrl-names = "default", "sleep";
 		pinctrl-0 = <&qupv3_se7_spi_active>;
 		pinctrl-1 = <&qupv3_se7_spi_sleep>;
+#endif
 		interrupts = <GIC_SPI 608 0>;
 		spi-max-frequency = <50000000>;
 		qcom,wrapper-core = <&qupv3_0>;
@@ -438,9 +448,11 @@
 		clocks = <&clock_gcc GCC_QUPV3_WRAP1_S1_CLK>,
 			<&clock_gcc GCC_QUPV3_WRAP_1_M_AHB_CLK>,
 			<&clock_gcc GCC_QUPV3_WRAP_1_S_AHB_CLK>;
+#ifndef CONFIG_VENDOR_REALME
 		pinctrl-names = "default", "sleep";
 		pinctrl-0 = <&qupv3_se9_2uart_active>;
 		pinctrl-1 = <&qupv3_se9_2uart_sleep>;
+#endif
 		interrupts = <GIC_SPI 354 0>;
 		qcom,wrapper-core = <&qupv3_1>;
 		status = "disabled";
@@ -494,9 +506,11 @@
 		dmas = <&gpi_dma1 0 0 3 64 0>,
 			<&gpi_dma1 1 0 3 64 0>;
 		dma-names = "tx", "rx";
+#ifndef CONFIG_VENDOR_REALME
 		pinctrl-names = "default", "sleep";
 		pinctrl-0 = <&qupv3_se8_i2c_active>;
 		pinctrl-1 = <&qupv3_se8_i2c_sleep>;
+#endif
 		qcom,wrapper-core = <&qupv3_1>;
 		status = "disabled";
 	};
@@ -574,9 +588,11 @@
 		dmas = <&gpi_dma1 0 4 3 64 0>,
 			<&gpi_dma1 1 4 3 64 0>;
 		dma-names = "tx", "rx";
+#ifndef CONFIG_VENDOR_REALME
 		pinctrl-names = "default", "sleep";
 		pinctrl-0 = <&qupv3_se12_i2c_active>;
 		pinctrl-1 = <&qupv3_se12_i2c_sleep>;
+#endif
 		qcom,wrapper-core = <&qupv3_1>;
 		status = "disabled";
 	};
@@ -652,9 +668,11 @@
 		clocks = <&clock_gcc GCC_QUPV3_WRAP1_S0_CLK>,
 			<&clock_gcc GCC_QUPV3_WRAP_1_M_AHB_CLK>,
 			<&clock_gcc GCC_QUPV3_WRAP_1_S_AHB_CLK>;
+#ifndef CONFIG_VENDOR_REALME
 		pinctrl-names = "default", "sleep";
 		pinctrl-0 = <&qupv3_se8_spi_active>;
 		pinctrl-1 = <&qupv3_se8_spi_sleep>;
+#endif
 		interrupts = <GIC_SPI 353 0>;
 		spi-max-frequency = <50000000>;
 		qcom,wrapper-core = <&qupv3_1>;
@@ -674,9 +692,11 @@
 		clocks = <&clock_gcc GCC_QUPV3_WRAP1_S1_CLK>,
 			<&clock_gcc GCC_QUPV3_WRAP_1_M_AHB_CLK>,
 			<&clock_gcc GCC_QUPV3_WRAP_1_S_AHB_CLK>;
+#ifndef CONFIG_VENDOR_REALME
 		pinctrl-names = "default", "sleep";
 		pinctrl-0 = <&qupv3_se9_spi_active>;
 		pinctrl-1 = <&qupv3_se9_spi_sleep>;
+#endif
 		interrupts = <GIC_SPI 354 0>;
 		spi-max-frequency = <50000000>;
 		qcom,wrapper-core = <&qupv3_1>;
@@ -740,9 +760,11 @@
 		clocks = <&clock_gcc GCC_QUPV3_WRAP1_S4_CLK>,
 			<&clock_gcc GCC_QUPV3_WRAP_1_M_AHB_CLK>,
 			<&clock_gcc GCC_QUPV3_WRAP_1_S_AHB_CLK>;
+#ifndef CONFIG_VENDOR_REALME
 		pinctrl-names = "default", "sleep";
 		pinctrl-0 = <&qupv3_se12_spi_active>;
 		pinctrl-1 = <&qupv3_se12_spi_sleep>;
+#endif
 		interrupts = <GIC_SPI 357 0>;
 		spi-max-frequency = <50000000>;
 		qcom,wrapper-core = <&qupv3_1>;

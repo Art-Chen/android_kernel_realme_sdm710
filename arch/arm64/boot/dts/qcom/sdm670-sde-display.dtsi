@@ -29,9 +29,14 @@
 #include "dsi-panel-hx8399-truly-singlemipi-fhd-video.dtsi"
 #include "dsi-panel-hx83112a-truly-singlemipi-fhd-video.dtsi"
 #ifdef CONFIG_VENDOR_REALME
+#ifdef CONFIG_IS_REALMEQ
+#include "dsi-panel_oppo18621dsjm_hx83112a_1080_2340_video.dtsi"
+#else
 #include "dsi-panel_oppo17081samsung_ams596w401_1080_2280.dtsi"
 #include "dsi-panel_oppo18081samsung_ams641rw01_1080_2340.dtsi"
 #endif
+#endif
+
 #include <dt-bindings/clock/mdss-10nm-pll-clk.h>
 
 &soc {
@@ -66,6 +71,10 @@
 			qcom,supply-enable-load = <100000>;
 			qcom,supply-disable-load = <100>;
 			qcom,supply-post-on-sleep = <20>;
+#ifdef CONFIG_IS_REALMEQ
+                        qcom,supply-post-off-sleep = <110>;
+
+#endif
 		};
 	};
 
@@ -547,10 +556,15 @@
 		pinctrl-0 = <&sde_dsi_active &sde_te_active>;
 		pinctrl-1 = <&sde_dsi_suspend &sde_te_suspend>;
 		qcom,platform-te-gpio = <&tlmm 10 0>;
+#ifndef CONFIG_IS_REALMEQ
 		qcom,platform-reset-gpio = <&tlmm 75 0>;
-
+#endif
 		qcom,dsi-panel = <&dsi_hx8399_truly_cmd>;
+#ifdef CONFIG_IS_REALMEQ
+		vddio-supply = <&pm660_l8>;
+#else
 		vddio-supply = <&pm660_l11>;
+#endif
 		lab-supply = <&lcdb_ldo_vreg>;
 		ibb-supply = <&lcdb_ncp_vreg>;
 #ifdef CONFIG_VENDOR_REALME
@@ -610,6 +624,38 @@
 		};
 	};
 #ifdef CONFIG_VENDOR_REALME
+#ifdef CONFIG_IS_REALMEQ
+	dsi_oppo18621dsjm_hx83112a_1080_2340_video_display: qcom,dsi-display@21 {
+		compatible = "qcom,dsi-display";
+		label = "dsi_oppo18621dsjm_hx83112a_1080_2340_video_display";
+		qcom,display-type = "primary";
+
+		qcom,dsi-ctrl = <&mdss_dsi0>;
+		qcom,dsi-phy = <&mdss_dsi_phy0>;
+		clocks = <&mdss_dsi0_pll BYTECLK_MUX_0_CLK>,
+			 <&mdss_dsi0_pll PCLK_MUX_0_CLK>,
+			 <&mdss_dsi0_pll BYTECLK_SRC_0_CLK>,
+			 <&mdss_dsi0_pll PCLK_SRC_0_CLK>,
+			 <&mdss_dsi0_pll SHADOW_BYTECLK_SRC_0_CLK>,
+			 <&mdss_dsi0_pll SHADOW_PCLK_SRC_0_CLK>;
+		clock-names = "mux_byte_clk", "mux_pixel_clk",
+			      "src_byte_clk", "src_pixel_clk",
+			      "shadow_byte_clk", "shadow_pixel_clk";
+
+		pinctrl-names = "panel_active", "panel_suspend";
+		pinctrl-0 = <&sde_dsi_active &sde_te_active>;
+		pinctrl-1 = <&sde_dsi_suspend &sde_te_suspend>;
+		qcom,platform-te-gpio = <&tlmm 10 0>;
+		qcom,platform-reset-gpio = <&tlmm 26 0>;
+        qcom,platform-en-gpio = <&tlmm 4 0>;
+		qcom,dsi-display-active;
+
+		qcom,dsi-panel = <&dsi_oppo18316himax_hx83112a_1080_2340_video>;
+		vddio-supply = <&pm660_l8>;
+		lab-supply = <&lcdb_ldo_vreg>;
+		ibb-supply = <&lcdb_ncp_vreg>;
+	};
+#else
 	dsi_oppo18041samsung_ams653tk01_1080_2340_cmd_display: qcom,dsi-display@21 {
 		compatible = "qcom,dsi-display";
 		label = "dsi_oppo18041samsung_ams653tk01_1080_2340_cmd_display";
@@ -655,6 +701,7 @@
 		vdda-3p3-supply = <&pm660l_l6>;
 	};
 #endif
+#endif
 
 	sde_wb: qcom,wb-display@0 {
 		compatible = "qcom,wb-display";
@@ -681,7 +728,9 @@
 	pinctrl-1 = <&sde_dp_aux_suspend &sde_dp_usbplug_cc_suspend>;
 	qcom,aux-en-gpio = <&tlmm 50 0>;
 #endif
+#ifndef CONFIG_IS_REALMEQ
 	qcom,aux-sel-gpio = <&tlmm 40 0>;
+#endif
 	qcom,usbplug-cc-gpio = <&tlmm 38 0>;
 };
 
@@ -689,6 +738,9 @@
 #ifndef CONFIG_VENDOR_REALME
 	connectors = <&sde_rscc &sde_wb &sde_dp>;
 #else
+#ifdef CONFIG_IS_REALMEQ
+	connectors = <&sde_rscc &sde_wb &sde_dp>;
+#endif
 	connectors = <&sde_rscc &sde_wb>;
 #endif
 };
@@ -1027,7 +1079,9 @@
 	qcom,mdss-dsi-pan-fps-update =
 		"dfps_immediate_porch_mode_vfp";
 	qcom,dsi-supported-dfps-list = <55 60>;
+#ifndef CONFIG_IS_REALMEQ
 	qcom,esd-check-enabled;
+#endif
 	qcom,mdss-dsi-panel-status-check-mode = "reg_read";
 	qcom,mdss-dsi-panel-status-command = [06 01 00 01 00 00 01 0a];
 	qcom,mdss-dsi-panel-status-command-state = "dsi_hs_mode";
@@ -1068,3 +1122,24 @@
 		};
 	};
 };
+#ifdef CONFIG_IS_REALMEQ
+&dsi_panel_pwr_supply_labibb_amoled {
+	qcom,panel-supply-entry@1 {
+		qcom,supply-min-voltage = <3008000>;
+		qcom,supply-max-voltage = <3008000>;
+		qcom,supply-post-on-sleep = <0>;
+	};
+};
+
+/*Mark.Yao@PSW.MM.Display.LCD.Feature,2018-07/02 add DisplayPort support */
+&sde_dp{
+	status = "okay";
+	//status = "disabled";//add micro usb by ouyangbaili
+	pinctrl-0 = <&sde_dp_usbplug_cc_active>;
+	pinctrl-1 = <&sde_dp_usbplug_cc_suspend>;
+
+	qcom,usbplug-cc-gpio = <&tlmm 38 0>;
+	/delete-node/ qcom,aux-en-gpio;
+	/delete-node/ qcom,aux-sel-gpio;
+};
+#endif

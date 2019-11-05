@@ -555,7 +555,9 @@
 	sde_dp: qcom,dp_display@0{
 		cell-index = <0>;
 		compatible = "qcom,dp-display";
-
+#ifdef CONFIG_IS_REALMEQ
+		status = "disabled";/* OuYangBaiLi@BSP.Power.Basic, 2019/05/29,Add for disable usb3.0 */
+#endif
 		gdsc-supply = <&mdss_core_gdsc>;
 		vdda-1p2-supply = <&pm8998_l26>;
 		vdda-0p9-supply = <&pm8998_l1>;

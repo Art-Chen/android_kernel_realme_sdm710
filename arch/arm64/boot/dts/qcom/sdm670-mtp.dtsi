@@ -62,7 +62,171 @@
 &qupv3_se8_spi {
 	status = "disabled";
 };
+#ifdef CONFIG_IS_REALMEQ
+&qupv3_se0_spi {
+/*YunRui.Chen@BSP.TP.Function, 2018/11/19, add for himax noflash*/
+	/* Novatek device tree node */
+    status = "ok";
+    #address-cells = <1>;
+    #size-cells = <0>;
+    touchscreen@0 {
+        status = "okay";
+        compatible = "oppo,tp_noflash";
+        reg = <0>;
+        chip-name = "OPPO_TP_NOFLASH";
 
+        spi-max-frequency = <9600000>;	//4800000,9600000,15000000,19200000
+        reset-gpio = <&tlmm 99 0x00>;
+        interrupt-parent = <&tlmm>;
+        interrupts = <125 0x01>;
+        irq-gpio = <&tlmm 125 0x2001>;
+        lcd-reset-gpio = <&tlmm 26 0x00>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&ts_int_active &ts_reset_active>;
+        
+		touchpanel,max-num-support = <10>;
+        touchpanel,tx-rx-num = <16 36>;
+        touchpanel,panel-coords = <1080 2340>;
+        touchpanel,display-coords = <1080 2340>;
+
+        incell_screen;
+        fw_edge_limit_support;
+        black_gesture_support;
+        charger_pump_support;
+	headset_pump_support;	
+        //spurious_fingerprint_support;
+        //lcd_trigger_fp_check;
+		esd_handle_support;
+        black_gesture_test_support;
+        game_switch_support;
+        noflash_support;
+        lcd_trigger_load_tp_fw_support;
+        smart_gesture_support;
+	pressure_report_support;
+        fw_update_app_support;
+
+        /*
+        *Virtual Key Config:
+        *1:touchpanel,button-type: <virtualkey_type  supportted_button-map>
+        *virtualkey_type:
+        *Type 1: using board_properties
+        *Type 2: using same IC (button zone&& touch zone are seprate)
+        *Type 3: using diffrent IC (button zone&& touch zone are seprate)
+        *Type 4: No need of virtual key process
+        *supportted_button-map:select|menu|home|back
+        *
+        *2:touchpanel,button-map
+        *type (X1,Y1)(X2,Y2)(X3,Y3)(Width_X,Hight_Y)--Only when button-type is 0
+        */
+
+        touchpanel,button-type = <4>;
+    };
+};
+&pm660l_gpios {
+//#ifdef VENDOR_EDIT
+//wenjie.Liu@CN.NFC.Basic.Hardware.1164987, 2017/11/28, Modify for:NXP NQ330-NFC(driver_config)
+	/* GPIO 2 for NFC_WAKEUP */
+	gpio@c100 {
+		qcom,mode = <1>;
+		qcom,vin-sel = <0>;
+		qcom,src-sel = <0>;
+		qcom,master-en = <1>;
+//#ifndef VENDOR_EDIT
+//liushupei@RM.CN.NFC.Basic.Hardware,2018/12/10
+//disabled nfc
+//		status = "okay";
+//#else
+		status = "disabled";
+//#endif /* VENDOR_EDIT */
+	};
+	/* GPIO 3 for NFC_DWL */
+	gpio@c200 {
+		qcom,mode = <1>;
+		qcom,vin-sel = <0>;
+		qcom,src-sel = <0>;
+		qcom,master-en = <1>;
+//#ifndef VENDOR_EDIT
+//liushupei@RM.CN.NFC.Basic.Hardware,2018/12/10
+//disabled nfc
+//		status = "okay";
+//#else
+		status = "disabled";
+//#endif /* VENDOR_EDIT */
+	};
+	/* GPIO 4 NFC_LNBBCLK3_EN(NFC_CLK_REQ) */
+	gpio@c300 {
+		qcom,mode = <0>;
+		qcom,vin-sel = <1>;
+		qcom,src-sel = <0>;
+		qcom,master-en = <1>;
+//#ifndef VENDOR_EDIT
+//liushupei@RM.CN.NFC.Basic.Hardware,2018/12/10
+//disabled nfc
+//		status = "okay";
+//#else
+		status = "disabled";
+//#endif /* VENDOR_EDIT */
+	};
+
+	/* GPIO 5 for NFC_VEN */
+	gpio@c400 {
+		qcom,mode = <1>;
+		qcom,vin-sel = <0>;
+		qcom,src-sel = <0>;
+		qcom,master-en = <1>;
+//#ifndef VENDOR_EDIT
+//liushupei@RM.CN.NFC.Basic.Hardware,2018/12/10
+//disabled nfc
+//		status = "okay";
+//#else
+		status = "disabled";
+//#endif /* VENDOR_EDIT */
+	};
+	/* GPIO 8 for eSE_Power SVDD_PWR_REQ*/
+	gpio@c700 {
+		qcom,mode = <1>;
+		qcom,vin-sel = <0>;
+		qcom,src-sel = <0>;
+		qcom,master-en = <1>;
+//#ifndef VENDOR_EDIT
+//liushupei@RM.CN.NFC.Basic.Hardware,2018/12/10
+//disabled nfc
+//		status = "okay";
+//#else
+		status = "disabled";
+//#endif /* VENDOR_EDIT */
+	};
+};
+//#endif /* VENDOR_EDIT */
+
+//#ifdef VENDOR_EDIT
+//wenjie.Liu@CN.NFC.Basic.Hardware, 2018/06/16,
+// Add for :NFC chip, extern XO ,dont need clk
+//qcom,nq-clkreq = <&pm660_gpios 4 0x00>;
+//wake up :gpio 103
+&qupv3_se4_i2c {
+	status = "ok";
+	nq@28 {
+		compatible = "qcom,nq-nci";
+//#ifdef VENDOR_EDIT
+//liushupei@RM.CN.NFC.Basic.Hardware,2018/12/10
+//disabled nfc
+		status = "disabled";
+//#endif /* VENDOR_EDIT */
+		reg = <0x28>;
+		qcom,nq-irq = <&pm660l_gpios 4 0x00>;
+		qcom,nq-ven = <&pm660l_gpios 5 0x00>;
+		qcom,nq-firm = <&pm660l_gpios 3 0x00>;
+		qcom,nq-esepwr = <&pm660l_gpios 8 0x00>;
+		interrupt-parent = <&pm660l_gpios>;
+		qcom,clk-src = "BBCLK3";
+		interrupts = <4 0>;
+		interrupt-names = "nfc_irq";
+		clocks = <&clock_rpmh RPMH_LN_BB_CLK3>;
+		clock-names = "ref_clk";
+	};
+};
+#else
 &qupv3_se3_i2c {
 	status = "ok";
 	nq@28 {
@@ -83,7 +247,7 @@
 		pinctrl-1 = <&nfc_int_suspend &nfc_enable_suspend>;
 	};
 };
-
+#endif
 &qupv3_se10_i2c {
 	status = "ok";
 };
@@ -127,13 +291,22 @@
 	pinctrl-0 = <&sdc2_clk_on &sdc2_cmd_on &sdc2_data_on &sdc2_cd_on>;
 	pinctrl-1 = <&sdc2_clk_off &sdc2_cmd_off &sdc2_data_off &sdc2_cd_off>;
 
+#ifdef CONFIG_IS_REALMEQ
+	cd-gpios = <&tlmm 96 0x0>;
+#else
 	cd-gpios = <&tlmm 96 0x1>;
+#endif
+
 
 #ifndef CONFIG_VENDOR_REALME
 //yh@PSW.BSP.Storage.UFS, 2018-06-04 add for disable sdhci
       status = "ok";
 #else
-	status = "disabled";
+#ifdef CONFIG_IS_REALMEQ
+      status = "ok";
+#else
+      status = "disabled";
+#endif
 #endif
 };
 
@@ -164,19 +337,29 @@
 		interrupts = <125 0x00>;
 
 		/* Power Config */
+#ifndef CONFIG_IS_REALMEQ
 		enable2v8_gpio = <&pm660_gpios 13 0x1>;
+#endif
 		//vdd_2v8-supply = <&pm660l_l2>;
 		vcc_1v8-supply = <&pm660_l8>;
 		//vdd_2v8_volt = <2960000>;
 
 		/* Other HW Resource */
 		irq-gpio = <&tlmm 125 0x2008>;
+#ifdef CONFIG_IS_REALMEQ
+		reset-gpio = <&tlmm 99 0x1>;
+#else
 		reset-gpio = <&tlmm 119 0x1>; //use gpio 199 for evt
+#endif
 		pinctrl-names = "default";
 		pinctrl-0 = <&ts_int_active &ts_reset_active>;
 
 		touchpanel,max-num-support = <10>;
+#ifdef CONFIG_IS_REALMEQ
+		touchpanel,tx-rx-num = <16 33>;
+#else
 		touchpanel,tx-rx-num = <16 34>;
+#endif
 		touchpanel,panel-coords = <1080 2340>;
 		touchpanel,display-coords = <1080 2340>;
 		touchpanel,touchmajor-limit = <0 54>;
@@ -190,10 +373,14 @@
 		game_switch_support;
 		face_detect_support;
 		smart_gesture_support;
+#ifndef CONFIG_IS_REALMEQ
 		pressure_report_support;
+#endif
 		fw_update_app_support;
 		fingerprint_underscreen_support;
+#ifndef CONFIG_IS_REALMEQ
     ic_is_synaptics;
+#endif
 
 		/*
 		 *Virtual Key Config:
@@ -225,6 +412,9 @@
 		compatible = "nxp,tfa98xx";
 		reg = <0x35>;
 		//nxp,rst-ctrl-gpio = <&tlmm 80 0x00>;
+#ifdef CONFIG_IS_REALMEQ
+                nxp,rst-ctrl-gpio = <&tlmm 65 0x00>;
+#endif
 		tfa9890_vdd-supply = <&pm660_l13>;
 		status = "okay";
 	};
@@ -244,6 +434,20 @@
 			input-enable;
 		};
 	};
+#ifdef CONFIG_IS_REALMEQ
+    rf_cable1_active: rf_cable1_active {
+        mux {
+            pins = "gpio127";
+            function = "gpio";
+        };
+        config {
+            pins = "gpio127";
+            drive-strength = <2>;
+            input-enable;
+            bias-pull-up;
+        };
+    };
+#endif
 };
 
 &smb1355_0 {
@@ -277,6 +481,7 @@
 };
 
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_IS_REALMEQ
 &tlmm {
 	sub_id1_active: sub_id1_active {
 		mux {
@@ -327,6 +532,7 @@
 		};
 	};
 };
+#endif
 #endif
 &soc {
 	gpio_keys {
@@ -397,16 +603,33 @@
 	//Added by Tong.han@Bsp.Group.Tp for device-info,2015-4-13
 	devinfo {
 		compatible = "oppo-devinfo";
+#ifdef CONFIG_IS_REALMEQ
+		HW,Sboard_gpio = <&tlmm 136 0x00>;
+		//#ifdef VENDOR_EDIT linzhenming#BSP mod for sub_board id
+		//qcom,devinfo-vadc = <&pm660_vadc>;
+		oppo,sub_board_id = <&pm660_gpios 3 GPIO_ACTIVE_LOW>;
+		pinctrl-names ="Sboard_gpio_pullup", "Sboard_gpio_pulldown","Sub_board_gpio_active","Sub_board_gpio_sleep";
+		//pinctrl-0 = <&sub_mainboard_active>;
+		pinctrl-0 = <&pin_sboard_set_pullup>;
+		pinctrl-1 = <&pin_sboard_set_pulldown>;
+		pinctrl-2 = <&gpio_sub_board_id_default>;
+		pinctrl-3 = <&gpio_sub_board_id_sleep>;
+#else
 		pinctrl-names = "sub_id_active","sub_id_sleep";
 		pinctrl-0 = <&sub_id1_active &sub_id2_active>;
 		pinctrl-1 = <&sub_id1_sleep &sub_id2_sleep>;
 		sub_id1-gpio = <&tlmm 96 0>;
 		sub_id2-gpio = <&tlmm 97 0>;
+#endif
 	};
 	/* luhongyu@Bsp.Fingerprint.Basic 2018-10-30 add for fingerprint */
 	oppo_fp_common { //Slave driver and CS ID
 	        compatible = "oppo,fp_common"; //Manufacture, and Model
+#ifdef CONFIG_IS_REALMEQ
+                oppo,fp-id2 = <&pm660_gpios 6 GPIO_ACTIVE_LOW>;
+#else
 	        oppo,fp-id2 = <&tlmm 23 0x00>; // 0: silead,1:goodix
+#endif
 	        pinctrl-names = "default";
 	        pinctrl-0 = <&gpio_id2_default>;
 	};
@@ -421,10 +644,13 @@
 		interrupts = <121 0>;
 		goodix,gpio_irq = <&tlmm 121 0x1>;
 		goodix,gpio_reset = <&tlmm 80 0x0>;
+#ifndef CONFIG_IS_REALMEQ
 		ldo5-supply = <&pm660l_l5>; // pm660l_l5 for goodix_fp
+#endif
 		pinctrl-names = "default";
 		pinctrl-0 = <&gpio_goodix_irq_default>;
 	};
+#ifndef CONFIG_IS_REALMEQ
 
 	/* Qing.Guan@BSP.Fingerprint.Basic 2019/02/20 add for egis optical fingerprint */
 	egis_fp {
@@ -437,6 +663,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&gpio_egis_irq_default>;
 	};
+#endif
 
 	/* luhongyu@Bsp.Fingerprint.Basic 2018-10-30 add for fingerprint */
 	silead_fp {
@@ -445,13 +672,27 @@
 		qcom,qup-id = <16>;
 		interrupt-parent = <&tlmm>;
 		interrupts = <121 0>;
+#ifndef CONFIG_IS_REALMEQ
 		avdd-supply = <&pm660l_l5>;
+#endif
 		pinctrl-names = "pmx_silfp_active","pmx_silfp_suspend","pmx_silfp_release";
 		pinctrl-0 = <&silfp_int_active &silfp_reset_active>;
 		pinctrl-1 = <&silfp_int_suspend &silfp_reset_suspend>;
 		pinctrl-2 = <&silfp_release>;
 		rst-gpios = <&tlmm 80 0x0>;
 		irq-gpios = <&tlmm 121 0x1>;
+	};
+#endif
+#ifdef CONFIG_IS_REALMEQ
+	oppo_rf_cable {
+		compatible = "oppo,rf_cable";
+		interrupt-parent = <&tlmm>;
+		//rf,cable0-gpio = <&tlmm 101 0>;
+		rf,cable1-gpio = <&tlmm 127 0>;
+		rf,cable-support-timer = <0>;
+		pinctrl-names = "rf_cable_active";
+		//pinctrl-0 = <&rf_cable0_active &rf_cable1_active>;
+        pinctrl-0 = <&rf_cable1_active>;
 	};
 #endif
 };
@@ -584,9 +825,14 @@
 	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
 	qcom,mdss-dsi-bl-min-level = <1>;
 	qcom,mdss-dsi-bl-max-level = <4095>;
+#ifndef CONFIG_IS_REALMEQ
 	qcom,platform-reset-gpio = <&tlmm 75 0>;
 	qcom,platform-te-gpio = <&tlmm 10 0>;
 	qcom,panel-mode-gpio = <&tlmm 76 0>;
+#else
+	qcom,platform-reset-gpio = <&tlmm 26 0>;
+	qcom,platform-te-gpio = <&tlmm 10 0>;
+#endif
 	qcom,mdss-dsi-mode-sel-gpio-state = "single_port";
 };
 
@@ -596,7 +842,11 @@
 
 &pm660l_wled {
 	status = "okay";
+#ifndef CONFIG_IS_REALMEQ
 	qcom,led-strings-list = [01 02];
+#else
+	qcom,led-strings-list = [00 01 02];
+#endif
 };
 
 &mdss_mdp {
@@ -608,6 +858,7 @@
 		status = "disabled";
 	};
 };
+#ifndef CONFIG_IS_REALMEQ
 #ifdef CONFIG_VENDOR_REALME
 &qupv3_se10_i2c {
 	status = "okay";
@@ -1106,4 +1357,5 @@
 		ratio-d = <32>;
 	};
 };
+#endif
 #endif
