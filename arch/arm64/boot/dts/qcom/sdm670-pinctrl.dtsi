@@ -92,6 +92,7 @@
 			};
 		};
 	};
+	#endif
 	// #endif CONFIG_VENDOR_REALME
 
 	// #ifdef CONFIG_VENDOR_REALME
@@ -519,7 +520,7 @@
 				config {
 					pins = "gpio125";
 					drive-strength = <8>;
-#ifdef CONFIG_IS_REALME
+#ifdef CONFIG_IS_REALMEQ
 					bias-disable;
 #else
 					bias-pull-up;
@@ -531,22 +532,23 @@
 		pmx_ts_reset_active {
 			ts_reset_active: ts_reset_active {
 				mux {
-#ifdef CONFIG_IS_REALME
+#ifdef CONFIG_IS_REALMEQ
 					pins = "gpio99";
 #else
 					pins = "gpio119";
+#endif
 					function = "gpio";
 				};
 
 				config {
-#ifdef CONFIG_IS_REALME
+#ifdef CONFIG_IS_REALMEQ
 					pins = "gpio99";
 #else
 					pins = "gpio119";
 
 #endif
 					drive-strength = <8>;
-#ifndef CONFIG_IS_REALME
+#ifndef CONFIG_IS_REALMEQ
 					bias-disable;
 #else
 					bias-pull-up;
@@ -2847,7 +2849,7 @@
 			};
 		};
 #else
-#ifdef CONFIG_IS_REALME
+#ifdef CONFIG_IS_REALMEQ
 		cam_sensor_rear_active: cam_sensor_rear_active {
 			/* RESET */
 			mux {
