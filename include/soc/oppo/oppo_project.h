@@ -50,6 +50,8 @@ enum OPPO_PROJECT {
         OPPO_18085 = 18085,
         OPPO_18181 = 18181,
         OPPO_18097 = 18097,
+		OPPO_19691 = 19691,
+        OPPO_18621 = 18621,
         OPPO_18099 = 18099,
         OPPO_18383 = 18383,
 };
@@ -69,6 +71,11 @@ enum OPPO_OPERATOR {
         OPERATOR_ALL_CHINA_CARRIER_MOBILE = 9,    /*rendong.shi@Bsp.Group.Tp add for all china carrier MOBILE phone, 2016/01/07*/
         OPERATOR_ALL_CHINA_CARRIER_UNICOM = 10,    /*rendong.shi@Bsp.Group.Tp add for all china carrier UNICOM  phone, 2016/01/07*/
         OPERATOR_FOREIGN_EUROPE = 11,    //wanghao@Bsp.Group.Tp add for foreign europe  phone, 2018/07/14
+        OPERATOR_RM_FOREIGN     = 30,//linzhenming add for realme foreign  18623
+        OPERATOR_RM_FOREIGN_INDIA   = 31,//linzhenming add for realme foreign  india 18621
+        OPERATOR_RM_FOREIGN_VIETNAM_128GB            = 32,//linzhenming add for realme foreign  vietnam 18625 
+        OPERATOR_RM_FOREIGN_VIETNAM_64GB            = 33,//linzhenming add for realme foreign  vietnam 18627
+		OPERATOR_RM_FOREIGN_EUROPE            = 34,//linzhenming add for realme foreign  EUROPE 18633
 };
 
 typedef enum OPPO_PROJECT OPPO_PROJECT;

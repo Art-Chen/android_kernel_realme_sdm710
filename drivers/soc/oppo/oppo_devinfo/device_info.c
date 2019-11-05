@@ -55,6 +55,8 @@ struct devinfo_data {
 	struct pinctrl_state *Sboard_gpio_pulldown;
 	struct pinctrl_state *sub_id_active;
 	struct pinctrl_state *sub_id_sleep;
+	struct pinctrl_state *sub_id3_active;
+	struct pinctrl_state *sub_id3_sleep;
 	struct qpnp_vadc_chip	*pm660_vadc_dev;
 	int hw_id0_gpio;
 	int hw_id1_gpio;
@@ -62,6 +64,7 @@ struct devinfo_data {
 	int hw_id3_gpio;
 	int sub_hw_id1;
 	int sub_hw_id2;
+	int sub_hw_id3;
 	int ant_select_gpio;
 	int wlan_hw_id1;
 	int wlan_hw_id2;
@@ -336,6 +339,7 @@ static void sub_mainboard_verify(struct devinfo_data *devinfo_data)
         static int pcbVersion = HW_VERSION__UNKNOWN;
         int sub_id1 = 0;
         int sub_id2 = 0;
+		int sub_id3 = 0;
 
         if (!devinfo_data) {
                 pr_err("devinfo_data is NULL\n");
@@ -345,9 +349,10 @@ static void sub_mainboard_verify(struct devinfo_data *devinfo_data)
 
 		devinfo_data->sub_hw_id1 = of_get_named_gpio(np, "sub_id1-gpio", 0);
 		devinfo_data->sub_hw_id2 = of_get_named_gpio(np, "sub_id2-gpio", 0);
-
-		pr_err("[%d %d]\n", devinfo_data->sub_hw_id1,devinfo_data->sub_hw_id2);
-
+//#ifdef VENDOR_EDIT linzhenming@bsp add for sub_board_id
+       devinfo_data->sub_hw_id3 = of_get_named_gpio(np, "oppo,sub_board_id", 0);
+		pr_err("[%d %d %d]\n", devinfo_data->sub_hw_id1,devinfo_data->sub_hw_id2,devinfo_data->sub_hw_id3);
+//#endif
 		if (!IS_ERR_OR_NULL(devinfo_data->pinctrl)) {
 			devinfo_data->sub_id_active = pinctrl_lookup_state(devinfo_data->pinctrl, "sub_id_active");
 			if (!IS_ERR_OR_NULL(devinfo_data->sub_id_active)) {
@@ -362,7 +367,21 @@ static void sub_mainboard_verify(struct devinfo_data *devinfo_data)
 				}
 			}
 		}
-
+//#ifdef VENDOR_EDIT linzhenming@bsp add for sub_board_id
+		if (!IS_ERR_OR_NULL(devinfo_data->pinctrl)) {
+			devinfo_data->sub_id3_active = pinctrl_lookup_state(devinfo_data->pinctrl, "Sub_board_gpio_active");
+			if (!IS_ERR_OR_NULL(devinfo_data->sub_id3_active)) {
+				pinctrl_select_state(devinfo_data->pinctrl, devinfo_data->sub_id3_active);
+				if (gpio_is_valid(devinfo_data->sub_hw_id3)) {
+					sub_id3 = gpio_get_value(devinfo_data->sub_hw_id3);
+				}
+				devinfo_data->sub_id3_sleep = pinctrl_lookup_state(devinfo_data->pinctrl, "Sub_board_gpio_sleep");
+				if (!IS_ERR_OR_NULL(devinfo_data->sub_id3_sleep)) {
+					pinctrl_select_state(devinfo_data->pinctrl, devinfo_data->sub_id3_sleep);
+				}
+			}
+		}
+//#endif
         if (of_find_property(np, "qcom,devinfo-vadc", NULL)) {
 		devinfo_data->pm660_vadc_dev = qpnp_get_vadc(&devinfo_data->devinfo->dev, "devinfo");
 		if (IS_ERR(devinfo_data->pm660_vadc_dev)) {
@@ -436,6 +455,16 @@ sub_mainboard_set:
                         snprintf(mainboard_info.manufacture, INFO_BUF_LEN, "rf-unmatch");
                 }
                 break;
+        case OPPO_18621:
+                pr_err("sub_id3: %d,operator:%d\n", sub_id3,operator);
+                if (((0 == sub_id3)&&((OPERATOR_RM_FOREIGN == operator) ||(OPERATOR_RM_FOREIGN_INDIA == operator) ||(OPERATOR_RM_FOREIGN_VIETNAM_128GB == operator) ||
+		 (OPERATOR_RM_FOREIGN_VIETNAM_64GB == operator) || (OPERATOR_ALL_CHINA_CARRIER == operator) || (OPERATOR_CHINA_MOBILE == operator))) ||
+					((1 == sub_id3)&& (OPERATOR_RM_FOREIGN_EUROPE == operator))) {
+                        snprintf(mainboard_info.manufacture, INFO_BUF_LEN, "rf-match");
+                } else {
+                        snprintf(mainboard_info.manufacture, INFO_BUF_LEN, "rf-unmatch");
+                }
+                break;
         case OPPO_18041:
                pr_err("18041 sub_hw_id1:%d sub_hw_id2:%d\n", sub_id1, sub_id2);
                if ((sub_id1 == 1) && (sub_id2 == 1) && (operator == OPERATOR_FOREIGN)) {
@@ -455,6 +484,16 @@ sub_mainboard_set:
                 } else if ((sub_mainboard_volt > 250 && sub_mainboard_volt < 400) && (pcbVersion == HW_VERSION__12)) {
                         snprintf(mainboard_info.manufacture, INFO_BUF_LEN, "rf-match");
                 } else if ((sub_mainboard_volt > 0 && sub_mainboard_volt < 200) && (pcbVersion > HW_VERSION__12)) {
+                        snprintf(mainboard_info.manufacture, INFO_BUF_LEN, "rf-match");
+                } else {
+                        snprintf(mainboard_info.manufacture, INFO_BUF_LEN, "rf-unmatch");
+                }
+                break;
+        case OPPO_19691:
+                pr_err("sub_id3: %d,operator:%d\n", sub_id3,operator);
+                if ((OPERATOR_RM_FOREIGN == operator) ||(OPERATOR_RM_FOREIGN_INDIA == operator) ||(OPERATOR_RM_FOREIGN_VIETNAM_128GB == operator) ||
+                (OPERATOR_RM_FOREIGN_VIETNAM_64GB == operator) || (OPERATOR_ALL_CHINA_CARRIER == operator) || (OPERATOR_CHINA_MOBILE == operator) ||
+				(OPERATOR_RM_FOREIGN_EUROPE == operator) || (OPERATOR_FOREIGN == operator)) {
                         snprintf(mainboard_info.manufacture, INFO_BUF_LEN, "rf-match");
                 } else {
                         snprintf(mainboard_info.manufacture, INFO_BUF_LEN, "rf-unmatch");
@@ -611,7 +650,7 @@ static void RF_resource_verify(struct devinfo_data *devinfo_data)
 	rf_resource_info.manufacture = temp_manufacture1;
 	rf_resource_info.version = temp_manufacture2;
         operator_name = get_Operator_Version();
-        pr_err("operator_name is %d\n", operator_name);
+        pr_err("operator_name is %d,gpio136:%d\n", operator_name,gpio136_stu);
 
 	switch(get_project()) {
                 case OPPO_18181:
@@ -619,6 +658,27 @@ static void RF_resource_verify(struct devinfo_data *devinfo_data)
                                 snprintf(rf_resource_info.manufacture, INFO_BUF_LEN, "Sboard-match");
                                 snprintf(rf_resource_info.version, INFO_BUF_LEN, "Qcom");
                         } else if (gpio136_stu == 1 && (operator_name == OPERATOR_FOREIGN || operator_name == OPERATOR_FOREIGN_EUROPE)) {
+                                snprintf(rf_resource_info.manufacture, INFO_BUF_LEN, "Sboard-match");
+                                snprintf(rf_resource_info.version, INFO_BUF_LEN, "Qcom");
+                        } else {
+                                snprintf(rf_resource_info.manufacture, INFO_BUF_LEN, "Sboard-unmatch");
+                                snprintf(rf_resource_info.version, INFO_BUF_LEN, "Qcom");
+                        }
+                        break;
+	        case OPPO_18621:
+                       if ((gpio136_stu == 1) && ((OPERATOR_RM_FOREIGN == operator_name) ||(OPERATOR_RM_FOREIGN_INDIA == operator_name) ||(OPERATOR_RM_FOREIGN_VIETNAM_128GB == operator_name) ||
+		 (OPERATOR_RM_FOREIGN_VIETNAM_64GB == operator_name) || (OPERATOR_RM_FOREIGN_EUROPE == operator_name) || (OPERATOR_ALL_CHINA_CARRIER == operator_name) || (OPERATOR_CHINA_MOBILE == operator_name))) {
+                                snprintf(rf_resource_info.manufacture, INFO_BUF_LEN, "Sboard-match");
+                                snprintf(rf_resource_info.version, INFO_BUF_LEN, "Qcom");
+                        } else {
+                                snprintf(rf_resource_info.manufacture, INFO_BUF_LEN, "Sboard-unmatch");
+                                snprintf(rf_resource_info.version, INFO_BUF_LEN, "Qcom");
+                        }
+                        break;
+		     case OPPO_19691:
+                       if ((OPERATOR_RM_FOREIGN == operator_name) ||(OPERATOR_RM_FOREIGN_INDIA == operator_name) ||(OPERATOR_RM_FOREIGN_VIETNAM_128GB == operator_name) ||
+                        (OPERATOR_RM_FOREIGN_VIETNAM_64GB == operator_name) || (OPERATOR_RM_FOREIGN_EUROPE == operator_name) || (OPERATOR_ALL_CHINA_CARRIER == operator_name) || 
+                        (OPERATOR_CHINA_MOBILE == operator_name) || (OPERATOR_FOREIGN == operator_name)){
                                 snprintf(rf_resource_info.manufacture, INFO_BUF_LEN, "Sboard-match");
                                 snprintf(rf_resource_info.version, INFO_BUF_LEN, "Qcom");
                         } else {
