@@ -42,6 +42,11 @@
 #define DEFAULT_PANEL_JITTER_ARRAY_SIZE		2
 #define MAX_PANEL_JITTER		10
 #define DEFAULT_PANEL_PREFILL_LINES	25
+#ifdef CONFIG_IS_REALMEQ
+/*YunRui.Chen@BSP.TP.Function, 2018/12/05, add for trigger load tp fw by lcd driver after lcd reset*/
+extern void lcd_queue_load_tp_fw(void);
+static int tp_black_power_on_ff_flag = 0;
+#endif
 
 enum dsi_dsc_ratio_type {
 	DSC_8BPC_8BPP,
@@ -99,6 +104,21 @@ static char dsi_dsc_rc_range_max_qp_1_1_scr1[][15] = {
  */
 static char dsi_dsc_rc_range_bpg_offset[] = {2, 0, 0, -2, -4, -6, -8, -8,
 		-8, -10, -10, -12, -12, -12, -12};
+
+#ifdef CONFIG_IS_REALMEQ
+//caiwutang@MM.Display.LCD.Stability, 2018/11/28,
+//add for tp black gesture
+extern int tp_gesture_enable_flag(void);
+static int mdss_tp_black_gesture_status(void){
+	int ret = 0;
+	/*default disable tp gesture*/
+
+	//tp add the interface for check black status to ret
+	ret = tp_gesture_enable_flag();
+	pr_err("%s: ret = %d\n", __func__, ret);
+	return ret;
+}
+#endif /*CONFIG_IS_REALMEQ*/
 
 int dsi_dsc_create_pps_buf_cmd(struct msm_display_dsc_info *dsc, char *buf,
 				int pps_id)
@@ -352,7 +372,7 @@ static int dsi_panel_reset(struct dsi_panel *panel)
 	int rc = 0;
 	struct dsi_panel_reset_config *r_config = &panel->reset_config;
 	int i;
-
+#ifndef CONFIG_IS_REALMEQ
 	if (gpio_is_valid(panel->reset_config.disp_en_gpio)) {
 		rc = gpio_direction_output(panel->reset_config.disp_en_gpio, 1);
 		if (rc) {
@@ -360,7 +380,7 @@ static int dsi_panel_reset(struct dsi_panel *panel)
 			goto exit;
 		}
 	}
-
+#endif
 	if (r_config->count) {
 		rc = gpio_direction_output(r_config->reset_gpio,
 			r_config->sequence[0].level);
@@ -425,17 +445,46 @@ static int dsi_panel_set_pinctrl_state(struct dsi_panel *panel, bool enable)
 
 	return rc;
 }
+#ifdef CONFIG_IS_REALMEQ
+static int dsi_panel_1p8_on_off(struct dsi_panel *panel , int value)
+{
+	int rc = 0;
 
-
+	if (gpio_is_valid(panel->reset_config.disp_en_gpio)) {
+		rc = gpio_direction_output(panel->reset_config.disp_en_gpio, value);
+		if (rc) {
+			pr_err("unable to set dir for disp gpio rc=%d\n", rc);
+		}
+	}
+	return rc;
+}
+#endif
 static int dsi_panel_power_on(struct dsi_panel *panel)
 {
 	int rc = 0;
 
+	#ifndef CONFIG_IS_REALMEQ
+	//caiwutang@MM.Display.LCD.Stability, 2018/11/28,
+	//add for tp black gesture
 	rc = dsi_pwr_enable_regulator(&panel->power_info, true);
 	if (rc) {
 		pr_err("[%s] failed to enable vregs, rc=%d\n", panel->name, rc);
 		goto exit;
 	}
+	#else /*CONFIG_IS_REALMEQ */
+	if((0 == mdss_tp_black_gesture_status())||(1 == tp_black_power_on_ff_flag))
+	{
+		tp_black_power_on_ff_flag = 0;
+		pr_debug("%s:tp_black_power_on_ff_flag = %d\n",__func__,tp_black_power_on_ff_flag);
+		pr_debug("rm to enable regulators with tp tp_gesture_enable_flag\n");
+		dsi_panel_1p8_on_off(panel,true);
+		rc = dsi_pwr_enable_regulator(&panel->power_info, true);
+		if (rc) {
+			pr_err("[%s] failed to enable vregs, rc=%d\n", panel->name, rc);
+			goto exit;
+		}
+	}
+	#endif /*CONFIG_IS_REALMEQ */
 
 	rc = dsi_panel_set_pinctrl_state(panel, true);
 	if (rc) {
@@ -473,10 +522,25 @@ static int dsi_panel_power_off(struct dsi_panel *panel)
 
 	if (gpio_is_valid(panel->reset_config.disp_en_gpio))
 		gpio_set_value(panel->reset_config.disp_en_gpio, 0);
-
+	#ifndef CONFIG_IS_REALMEQ
 	if (gpio_is_valid(panel->reset_config.reset_gpio))
 		gpio_set_value(panel->reset_config.reset_gpio, 0);
-
+	#else /*CONFIG_IS_REALMEQ */
+	if(0 == mdss_tp_black_gesture_status()){
+		pr_debug("rm to enable reset with tp tp_gesture_enable_flag\n");
+		if (gpio_is_valid(panel->reset_config.reset_gpio)){
+			gpio_set_value(panel->reset_config.reset_gpio, 0);
+			pr_debug("rm to reset_gpio 0 with tp tp_gesture_enable_flag\n");
+		}
+		msleep(25);
+	}else{
+		pr_debug("rm to disable reset with tp tp_gesture_enable_flag\n");
+		if (gpio_is_valid(panel->reset_config.reset_gpio)){
+			gpio_set_value(panel->reset_config.reset_gpio, 1);
+			pr_debug("rm to reset_gpio 1 with tp tp_gesture_enable_flag\n");
+		}
+	}
+	#endif /*CONFIG_IS_REALMEQ */
 	if (gpio_is_valid(panel->reset_config.lcd_mode_sel_gpio))
 		gpio_set_value(panel->reset_config.lcd_mode_sel_gpio, 0);
 
@@ -485,11 +549,24 @@ static int dsi_panel_power_off(struct dsi_panel *panel)
 		pr_err("[%s] failed set pinctrl state, rc=%d\n", panel->name,
 		       rc);
 	}
-
+	#ifndef CONFIG_IS_REALMEQ
+	//caiwutang@MM.Display.LCD.Stability, 2018/11/28,
+	//add for tp black gesture
 	rc = dsi_pwr_enable_regulator(&panel->power_info, false);
 	if (rc)
 		pr_err("[%s] failed to enable vregs, rc=%d\n", panel->name, rc);
-
+	#else /*CONFIG_IS_REALMEQ */
+	if(0 == mdss_tp_black_gesture_status())
+	{
+		tp_black_power_on_ff_flag = 1;
+		pr_debug("%s:tp_black_power_on_ff_flag = %d\n",__func__,tp_black_power_on_ff_flag);
+		pr_debug("rm to dsi_panel_power_off regulators enable with tp tp_gesture_enable_flag\n");
+		rc = dsi_pwr_enable_regulator(&panel->power_info, false);
+		if (rc)
+			pr_err("[%s] failed to enable vregs, rc=%d\n", panel->name, rc);
+		dsi_panel_1p8_on_off(panel,false);
+	}
+	#endif /*CONFIG_IS_REALMEQ */
 	return rc;
 }
 #ifndef CONFIG_VENDOR_REALME
@@ -1614,9 +1691,16 @@ const char *cmd_set_prop_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-seed-dcip3-command",
 	"qcom,mdss-dsi-seed-srgb-command",
 	"qcom,mdss-dsi-seed-off-command",
-	"qcom,mdss-dsi-normal-hbm-on-command",
-	"qcom,mdss-dsi-aod-high-mode-command",
-	"qcom,mdss-dsi-aod-low-mode-command",
+#ifdef CONFIG_IS_REALMEQ
+	"qcom,mdss-dsi-cabc-off-command-state",
+	"qcom,mdss-dsi-cabc-ui-command-state",
+	"qcom,mdss-dsi-cabc-still-image-command-state",
+	"qcom,mdss-dsi-cabc-video-command-state",
+#else
+	"qcom,mdss-dsi-normal-hbm-on-command-state",
+	"qcom,mdss-dsi-aod-high-mode-command-state",
+	"qcom,mdss-dsi-aod-low-mode-command-state",
+#endif
 };
 
 const char *cmd_set_state_map[DSI_CMD_SET_MAX] = {
@@ -1651,9 +1735,16 @@ const char *cmd_set_state_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-seed-dcip3-command-state",
 	"qcom,mdss-dsi-seed-srgb-command-state",
 	"qcom,mdss-dsi-seed-off-command-state",
+#ifdef CONFIG_IS_REALMEQ
+	"qcom,mdss-dsi-cabc-off-command-state",
+	"qcom,mdss-dsi-cabc-ui-command-state",
+	"qcom,mdss-dsi-cabc-still-image-command-state",
+	"qcom,mdss-dsi-cabc-video-command-state",
+#else
 	"qcom,mdss-dsi-normal-hbm-on-command-state",
 	"qcom,mdss-dsi-aod-high-mode-command-state",
 	"qcom,mdss-dsi-aod-low-mode-command-state",
+#endif
 };
 #endif /*CONFIG_VENDOR_REALME*/
 
@@ -3684,6 +3775,10 @@ int dsi_panel_prepare(struct dsi_panel *panel)
 			goto error;
 		}
 	}
+	#ifdef CONFIG_IS_REALMEQ
+	/*YunRui.Chen@BSP.TP.Function, 2018/12/05, add for trigger load tp fw by lcd driver after lcd reset*/
+	lcd_queue_load_tp_fw();
+	#endif/*CONFIG_IS_REALMEQ*/
 
 	#ifdef CONFIG_VENDOR_REALME
 	/*Mark.Yao@PSW.MM.Display.LCD.Stable,2018-07-17 need wait 5ms after lp11 init */

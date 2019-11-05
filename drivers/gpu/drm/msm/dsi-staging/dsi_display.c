@@ -167,7 +167,10 @@ int dsi_display_set_backlight(void *display, u32 bl_lvl)
 	u32 bl_scale, bl_scale_ad;
 	u64 bl_temp;
 	int rc = 0;
-
+        #ifdef VENDOR_EDIT
+        /*caiwutang@MM.Display.LCD.Feature,2019-03-07 add for cabc feature */
+        static bool need_cabc = true;
+        #endif /* VENDOR_EDIT */
 	if (dsi_display == NULL || dsi_display->panel == NULL)
 		return -EINVAL;
 
@@ -178,6 +181,13 @@ int dsi_display_set_backlight(void *display, u32 bl_lvl)
 		rc = -EINVAL;
 		goto error;
 	}
+        #ifdef VENDOR_EDIT
+        if (bl_lvl != 0 && panel->bl_config.bl_level == 0)
+        /*caiwutang@MM.Display.LCD.Feature,2019-03-07 add for cabc feature */
+                need_cabc = true;
+        else
+                need_cabc = false;
+        #endif /* VENDOR_EDIT */
 
 	#ifdef CONFIG_VENDOR_REALME
 	/*liping-m@PSW.MM.Display.LCD.Stable,2018-09-26 add key log for debug */
