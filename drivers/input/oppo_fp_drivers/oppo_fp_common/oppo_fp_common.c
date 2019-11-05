@@ -118,6 +118,11 @@ fp_module_config_t fp_module_config_list[] = {
     {{0, -1, -1},FP_SILEAD_OPTICAL_70,  CHIP_SILEAD,  ENGINEER_MENU_SILEAD_OPTICAL},
     {{1, -1, -1},  FP_GOODIX_OPTICAL_95,    CHIP_GOODIX,     ENGINEER_MENU_GOODIX_OPTICAL},
 };
+#elif CONFIG_OPPO_FINGERPRINT_PROJCT == 19691 || CONFIG_OPPO_FINGERPRINT_PROJCT == 19791
+fp_module_config_t fp_module_config_list[] = {
+    {{1, 1, 1},  FP_FPC_1511, CHIP_FPC, ENGINEER_MENU_FPC1511},
+};
+
 #else
 fp_module_config_t fp_module_config_list[] = {
     {{0, 0, 1},  FP_FPC_1023_GLASS,    	CHIP_FPC,     ENGINEER_MENU_FPC1023},
@@ -176,6 +181,13 @@ static int fp_gpio_parse_dts(struct fp_data *fp_data)
         goto exit;
     }
 #elif CONFIG_OPPO_FINGERPRINT_PROJCT == 18097 || CONFIG_OPPO_FINGERPRINT_PROJCT == 18099 ||CONFIG_OPPO_FINGERPRINT_PROJCT == 18397 || CONFIG_OPPO_FINGERPRINT_PROJCT == 18041 || CONFIG_OPPO_FINGERPRINT_PROJCT == 18181 || CONFIG_OPPO_FINGERPRINT_PROJCT == 18115 || CONFIG_OPPO_FINGERPRINT_PROJCT == 18501 || CONFIG_OPPO_FINGERPRINT_PROJCT == 18503 || CONFIG_OPPO_FINGERPRINT_PROJCT == 18539 || CONFIG_OPPO_FINGERPRINT_PROJCT == 18119 || CONFIG_OPPO_FINGERPRINT_PROJCT == 19061 || CONFIG_OPPO_FINGERPRINT_PROJCT == 19361 || CONFIG_OPPO_FINGERPRINT_PROJCT == 18383
+    ret = fp_request_named_gpio(fp_data, "oppo,fp-id2",
+            &fp_data->gpio_id2);
+    if (ret) {
+        ret = FP_ERROR_GPIO;
+        goto exit;
+    }
+#elif CONFIG_OPPO_FINGERPRINT_PROJCT == 18621 || CONFIG_OPPO_FINGERPRINT_PROJCT == 18637 || CONFIG_OPPO_FINGERPRINT_PROJCT == 19691 || CONFIG_OPPO_FINGERPRINT_PROJCT == 19791
     ret = fp_request_named_gpio(fp_data, "oppo,fp-id2",
             &fp_data->gpio_id2);
     if (ret) {
@@ -406,6 +418,12 @@ static int fp_register_proc_fs(struct fp_data *fp_data)
     fp_data->fp_id0 = 1;
     fp_data->fp_id1 = 1;
     fp_data->fp_id2 = gpio_get_value(fp_data->gpio_id2);
+#elif CONFIG_OPPO_FINGERPRINT_PROJCT == 18621 || CONFIG_OPPO_FINGERPRINT_PROJCT == 18637 || CONFIG_OPPO_FINGERPRINT_PROJCT == 19691 || CONFIG_OPPO_FINGERPRINT_PROJCT == 19791
+    fp_data->fp_id0 = 1;
+    fp_data->fp_id1 = 1;
+    fp_data->fp_id2 = gpio_get_value(fp_data->gpio_id2);
+    //dev_err(fp_data->dev, "read fp_id_gpio fp_id2= %d \n", fp_data->fp_id2);
+    //fp_data->fp_id2 = 1;
 #elif CONFIG_OPPO_FINGERPRINT_PROJCT == 18531 || CONFIG_OPPO_FINGERPRINT_PROJCT == 18151 || CONFIG_OPPO_FINGERPRINT_PROJCT == 18161 || CONFIG_OPPO_FINGERPRINT_PROJCT == 18073 || CONFIG_OPPO_FINGERPRINT_PROJCT == 18593
     fp_data->fp_id0 = gpio_get_value(fp_data->gpio_id0);
     fp_data->fp_id1 = -1;

@@ -2696,9 +2696,10 @@ static int tp_baseline_debug_read_func(struct seq_file *s, void *v)
     }
 
     //step6: return to normal mode
+#ifndef CONFIG_IS_REALMEQ
     ts->ts_ops->reset(ts->chip_data);
     operate_mode_switch(ts);
-
+#endif
     mutex_unlock(&ts->mutex);
 
     if (ts->int_mode == BANNABLE) {
@@ -5066,8 +5067,9 @@ static int tp_suspend(struct device *dev)
     if (ts->esd_handle_support) {
         esd_handle_switch(&ts->esd_info, false);
     }
-
+#ifndef CONFIG_IS_REALMEQ
     if (!ts->is_incell_panel || (ts->black_gesture_support && ts->gesture_enable > 0)) {
+#endif
         //step5:gamde mode support
         if (ts->game_switch_support)
             ts->ts_ops->mode_switch(ts->chip_data, MODE_GAME, false);
@@ -5078,7 +5080,9 @@ static int tp_suspend(struct device *dev)
         }
         if (ts->face_detect_support && ts->fd_enable) {
             ts->ts_ops->mode_switch(ts->chip_data, MODE_FACE_DETECT, false);
+#ifndef CONFIG_IS_REALMEQ
         }
+#endif
     }
 
     //step6:finger print support handle
