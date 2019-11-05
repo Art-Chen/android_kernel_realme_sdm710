@@ -12,7 +12,11 @@ dts-dirs += hisilicon
 dts-dirs += marvell
 dts-dirs += mediatek
 dts-dirs += nvidia
+ifdef CONFIG_IS_REALMEQ
+dts-dirs += 19691
+else
 dts-dirs += qcom
+endif
 dts-dirs += renesas
 dts-dirs += rockchip
 dts-dirs += socionext
