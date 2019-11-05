@@ -740,9 +740,8 @@
 #else
 #ifdef CONFIG_IS_REALMEQ
 	connectors = <&sde_rscc &sde_wb &sde_dp>;
-#else
-	connectors = <&sde_rscc &sde_wb>;
 #endif
+	connectors = <&sde_rscc &sde_wb>;
 #endif
 };
 
