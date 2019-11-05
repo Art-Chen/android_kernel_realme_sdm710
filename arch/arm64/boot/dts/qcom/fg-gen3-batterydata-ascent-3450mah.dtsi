@@ -12,13 +12,8 @@
 
 qcom,ascent_3450mah {
 	/* Ascent_wConn_Aging_3450mAh_averaged_MasterSlave_Jul11th2017 */
-#ifdef CONFIG_IS_REALMEQ
-	qcom,max-voltage-uv = <4390000>;
-	qcom,fg-cc-cv-threshold-mv = <4385>;
-#else
 	qcom,max-voltage-uv = <4350000>;
 	qcom,fg-cc-cv-threshold-mv = <4340>;
-#endif
 	qcom,fastchg-current-ma = <3450>;
 	qcom,batt-id-kohm = <60>;
 	qcom,jeita-fcc-ranges = <0   100  1725000

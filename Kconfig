@@ -13,10 +13,5 @@ config VENDOR_REALME
 	help
 	  This feature enables Realme specific hacks
 
-config IS_REALMEQ
-	bool "DEVICE IS REALME Q"
-	help
-	  This feature enables Realme Q specific hacks
-
 source techpack/audio/Kconfig
 source "arch/$SRCARCH/Kconfig"

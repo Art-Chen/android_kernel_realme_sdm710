@@ -17,12 +17,8 @@
 	compatible = "qcom,sdm670";
 	qcom,msm-id =	<360 0x0>,
 #ifdef CONFIG_VENDOR_REALME
-#ifdef CONFIG_IS_REALMEQ
-			<393 0x0>;
-#else
 			<393 0x0>,
 			<336 0x0>;
-#endif
 #else
 			<393 0x0>;
 #endif

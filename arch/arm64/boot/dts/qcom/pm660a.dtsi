@@ -12,18 +12,12 @@
 
 /* Disable WLED */
 &pm660l_wled {
-#ifndef CONFIG_IS_REALMEQ
 	status = "disabled";
-#else
-	status = "okay";
 };
 
 /* disable LCDB */
 &pm660l_lcdb {
-#ifndef CONFIG_IS_REALMEQ
 	status = "disabled";
-#else
-	status = "okay";
 };
 
 &pm660a_oledb {

@@ -351,15 +351,9 @@
 			qcom,init-voltage = <1800000>;
 			qcom,init-mode = <RPMH_REGULATOR_MODE_LPM>;
 #else
-#ifdef CONFIG_IS_REALMEQ
-			qcom,proxy-consumer-current = <115000>;
-			qcom,init-voltage = <1800000>;
-			qcom,init-mode = <RPMH_REGULATOR_MODE_LPM>;
-#else
 			qcom,proxy-consumer-current = <150000>;
 			qcom,init-voltage = <1800000>;
 			qcom,init-mode = <RPMH_REGULATOR_MODE_HPM>;
-#endif
 #endif
 
 		};

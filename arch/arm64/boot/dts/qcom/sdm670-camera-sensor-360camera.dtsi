@@ -50,9 +50,7 @@
 	regulator-max-microvolt = <1352000>;
 	regulator-enable-ramp-delay = <233>;
 	enable-active-high;
-#ifndef CONFIG_IS_REALMEQ
 	gpio = <&pm660l_gpios 4 0>;
-#endif
 	pinctrl-names = "default";
 	pinctrl-0 = <&camera_dvdd_en_default>;
 	vin-supply = <&pm660_s6>;
@@ -66,9 +64,7 @@
 	regulator-max-microvolt = <1352000>;
 	regulator-enable-ramp-delay = <135>;
 	enable-active-high;
-#ifndef CONFIG_IS_REALMEQ
 	gpio = <&pm660l_gpios 4 0>;
-#endif
 	pinctrl-names = "default";
 	pinctrl-0 = <&camera_rear_dvdd_en_default>;
 	vin-supply = <&pm660_s6>;
@@ -82,11 +78,9 @@
 	regulator-max-microvolt = <1800000>;
 	regulator-enable-ramp-delay = <233>;
 	enable-active-high;
-#ifndef CONFIG_IS_REALMEQ
 	gpio = <&tlmm 29 0>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&cam_sensor_rear_vio>;
-#endif
 	vin-supply = <&pm660_s4>;
 };
 

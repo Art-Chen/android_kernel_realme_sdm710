@@ -28,12 +28,8 @@
 	compatible = "qcom,sdm670-mtp", "qcom,sdm670", "qcom,mtp";
 	qcom,msm-id =	<360 0x0>,
 #ifdef CONFIG_VENDOR_REALME
-#ifdef CONFIG_IS_REALMEQ
-			<393 0x0>;
-#else
 			<393 0x0>,
 			<336 0x0>;
-#endif
 #else
 			<393 0x0>;
 #endif
@@ -42,11 +38,7 @@
 		       <0x0001001b 0x0002001a 0x0 0x0>,
 		       <0x0001001b 0x0202001a 0x0 0x0>;
 #ifdef CONFIG_VENDOR_REALME
-#ifdef CONFIG_IS_REALMEQ
-	oppo,prjversion = <1 19691>;
-#else
 	oppo,prjversion = <1 18041>;
-#endif
 #endif
 };
 
