@@ -73,5 +73,9 @@ source "drivers/input/touchscreen/oppo_touchscreen/util_interface/Kconfig"
 
 if TOUCHPANEL_SYNAPTICS
 source "drivers/input/touchscreen/oppo_touchscreen/Synaptics/Kconfig"
+
+if TOUCHPANEL_HIMAX
+source "drivers/input/touchscreen/oppo_touchscreen/Himax/Kconfig"
+
 endif
 

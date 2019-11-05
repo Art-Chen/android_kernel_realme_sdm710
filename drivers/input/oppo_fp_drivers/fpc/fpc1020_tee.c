@@ -73,6 +73,7 @@ static const struct vreg_config const vreg_conf[] = {
 struct fpc1020_data {
         struct device *dev;
         int irq_gpio;
+		int rst_gpio;
         int irq_num;
         struct mutex lock;
         bool prepared;
@@ -411,6 +412,13 @@ static int fpc1020_probe(struct platform_device *pdev)
         wake_lock_init(&fpc1020->fpc_wl, WAKE_LOCK_SUSPEND, "fpc_wl");
         wake_lock_init(&fpc1020->fpc_irq_wl, WAKE_LOCK_SUSPEND, "fpc_irq_wl");
 
+        rc = fpc1020_request_named_gpio(fpc1020, "fpc,rst-gpio",
+                        &fpc1020->rst_gpio);
+        if (rc) {
+                goto ERR_AFTER_WAKELOCK;
+        }
+        gpio_direction_output(fpc1020->rst_gpio, 0);
+
         rc = fpc1020_request_named_gpio(fpc1020, "fpc,irq-gpio",
                         &fpc1020->irq_gpio);
         if (rc) {
@@ -447,7 +455,7 @@ static int fpc1020_probe(struct platform_device *pdev)
         }
 
         rc = vreg_setup(fpc1020, "vdd_io", true);
-        rc = vreg_setup(fpc1020, "vmch", true);
+        //rc = vreg_setup(fpc1020, "vmch", true);
 
         if (rc) {
                 dev_err(fpc1020->dev,
@@ -484,7 +492,30 @@ static struct platform_driver fpc1020_driver = {
         },
         .probe = fpc1020_probe,
 };
-module_platform_driver(fpc1020_driver);
+//module_platform_driver(fpc1020_driver);
+
+static int __init fpc1020_init(void)
+{
+	int rc = platform_driver_register(&fpc1020_driver);
+
+	if (!rc)
+		pr_info("%s OK\n", __func__);
+	else
+		pr_err("%s %d\n", __func__, rc);
+
+	return rc;
+}
+
+static void __exit fpc1020_exit(void)
+{
+	pr_info("%s\n", __func__);
+	platform_driver_unregister(&fpc1020_driver);
+}
+
+//module_init(fpc1020_init);
+late_initcall(fpc1020_init);
+module_exit(fpc1020_exit);
+
 
 MODULE_LICENSE("GPL v2");
 MODULE_AUTHOR("Aleksej Makarov");

@@ -1,3 +1,4 @@
+ 
 /***************************************************
  * File:touch.c
  * CONFIG_VENDOR_REALME
@@ -22,7 +23,17 @@
 #include <linux/regulator/consumer.h>
 #include <linux/of_gpio.h>
 
+#include "touch.h"
+
 #define MAX_LIMIT_DATA_LENGTH         100
+int g_tp_dev_vendor = TP_UNKNOWN;
+char *g_tp_chip_name;
+static bool is_tp_type_got_in_match = false;    /*indicate whether the tp type is got in the process of ic match*/
+#define MAX_LIMIT_DATA_LENGTH         100
+
+#define NT36672_NF_CHIP_NAME "NT_NF36672"
+#define HX83112A_NF_CHIP_NAME "HX_NF83112A"
+#define TD4320_NF_CHIP_NAME "TD4320_NF"
 
 /*if can not compile success, please update vendor/oppo_touchsreen*/
 struct tp_dev_name tp_dev_names[] = {
@@ -41,11 +52,50 @@ struct tp_dev_name tp_dev_names[] = {
 };
 
 #define GET_TP_DEV_NAME(tp_type) ((tp_dev_names[tp_type].type == (tp_type))?tp_dev_names[tp_type].name:"UNMATCH")
+bool __init tp_judge_ic_match(char * tp_ic_name)
+{
+    pr_err("[TP] tp_ic_name = %s \n", tp_ic_name);
+    pr_err("[TP] boot_command_line = %s \n", boot_command_line);
+
+    switch(get_project()) {
+    case 18621:
+		pr_err("Project Name is 18621\n");
+        is_tp_type_got_in_match = true;
+        
+            g_tp_dev_vendor = TP_DSJM;
+       
+            g_tp_chip_name = kzalloc(sizeof(HX83112A_NF_CHIP_NAME), GFP_KERNEL);
+            g_tp_chip_name = HX83112A_NF_CHIP_NAME;
+            
+            return true;
+   	case 19691:
+		pr_err("Project Name is 19691\n");
+        is_tp_type_got_in_match = true;
+        
+            g_tp_dev_vendor = TP_DSJM;
+       
+            g_tp_chip_name = kzalloc(sizeof(HX83112A_NF_CHIP_NAME), GFP_KERNEL);
+            g_tp_chip_name = HX83112A_NF_CHIP_NAME;
+            
+            return true;
+    default:
+       pr_err("Invalid project\n");
+        break;
+    }
+
+    pr_err("Lcd module not found\n");
+    return false;
+}
 
 int tp_util_get_vendor(struct hw_resource *hw_res, struct panel_info *panel_data)
 {
     char* vendor;
     int prj_id = 0;
+	#ifdef CONFIG_TOUCHPANEL_MULTI_NOFLASH
+    if (g_tp_chip_name != NULL) {
+        panel_data->chip_name = g_tp_chip_name;
+    }
+    #endif
 
     panel_data->test_limit_name = kzalloc(MAX_LIMIT_DATA_LENGTH, GFP_KERNEL);
     if (panel_data->test_limit_name == NULL) {
@@ -69,6 +119,12 @@ int tp_util_get_vendor(struct hw_resource *hw_res, struct panel_info *panel_data
     } else if (is_project(OPPO_18383)) {
         panel_data->tp_type = TP_SAMSUNG;
         prj_id = OPPO_18383;
+    } else if(is_project(OPPO_19691)){
+    	panel_data->tp_type = TP_DSJM;
+		prj_id = OPPO_19691;
+    } else if(is_project(OPPO_18621)){
+    	panel_data->tp_type = TP_DSJM;
+		prj_id = OPPO_18621;
     }
     if (panel_data->tp_type == TP_UNKNOWN) {
         pr_err("[TP]%s type is unknown\n", __func__);
@@ -93,6 +149,19 @@ int tp_util_get_vendor(struct hw_resource *hw_res, struct panel_info *panel_data
         vendor,
         panel_data->fw_name,
         panel_data->test_limit_name==NULL?"NO Limit":panel_data->test_limit_name);
+	switch(get_project()) {
+    case OPPO_18621:
+        panel_data->firmware_headfile.firmware_data = FW_18621_HX83112A_NF_DSJM;
+        panel_data->firmware_headfile.firmware_size = sizeof(FW_18621_HX83112A_NF_DSJM);
+        break;
+	case OPPO_19691:
+        panel_data->firmware_headfile.firmware_data = FW_19691_HX83112A_NF_DSJM;
+        panel_data->firmware_headfile.firmware_size = sizeof(FW_19691_HX83112A_NF_DSJM);
+        break;
+    default:
+        panel_data->firmware_headfile.firmware_data = NULL;
+        panel_data->firmware_headfile.firmware_size = 0;
+    }
     return 0;
 }
 
