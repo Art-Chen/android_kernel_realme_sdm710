@@ -78,4 +78,5 @@ if TOUCHPANEL_HIMAX
 source "drivers/input/touchscreen/oppo_touchscreen/Himax/Kconfig"
 
 endif
+endif
 
