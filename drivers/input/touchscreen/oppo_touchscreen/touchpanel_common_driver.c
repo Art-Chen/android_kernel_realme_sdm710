@@ -385,7 +385,7 @@ static void tp_gesture_handle(struct touchpanel_data *ts)
             gesture_info_temp.gesture_type == Wgestrue ? "(W)" :
             gesture_info_temp.gesture_type == FingerprintDown ? "(fingerprintdown)" :
             gesture_info_temp.gesture_type == FingerprintUp ? "(fingerprintup)" : "unknown");
-			
+
 	switch (gesture_info_temp.gesture_type) {
 		case DouTap:
 			enabled = DouTap_enable;
@@ -924,8 +924,9 @@ static void tp_face_detect_handle(struct touchpanel_data *ts)
         TPD_INFO("not support ts->ts_ops->get_face_state callback\n");
         return;
     }
-
+	TPD_INFO("enter tp_face_detect_handle\n");
     ps_state = ts->ts_ops->get_face_state(ts->chip_data);
+	TPD_DETAIL("ps state: %s\n", ps_state > 0 ? "near" : "far");
     if (ps_state < 0)
         return;
 
@@ -5083,9 +5084,8 @@ static int tp_suspend(struct device *dev)
             ts->ts_ops->mode_switch(ts->chip_data, MODE_FACE_DETECT, false);
         }
 #ifndef CONFIG_IS_REALMEQ
-	}
+    }
 #endif
-
     //step6:finger print support handle
     if (ts->fingerprint_underscreen_support) {
         operate_mode_switch(ts);
