@@ -446,7 +446,7 @@ static void tp_gesture_handle(struct touchpanel_data *ts)
         ts->ts_ops->get_gesture_coord(ts->chip_data, gesture_info_temp.gesture_type);
     }
     #endif
-
+	if (enabled) {
     if (gesture_info_temp.gesture_type != UnkownGesture && gesture_info_temp.gesture_type != FingerprintDown && gesture_info_temp.gesture_type != FingerprintUp) {
         memcpy(&ts->gesture, &gesture_info_temp, sizeof(struct gesture_info));
         #if GESTURE_RATE_MODE
@@ -463,6 +463,7 @@ static void tp_gesture_handle(struct touchpanel_data *ts)
     } else if (gesture_info_temp.gesture_type == FingerprintUp){
         ts->fp_info.touch_state = 0;
         opticalfp_irq_handler(&ts->fp_info);
+	    }
     }
 }
 
@@ -5080,10 +5081,10 @@ static int tp_suspend(struct device *dev)
         }
         if (ts->face_detect_support && ts->fd_enable) {
             ts->ts_ops->mode_switch(ts->chip_data, MODE_FACE_DETECT, false);
-#ifndef CONFIG_IS_REALMEQ
         }
+#ifndef CONFIG_IS_REALMEQ
+	}
 #endif
-    }
 
     //step6:finger print support handle
     if (ts->fingerprint_underscreen_support) {
