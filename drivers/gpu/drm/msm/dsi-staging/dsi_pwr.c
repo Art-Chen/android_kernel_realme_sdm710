@@ -132,10 +132,22 @@ static int dsi_pwr_enable_vregs(struct dsi_regulator_info *regs, bool enable)
 	int rc = 0, i = 0;
 	struct dsi_vreg *vreg;
 	int num_of_v = 0;
-
+        #ifdef CONFIG_IS_REALMEQ
+        //caiwutang@MM.Display.LCD.Stability,2019/1/15 modify for lcd seq
+        static int power_on = 0;
+        #endif /* CONFIG_IS_REALMEQ */
 	if (enable) {
 		for (i = 0; i < regs->count; i++) {
 			vreg = &regs->vregs[i];
+
+			#ifdef CONFIG_IS_REALMEQ
+			//caiwutang@MM.Display.LCD.Stability,2019/1/15 modify for lcd seq
+			if(!strcmp(vreg->vreg_name, "vdda-1p2") && power_on != 0){
+				continue;
+                        }else{
+                                power_on = 1;
+                        }
+			#endif /* CONFIG_IS_REALMEQ */
 			if (vreg->pre_on_sleep)
 				msleep(vreg->pre_on_sleep);
 
@@ -170,6 +182,12 @@ static int dsi_pwr_enable_vregs(struct dsi_regulator_info *regs, bool enable)
 		}
 	} else {
 		for (i = (regs->count - 1); i >= 0; i--) {
+			#ifdef CONFIG_IS_REALMEQ
+			//caiwutang@MM.Display.LCD.Stability,2019/1/15 modify for lcd seq
+			if(!strcmp(regs->vregs[i].vreg_name, "vdda-1p2")){
+				continue;
+                        }
+			#endif /* CONFIG_IS_REALMEQ */
 			if (regs->vregs[i].pre_off_sleep)
 				msleep(regs->vregs[i].pre_off_sleep);
 

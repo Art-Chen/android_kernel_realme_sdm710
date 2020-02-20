@@ -39,12 +39,14 @@
 #include "sde_core_perf.h"
 #include "sde_trace.h"
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_IS_REALMEQ
 /*liping-m@PSW.MM.Display.Lcd.Stability, 2018/9/26,add for drm notifier for display connect*/
 #include <linux/msm_drm_notify.h>
 #include <linux/notifier.h>
 #include <linux/dsi_oppo_support.h>
 extern int msm_drm_notifier_call_chain(unsigned long val, void *v);
 int oppo_underbrightness_alpha = 0;
+#endif
 #endif
 
 
@@ -1659,10 +1661,12 @@ static void _sde_crtc_blend_setup_mixer(struct drm_crtc *crtc,
 			_sde_crtc_setup_dim_layer_cfg(crtc, sde_crtc,
 					mixer, &cstate->dim_layer[i]);
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_IS_REALMEQ
 /*liping-m@PSW.MM.Display.Service.Feature,2018/9/26,for OnScreenFingerprint feature*/
 		if (cstate->fingerprint_dim_layer)
 			_sde_crtc_setup_dim_layer_cfg(crtc, sde_crtc,
 					mixer, cstate->fingerprint_dim_layer);
+#endif
 #endif
 	}
 
@@ -2511,6 +2515,7 @@ void sde_crtc_complete_commit(struct drm_crtc *crtc,
 	sde_core_perf_crtc_update(crtc, 0, false);
 
 	#ifdef CONFIG_VENDOR_REALME
+	#ifndef CONFIG_IS_REALMEQ
 	/*LiPing-m@PSW.MM.Display.LCD.Feature,2018-10-12 add for OnScreenFingerprint */
 	{
 		struct sde_crtc_state *old_cstate;
@@ -2536,6 +2541,7 @@ void sde_crtc_complete_commit(struct drm_crtc *crtc,
 					&notifier_data);
 		}
 	}
+	#endif
 	#endif /* CONFIG_VENDOR_REALME */
 }
 
@@ -2641,6 +2647,7 @@ static void _sde_crtc_set_dim_layer_v1(struct sde_crtc_state *cstate,
 }
 
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_IS_REALMEQ
 /*liping-m@PSW.MM.Display.Service.Feature,2018/9/26,for OnScreenFingerprint feature*/
 extern int oppo_onscreenfp_status;
 bool sde_crtc_get_dimlayer_mode(struct drm_crtc_state *crtc_state)
@@ -2729,6 +2736,7 @@ static int sde_crtc_config_fingerprint_dim_layer(struct drm_crtc_state *crtc_sta
 
 	return 0;
 }
+#endif
 #endif
 
 /**
@@ -4735,6 +4743,8 @@ static int _sde_crtc_check_secure_state(struct drm_crtc *crtc,
 }
 
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_IS_REALMEQ
+
 /*liping-m@PSW.MM.Display.LCD.Feature,2018/9/26 add for OnScreenFingerprint */
 int oppo_dimlayer_bl = 0;
 extern int oppo_dc_hdr;
@@ -4885,6 +4895,7 @@ static int sde_crtc_onscreenfinger_atomic_check(struct sde_crtc_state *cstate,
 
 	return 0;
 }
+#endif
 #endif /* CONFIG_VENDOR_REALME */
 
 static int sde_crtc_atomic_check(struct drm_crtc *crtc,
@@ -5038,10 +5049,13 @@ static int sde_crtc_atomic_check(struct drm_crtc *crtc,
 	}
 
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_IS_REALMEQ
+
 /*liping-m@PSW.MM.Display.Service.Feature,2018/9/26,for OnScreenFingerprint feature*/
 	rc = sde_crtc_onscreenfinger_atomic_check(cstate, pstates, cnt);
 	if (rc)
 		goto end;
+#endif
 #endif
 
 	/* assign mixer stages based on sorted zpos property */
@@ -5392,9 +5406,12 @@ static void sde_crtc_install_properties(struct drm_crtc *crtc,
 		CRTC_PROP_IDLE_TIMEOUT);
 
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_IS_REALMEQ
+
 /*liping-m@PSW.MM.Display.LCD.Feature,2018/9/26 support custom propertys */
 	msm_property_install_range(&sde_crtc->property_info,"CRTC_CUST",
 		0x0, 0, INT_MAX, 0, CRTC_PROP_CUSTOM);
+#endif
 #endif
 
 	msm_property_install_range(&sde_crtc->property_info,

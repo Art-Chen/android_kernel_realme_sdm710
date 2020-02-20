@@ -29,10 +29,12 @@
 #include "dsi_pwr.h"
 #include "msm_drv.h"
 
+#ifndef CONFIG_IS_REALMEQ
 #ifdef CONFIG_VENDOR_REALME
 /*liping-m@PSW.MM.Display.LCD.Stability,2018/9/26,add for save display panel power status at oppo display management*/
 #include <linux/dsi_oppo_support.h>
 #endif /*CONFIG_VENDOR_REALME*/
+#endif
 
 #define MAX_BL_LEVEL 4096
 #define MAX_BL_SCALE_LEVEL 1024
@@ -209,11 +211,14 @@ struct dsi_panel {
 	enum dsi_dms_mode dms_mode;
 
 	bool sync_broadcast_en;
+	
+#ifndef CONFIG_IS_REALMEQ
 #ifdef CONFIG_VENDOR_REALME
 /*liping-m@PSW.MM.Display.Service.Feature,2018/9/26,for OnScreenFingerprint feature*/
 	bool is_hbm_enabled;
 /*liping-m@PSW.MM.Display.LCD.Stable,2018/9/26 fix aod flash problem */
 	bool need_power_on_backlight;
+#endif
 #endif
 };
 

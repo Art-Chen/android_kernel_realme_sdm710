@@ -714,9 +714,11 @@ static int dsi_panel_led_bl_register(struct dsi_panel *panel,
 }
 #endif
 
+#ifndef CONFIG_IS_REALMEQ
 extern int oppo_dimlayer_bl_alpha;
 extern int oppo_dimlayer_bl_enabled;
 extern int oppo_dimlayer_bl_enable_real;
+#endif
 static int dsi_panel_update_backlight(struct dsi_panel *panel,
 	u32 bl_lvl)
 {
@@ -731,6 +733,7 @@ static int dsi_panel_update_backlight(struct dsi_panel *panel,
 	dsi = &panel->mipi_device;
 
 	#ifdef CONFIG_VENDOR_REALME
+	#ifndef CONFIG_IS_REALMEQ
 	/*liping-m@PSW.MM.Display.LCD.Feature,2018/9/26 temp add for OnScreenFingerprint feature*/
 	if (panel->is_hbm_enabled){
 		return 0;
@@ -756,6 +759,7 @@ static int dsi_panel_update_backlight(struct dsi_panel *panel,
 		if (bl_lvl > 1)
 			bl_lvl = oppo_dimlayer_bl_alpha;
 	}
+	#endif
 	#endif /* CONFIG_VENDOR_REALME */
 
 	rc = mipi_dsi_dcs_set_display_brightness(dsi, bl_lvl);
@@ -3686,10 +3690,12 @@ int dsi_panel_set_lp1(struct dsi_panel *panel)
 		pr_err("[%s] failed to send DSI_CMD_SET_LP1 cmd, rc=%d\n",
 		       panel->name, rc);
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_IS_REALMEQ
 /*liping-m@PSW.MM.Display.LCD.Stable,2018/9/26 fix aod flash problem */
 	panel->need_power_on_backlight = true;
 /*liping-m@PSW.MM.Display.LCD.Stability,2018/9/26,set and save display status*/
 	set_oppo_display_power_status(OPPO_DISPLAY_POWER_DOZE);
+#endif
 #endif
 	mutex_unlock(&panel->panel_lock);
 	return rc;
@@ -3717,8 +3723,10 @@ int dsi_panel_set_lp2(struct dsi_panel *panel)
 		pr_err("[%s] failed to send DSI_CMD_SET_LP2 cmd, rc=%d\n",
 		       panel->name, rc);
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_IS_REALMEQ
 /*liping-mo@PSW.MM.Display.LCD.Stability,2018/9/26,set and save display status*/
 	set_oppo_display_power_status(OPPO_DISPLAY_POWER_DOZE_SUSPEND);
+#endif
 #endif
 	mutex_unlock(&panel->panel_lock);
 	return rc;
@@ -3746,8 +3754,10 @@ int dsi_panel_set_nolp(struct dsi_panel *panel)
 		pr_err("[%s] failed to send DSI_CMD_SET_NOLP cmd, rc=%d\n",
 		       panel->name, rc);
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_IS_REALMEQ
 /*liping-m@PSW.MM.Display.LCD.Stability,2018/9/26,set and save display status*/
 	set_oppo_display_power_status(OPPO_DISPLAY_POWER_ON);
+#endif
 #endif
 	mutex_unlock(&panel->panel_lock);
 	return rc;
@@ -3985,6 +3995,7 @@ int dsi_panel_enable(struct dsi_panel *panel)
 		       panel->name, rc);
 	}
 	panel->panel_initialized = true;
+#ifndef CONFIG_IS_REALMEQ
 #ifdef CONFIG_VENDOR_REALME
 /*liping-m@PSW.MM.Display.LCD.Stable,2018/9/26 avoid screen flash when esd reset */
 	panel->need_power_on_backlight = true;
@@ -3992,6 +4003,7 @@ int dsi_panel_enable(struct dsi_panel *panel)
 #ifdef CONFIG_VENDOR_REALME
 /*liping-m@PSW.MM.Display.LCD.Stability,2018/9/26,add for save display panel power status at oppo display management*/
 	set_oppo_display_power_status(OPPO_DISPLAY_POWER_ON);
+#endif
 #endif
 	mutex_unlock(&panel->panel_lock);
 	return rc;
@@ -4077,14 +4089,18 @@ int dsi_panel_disable(struct dsi_panel *panel)
 	}
 	panel->panel_initialized = false;
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_IS_REALMEQ
 /*liping-m@PSW.MM.Display.LCD.Stable,2018/9/26 fix esd not work when enable OnScreenFingerprint */
 	panel->is_hbm_enabled = false;
+#endif
 #endif /* CONFIG_VENDOR_REALME */
 
 error:
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_IS_REALMEQ
 /*liping-m@PSW.MM.Display.LCD.Stability,2018/9/26,add for save display panel power status at oppo display management*/
 	set_oppo_display_power_status(OPPO_DISPLAY_POWER_OFF);
+#endif
 #endif
 	mutex_unlock(&panel->panel_lock);
 	return rc;

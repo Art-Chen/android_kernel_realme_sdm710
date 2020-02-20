@@ -18,10 +18,13 @@
 #include "sde_hw_pingpong.h"
 #include "sde_dbg.h"
 #include "sde_kms.h"
+
+#ifndef CONFIG_IS_REALMEQ
 #ifdef CONFIG_VENDOR_REALME
 /*liping-m@PSW.MM.Display.LCD.Stability,2018/9/26,add for save display panel power status at oppo display management*/
 #include <linux/dsi_oppo_support.h>
 #endif /*CONFIG_VENDOR_REALME*/
+#endif
 
 
 #define PP_TEAR_CHECK_EN                0x000
@@ -103,7 +106,9 @@ static int sde_hw_pp_setup_te_config(struct sde_hw_pingpong *pp,
 	return 0;
 }
 #else /*CONFIG_VENDOR_REALME*/
+#ifndef CONFIG_IS_REALMEQ
 extern int oppo_request_power_status;
+#endif
 
 static int sde_hw_pp_setup_te_config(struct sde_hw_pingpong *pp,
 		struct sde_hw_tear_check *te)
@@ -122,11 +127,15 @@ static int sde_hw_pp_setup_te_config(struct sde_hw_pingpong *pp,
 
 	temp_vclks_line = te->vsync_count;
 
+#ifndef CONFIG_IS_REALMEQ
 	if((oppo_request_power_status == OPPO_DISPLAY_POWER_DOZE) || (oppo_request_power_status == OPPO_DISPLAY_POWER_DOZE_SUSPEND)) {
 		temp_vclks_line = temp_vclks_line * 60 * 100 / 3000;
 	} else {
+#endif
 		temp_vclks_line = temp_vclks_line * 60 * 100 / 6000;
+#ifndef CONFIG_IS_REALMEQ
 	}
+#endif
 
 	cfg |= temp_vclks_line;
 
