@@ -573,6 +573,7 @@ static int _sde_connector_update_bl_scale(struct sde_connector *c_conn)
 }
 
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_IS_REALMEQ
 /*liping-m@PSW.MM.Display.Service.Feature,2018/9/26,for OnScreenFingerprint feature*/
 extern bool sde_crtc_get_fingerprint_mode(struct drm_crtc_state *crtc_state);
 extern bool sde_crtc_get_fingerprint_pressed(struct drm_crtc_state *crtc_state);
@@ -701,6 +702,7 @@ static int _sde_connector_update_hbm(struct sde_connector *c_conn)
 	return 0;
 }
 #endif
+#endif
 
 static int _sde_connector_update_dirty_properties(
 				struct drm_connector *connector)
@@ -775,12 +777,14 @@ int sde_connector_pre_kickoff(struct drm_connector *connector)
 	}
 
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_IS_REALMEQ
 /*Mark.Yao@PSW.MM.Display.Service.Feature,2018/06/05,for OnScreenFingerprint feature*/
 	rc = _sde_connector_update_hbm(c_conn);
 	if (rc) {
 		SDE_EVT32(connector->base.id, SDE_EVTLOG_ERROR);
 		goto end;
 	}
+#endif
 #endif
 
 	if (!c_conn->ops.pre_kickoff)

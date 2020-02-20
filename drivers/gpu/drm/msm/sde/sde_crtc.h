@@ -429,11 +429,13 @@ struct sde_crtc_state {
 	struct sde_crtc_respool rp;
 
 #ifdef CONFIG_VENDOR_REALME
+#ifndef CONFIG_VENDOR_REALMEQ
 /*liping-m@PSW.MM.Display.Service.Feature,2018/9/26,for OnScreenFingerprint feature*/
 	bool fingerprint_mode;
 	bool fingerprint_pressed;
 	bool fingerprint_defer_sync;
 	struct sde_hw_dim_layer *fingerprint_dim_layer;
+#endif
 #endif
 };
 
