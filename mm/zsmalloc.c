@@ -68,7 +68,12 @@
  * A single 'zspage' is composed of up to 2^N discontiguous 0-order (single)
  * pages. ZS_MAX_ZSPAGE_ORDER defines upper limit on N.
  */
+#ifndef VENDOR_EDIT //YiXue.Ge@PSW.kernel.drv 20170703 modify ZS_MAX_ZSPAGE_ORDER as 3
 #define ZS_MAX_ZSPAGE_ORDER 2
+#else
+#define ZS_MAX_ZSPAGE_ORDER 3
+#endif
+
 #define ZS_MAX_PAGES_PER_ZSPAGE (_AC(1, UL) << ZS_MAX_ZSPAGE_ORDER)
 
 #define ZS_HANDLE_SIZE (sizeof(unsigned long))
@@ -275,7 +280,12 @@ struct zs_pool {
  */
 #define FULLNESS_BITS	2
 #define CLASS_BITS	8
+#ifdef VENDOR_EDIT //YiXue.Ge@PSW.kernel.drv 20170703 modify ZS_MAX_ZSPAGE_ORDER as 3
+#define ISOLATED_BITS	(ZS_MAX_ZSPAGE_ORDER+1)
+#else
 #define ISOLATED_BITS	3
+#endif
+
 #define MAGIC_VAL_BITS	8
 
 struct zspage {

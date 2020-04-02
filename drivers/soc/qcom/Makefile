@@ -31,7 +31,7 @@ obj-$(CONFIG_MSM_CORE_HANG_DETECT) += core_hang_detect.o
 obj-$(CONFIG_MSM_GLADIATOR_HANG_DETECT) += gladiator_hang_detect.o
 obj-$(CONFIG_MSM_GLADIATOR_ERP) += gladiator_erp.o
 obj-$(CONFIG_QCOM_EUD) += eud.o
-obj-$(CONFIG_QCOM_WATCHDOG_V2) += watchdog_v2.o
+obj-$(CONFIG_QCOM_WATCHDOG_V2) += watchdog_v2.o oppo_watchdog_util.o
 obj-$(CONFIG_QCOM_MEMORY_DUMP_V2) += memory_dump_v2.o
 obj-$(CONFIG_QCOM_MINIDUMP) += msm_minidump.o minidump_log.o
 obj-$(CONFIG_QCOM_RUN_QUEUE_STATS) += rq_stats.o
@@ -110,3 +110,5 @@ obj-$(CONFIG_QCOM_QDSS_BRIDGE) += qdss_bridge.o
 obj-$(CONFIG_MSM_BAM_DMUX) += bam_dmux.o
 obj-$(CONFIG_WCNSS_CORE) += wcnss/
 obj-$(CONFIG_BIG_CLUSTER_MIN_FREQ_ADJUST) += big_cluster_min_freq_adjust.o
+
+obj-y += oppo_qcom_custom.o

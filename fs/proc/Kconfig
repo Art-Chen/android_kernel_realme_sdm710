@@ -88,3 +88,21 @@ config PROC_UID
 	depends on PROC_FS && RT_MUTEXES
 	help
 	Provides aggregated per-uid information under /proc/uid.
+
+#ifdef VENDOR_EDIT
+#//Huacai.Zhou@PSW.BSP.kernel.Peformance, 2018/06/18, add foreground process opt support
+config OPPO_FG_OPT
+	bool "Enable /proc/fg_info/ if EXPERT"
+	default y
+	help
+	  Add foreground process optimize support to promote performance .
+#endif /*VENDOR_EDIT*/
+
+#ifdef COLOROS_EDIT
+#Honghui.Sun@Plf.Framework, 2019/8/9, Add for enable PSI and get pid name by frameworks
+config OPPO_COLOR_EM
+	bool "Enable /proc/color_em if EXPERT"
+	default y
+	help
+	  Add device point for framework read
+#endif /* COLOROS_EDIT */

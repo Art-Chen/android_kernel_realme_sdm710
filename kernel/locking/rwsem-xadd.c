@@ -90,6 +90,10 @@ void __init_rwsem(struct rw_semaphore *sem, const char *name,
 #ifdef CONFIG_RWSEM_PRIO_AWARE
 	sem->m_count = 0;
 #endif
+#ifdef VENDOR_EDIT
+// Liujie.Xie@TECH.Kernel.Sched, 2019/05/22, add for ui first
+    sem->ux_dep_task = NULL;
+#endif
 }
 
 EXPORT_SYMBOL(__init_rwsem);
@@ -268,6 +272,13 @@ struct rw_semaphore __sched *rwsem_down_read_failed(struct rw_semaphore *sem)
 	     is_first_waiter)))
 		__rwsem_mark_wake(sem, RWSEM_WAKE_ANY, &wake_q);
 
+#ifdef VENDOR_EDIT
+// Liujie.Xie@TECH.Kernel.Sched, 2019/05/22, add for ui first
+    if (sysctl_uifirst_enabled) {
+        rwsem_dynamic_ux_enqueue(current, waiter.task, READ_ONCE(sem->owner), sem);
+    }
+#endif
+
 	raw_spin_unlock_irq(&sem->wait_lock);
 	wake_up_q(&wake_q);
 
@@ -276,7 +287,21 @@ struct rw_semaphore __sched *rwsem_down_read_failed(struct rw_semaphore *sem)
 		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
 		if (!waiter.task)
 			break;
+		//#ifdef VENDOR_EDIT fangpan@Swdp.shanghai,2015/11/12
+		if (hung_long_and_fatal_signal_pending(tsk)) {
+			list_del(&waiter.list);
+			break;
+		}
+		//#endif
+#if defined(VENDOR_EDIT) && defined(CONFIG_OPPO_HEALTHINFO)
+// Liujie.Xie@TECH.Kernel.Sched, 2019/08/29, add for stuck monitor
+        current->in_downread = 1;
+#endif
 		schedule();
+#if defined(VENDOR_EDIT) && defined(CONFIG_OPPO_HEALTHINFO)
+// Liujie.Xie@TECH.Kernel.Sched, 2019/08/29, add for stuck monitor
+        current->in_downread = 0;
+#endif
 	}
 
 	__set_task_state(tsk, TASK_RUNNING);
@@ -535,6 +560,13 @@ __rwsem_down_write_failed_common(struct rw_semaphore *sem, int state)
 	} else
 		count = atomic_long_add_return(RWSEM_WAITING_BIAS, &sem->count);
 
+#ifdef VENDOR_EDIT
+// Liujie.Xie@TECH.Kernel.Sched, 2019/05/22, add for ui first
+    if (sysctl_uifirst_enabled) {
+        rwsem_dynamic_ux_enqueue(waiter.task, current, READ_ONCE(sem->owner), sem);
+    }
+#endif
+
 	/* wait until we successfully acquire the lock */
 	set_current_state(state);
 	while (true) {
@@ -544,15 +576,32 @@ __rwsem_down_write_failed_common(struct rw_semaphore *sem, int state)
 
 		/* Block until there are no active lockers. */
 		do {
+			//#ifdef VENDOR_EDIT fangpan@Swdp.shanghai,2015/11/12
+			if (hung_long_and_fatal_signal_pending(current)) {
+				raw_spin_lock_irq(&sem->wait_lock);
+				goto out;
+			}
+			//#endif
+
 			if (signal_pending_state(state, current))
 				goto out_nolock;
-
+#if defined(VENDOR_EDIT) && defined(CONFIG_OPPO_HEALTHINFO)
+// Liujie.Xie@TECH.Kernel.Sched, 2019/08/29, add for stuck monitor
+            current->in_downwrite = 1;
+#endif
 			schedule();
+#if defined(VENDOR_EDIT) && defined(CONFIG_OPPO_HEALTHINFO)
+// Liujie.Xie@TECH.Kernel.Sched, 2019/08/29, add for stuck monitor
+            current->in_downwrite = 0;
+#endif
 			set_current_state(state);
 		} while ((count = atomic_long_read(&sem->count)) & RWSEM_ACTIVE_MASK);
 
 		raw_spin_lock_irq(&sem->wait_lock);
 	}
+//#ifdef VENDOR_EDIT fangpan@Swdp.shanghai,2015/11/12
+out:
+//#endif
 	__set_current_state(TASK_RUNNING);
 	list_del(&waiter.list);
 	raw_spin_unlock_irq(&sem->wait_lock);
@@ -659,6 +708,13 @@ locked:
 
 	if (!list_empty(&sem->wait_list))
 		__rwsem_mark_wake(sem, RWSEM_WAKE_ANY, &wake_q);
+
+#ifdef VENDOR_EDIT
+// Liujie.Xie@TECH.Kernel.Sched, 2019/05/22, add for ui first
+    if (sysctl_uifirst_enabled) {
+        rwsem_dynamic_ux_dequeue(sem, current);
+    }
+#endif
 
 	raw_spin_unlock_irqrestore(&sem->wait_lock, flags);
 	wake_up_q(&wake_q);

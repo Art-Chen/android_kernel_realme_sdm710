@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -15,17 +15,100 @@
 #include "cam_sensor_soc.h"
 #include "cam_sensor_core.h"
 
+/* longxiaowu@camera 2018-2-2 add for at camera test */
+#ifdef VENDOR_EDIT
+struct cam_sensor_i2c_reg_setting_array {
+	uint16_t sensor_id;
+	uint32_t sensor_version;
+	struct cam_sensor_i2c_reg_array reg_setting[5120];
+	unsigned short size;
+	enum camera_sensor_i2c_type addr_type;
+	enum camera_sensor_i2c_type data_type;
+	unsigned short delay;
+};
+
+struct cam_sensor_i2c_reg_setting_array sensor_settings[16] = {
+#include "CAM_SENSOR_SETTINGS.h"
+};
+/* Add by Xiaoyang.Huang@RM.Cam 2019/08/17, for diff version of the gw1*/
+#define S5KGW1_VERSION_REG (0x0002)  //s5kgw1 version register address(0x0002)
+#define SAMSUNG_SENSOR_MP1 (0xA101)  //s5kgw1 evt0.1(0xA101)
+#define SAMSUNG_SENSOR_MP2 (0xA201)  //s5kgw1 evt0.2(0xA201)
+#endif
+
 static long cam_sensor_subdev_ioctl(struct v4l2_subdev *sd,
 	unsigned int cmd, void *arg)
 {
 	int rc = 0;
 	struct cam_sensor_ctrl_t *s_ctrl =
 		v4l2_get_subdevdata(sd);
+	/* longxiaowu@camera 2018-2-2 add for at camera test */
+	#ifdef VENDOR_EDIT
+	struct cam_sensor_i2c_reg_setting sensor_setting;
+	int i = 0;
+	#endif
 
 	switch (cmd) {
 	case VIDIOC_CAM_CONTROL:
 		rc = cam_sensor_driver_cmd(s_ctrl, arg);
 		break;
+	#ifdef VENDOR_EDIT
+	/* longxiaowu@camera 2018-2-2 add for at camera test */
+	case VIDIOC_CAM_FTM_POWNER_DOWN:
+		CAM_ERR(CAM_SENSOR, "FTM power down");
+		return cam_sensor_power_down(s_ctrl);
+		break;
+	case VIDIOC_CAM_FTM_POWNER_UP:
+		CAM_ERR(CAM_SENSOR, "FTM power up, sensor id 0x%x", s_ctrl->sensordata->slave_info.sensor_id);
+		rc = cam_sensor_power_up(s_ctrl);
+		if (rc < 0) {
+			CAM_ERR(CAM_SENSOR, "ftm power up failed!");
+			break;
+		}
+		/*Xiaoyang.Huang@RM.Cam add for distinguish sensor_version,20190817*/
+		s_ctrl->sensordata->slave_info.sensor_version = 0;
+		if(s_ctrl->sensordata->slave_info.sensor_id == 0x971) {
+			uint32_t sensor_version = 0;
+			rc = camera_io_dev_read(
+				&(s_ctrl->io_master_info),
+				S5KGW1_VERSION_REG,
+				&sensor_version, CAMERA_SENSOR_I2C_TYPE_WORD,
+				CAMERA_SENSOR_I2C_TYPE_WORD);
+			if (rc) {
+				CAM_ERR(CAM_SENSOR, "fail to read sensor version ,rc = %d",rc);
+				return rc;
+			}
+			CAM_INFO(CAM_SENSOR, "s5kgw1 sensor_version: 0x%x",
+				sensor_version);
+			if (sensor_version == SAMSUNG_SENSOR_MP1) {
+				s_ctrl->sensordata->slave_info.sensor_version = 0;
+			} else if (sensor_version == SAMSUNG_SENSOR_MP2){
+				s_ctrl->sensordata->slave_info.sensor_version = 1;
+			}
+			CAM_ERR(CAM_SENSOR,"FTM GET S5KGW1 setting");
+		}
+		for (i = 0; i < sizeof(sensor_settings) / sizeof(sensor_settings[0]); i++) {
+			if ((s_ctrl->sensordata->slave_info.sensor_id == sensor_settings[i].sensor_id)
+				&& (s_ctrl->sensordata->slave_info.sensor_version == sensor_settings[i].sensor_version)) {
+				CAM_ERR(CAM_SENSOR, "FTM find sensor[%d] 0x%x ver %d", i, sensor_settings[i].sensor_id, sensor_settings[i].sensor_version);
+				sensor_setting.reg_setting = sensor_settings[i].reg_setting;
+				sensor_setting.addr_type = sensor_settings[i].addr_type;
+				sensor_setting.data_type = sensor_settings[i].data_type;
+				sensor_setting.size = sensor_settings[i].size;
+				sensor_setting.delay = sensor_settings[i].delay;
+				break;
+			}
+		}
+
+		rc = camera_io_dev_write(&(s_ctrl->io_master_info), &sensor_setting);
+
+		if (rc < 0) {
+			CAM_ERR(CAM_SENSOR, "FTM Failed to write sensor setting");
+		} else {
+			CAM_ERR(CAM_SENSOR, "FTM successfully to write sensor setting");
+		}
+		break;
+	#endif
 	default:
 		CAM_ERR(CAM_SENSOR, "Invalid ioctl cmd: %d", cmd);
 		rc = -EINVAL;
@@ -339,7 +422,6 @@ static struct platform_driver cam_sensor_platform_driver = {
 		.name = "qcom,camera",
 		.owner = THIS_MODULE,
 		.of_match_table = cam_sensor_driver_dt_match,
-		.suppress_bind_attrs = true,
 	},
 	.remove = cam_sensor_platform_remove,
 };

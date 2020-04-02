@@ -797,7 +797,7 @@ err_invalid_fw:
 int pil_mss_debug_reset(struct pil_desc *pil)
 {
 	struct q6v5_data *drv = container_of(pil, struct q6v5_data, desc);
-	u32 encryption_status;
+    u32 encryption_status;
 	int ret;
 
 

@@ -65,6 +65,7 @@ int sysctl_tcp_slow_start_after_idle __read_mostly = 1;
 static bool tcp_write_xmit(struct sock *sk, unsigned int mss_now, int nonagle,
 			   int push_one, gfp_t gfp);
 
+extern void oppo_app_monitor_update_app_info(struct sock *sk, const struct sk_buff *skb, int send);
 /* Account for new data that has been sent to the network. */
 static void tcp_event_new_data_sent(struct sock *sk, const struct sk_buff *skb)
 {
@@ -83,6 +84,8 @@ static void tcp_event_new_data_sent(struct sock *sk, const struct sk_buff *skb)
 
 	NET_ADD_STATS(sock_net(sk), LINUX_MIB_TCPORIGDATASENT,
 		      tcp_skb_pcount(skb));
+
+    oppo_app_monitor_update_app_info(sk, skb, 1);
 }
 
 /* SND.NXT, if window was not shrunk.
@@ -2362,6 +2365,15 @@ void tcp_send_loss_probe(struct sock *sk)
 	if (tp->tlp_high_seq)
 		goto rearm_timer;
 
+#ifdef VENDOR_EDIT
+	//Zhenjian Jiang@BSP.Kernel.Stability, 2019/02/01, add for fix tcp warn_on issue
+	/* Already in TCP_FIN_WAIT1, if there is nothing in write queue
+	 * do not rearm the timers
+	 */
+	if (sk->sk_state == TCP_FIN_WAIT1 && !skb)
+		return;
+#endif
+
 	if (skb_still_in_host_queue(sk, skb))
 		goto rearm_timer;
 
@@ -3263,6 +3275,14 @@ static void tcp_connect_init(struct sock *sk)
 	tp->snd_sml = tp->write_seq;
 	tp->snd_up = tp->write_seq;
 	tp->snd_nxt = tp->write_seq;
+	
+    //added_by liuwei for push
+	tp->tcp_beat_count = 0;
+	tp->tcp_beat_period = 0;
+	tp->tcp_last_active_time = 0;
+	tp->tcp_last_send_time = 0;
+	tp->tcp_push_count = 0;
+    tp->tcp_push_period = 0;
 
 	if (likely(!tp->repair))
 		tp->rcv_nxt = 0;

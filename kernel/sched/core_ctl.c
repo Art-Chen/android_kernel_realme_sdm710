@@ -108,6 +108,25 @@ static ssize_t show_min_cpus(const struct cluster_data *state, char *buf)
 	return snprintf(buf, PAGE_SIZE, "%u\n", state->min_cpus);
 }
 
+#ifdef VENDOR_EDIT
+//cuixiaogang@SRC.hypnus, 2019.05.20 add for hypnus-daemon
+int hypnus_set_min_max_cpus(unsigned int index, unsigned int min, unsigned int max)
+{
+        struct cluster_data *state;
+
+        if (index >= num_clusters)
+                return -EINVAL;
+
+        state = &cluster_state[index];
+
+        state->max_cpus = min(max, state->num_cpus);
+        state->min_cpus = min(min, state->max_cpus);
+        cpuset_next(state);
+        wake_up_core_ctl_thread(state);
+        return 0;
+}
+#endif /* VENDOR_EDIT */
+
 static ssize_t store_max_cpus(struct cluster_data *state,
 				const char *buf, size_t count)
 {
@@ -1065,6 +1084,10 @@ early_param("core_ctl_disable_cpumask", core_ctl_disable_setup);
 
 static bool should_skip(const struct cpumask *mask)
 {
+#ifdef VENDOR_EDIT
+//gaolong@SRC.hypnus, 2019.08.30 add for hypnus-daemon
+	return false;
+#else
 	if (!core_ctl_disable_cpumask_present)
 		return false;
 
@@ -1074,6 +1097,7 @@ static bool should_skip(const struct cpumask *mask)
 	 * core_ctl_disable_cpumask
 	 */
 	return cpumask_subset(mask, core_ctl_disable_cpumask);
+#endif
 }
 
 static struct cluster_data *find_cluster_by_first_cpu(unsigned int first_cpu)

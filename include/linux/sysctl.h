@@ -62,6 +62,12 @@ extern int proc_do_large_bitmap(struct ctl_table *, int,
 extern int proc_douintvec_capacity(struct ctl_table *table, int write,
 				   void __user *buffer, size_t *lenp,
 				   loff_t *ppos);
+//#ifdef VENDOR_EDIT
+//Ming.Liu@PSW.CN.WiFi.Network.quality.1065762, 2016/10/09
+//add for: [monitor tcp info]
+extern int proc_do_print_tcpinfo(struct ctl_table *, int,
+			 void __user *, size_t *, loff_t *);
+//#endif /* VENDOR_EDIT */
 
 /*
  * Register a set of sysctl names by calling register_sysctl_table

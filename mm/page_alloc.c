@@ -71,6 +71,9 @@
 #include <asm/tlbflush.h>
 #include <asm/div64.h>
 #include "internal.h"
+#if defined(VENDOR_EDIT) && defined(CONFIG_OPPO_MEM_MONITOR)
+#include <linux/memory_monitor.h>
+#endif /*VENDOR_EDIT*/
 
 /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
 static DEFINE_MUTEX(pcp_batch_high_lock);
@@ -238,6 +241,12 @@ char * const migratetype_names[MIGRATE_TYPES] = {
 #ifdef CONFIG_CMA
 	"CMA",
 #endif
+#ifdef VENDOR_EDIT
+/* Hui.Fan@PSW.BSP.Kernel.MM, 2017-8-21
+ * Add a migrate type to manage special page alloc/free
+ */
+	"OPPO2",
+#endif /* VENDOR_EDIT */
 	"HighAtomic",
 #ifdef CONFIG_MEMORY_ISOLATION
 	"Isolate",
@@ -1972,7 +1981,7 @@ static bool can_steal_fallback(unsigned int order, int start_mt)
 
 	if (order >= pageblock_order / 2 ||
 		start_mt == MIGRATE_RECLAIMABLE ||
-		start_mt == MIGRATE_UNMOVABLE ||
+		(start_mt == MIGRATE_UNMOVABLE && order >= 5) ||
 		page_group_by_mobility_disabled)
 		return true;
 
@@ -2069,7 +2078,14 @@ static void reserve_highatomic_pageblock(struct page *page, struct zone *zone,
 
 	/* Yoink! */
 	mt = get_pageblock_migratetype(page);
+#ifdef VENDOR_EDIT
+/* Shiming.Zhang@PSW.BSP.Kernel.MM, 2017-11-15
+ * could not reserve MIGRATE_OPPO as MIGRATE_HIGHATOMIC
+ */
+	if (mt != MIGRATE_HIGHATOMIC && mt != MIGRATE_OPPO2 &&
+#else
 	if (mt != MIGRATE_HIGHATOMIC &&
+#endif /*VENDOR_EDIT*/
 			!is_migrate_isolate(mt) && !is_migrate_cma(mt)) {
 		zone->nr_reserved_highatomic += pageblock_nr_pages;
 		set_pageblock_migratetype(page, MIGRATE_HIGHATOMIC);
@@ -2186,7 +2202,15 @@ __rmqueue_fallback(struct zone *zone, unsigned int order, int start_migratetype)
 		page = list_first_entry(&area->free_list[fallback_mt],
 						struct page, lru);
 		if (can_steal &&
+#ifdef VENDOR_EDIT
+/* Shiming.Zhang@PSW.BSP.Kernel.MM, 2017-11-15
+ * could not steal MIGRATE_OPPO
+ */
+			get_pageblock_migratetype(page) != MIGRATE_HIGHATOMIC &&
+			get_pageblock_migratetype(page) != MIGRATE_OPPO2)
+#else
 			get_pageblock_migratetype(page) != MIGRATE_HIGHATOMIC)
+#endif /*VENDOR_EDIT*/
 			steal_suitable_fallback(zone, page, start_migratetype);
 
 		/* Remove the page from the freelists */
@@ -2297,6 +2321,14 @@ static int rmqueue_bulk(struct zone *zone, unsigned int order,
 		if (is_migrate_cma(get_pcppage_migratetype(page)))
 			__mod_zone_page_state(zone, NR_FREE_CMA_PAGES,
 					      -(1 << order));
+#ifdef VENDOR_EDIT
+/* Hui.Fan@PSW.BSP.Kernel.MM, 2017-8-21
+ * Account free pages for MIGRATE_OPPO
+ */
+		if (get_pcppage_migratetype(page) == MIGRATE_OPPO2)
+			__mod_zone_page_state(zone, NR_FREE_OPPO2_PAGES,
+					      -(1 << order));
+#endif /* VENDOR_EDIT */
 	}
 
 	/*
@@ -2641,7 +2673,15 @@ int __isolate_free_page(struct page *page, unsigned int order)
 		for (; page < endpage; page += pageblock_nr_pages) {
 			int mt = get_pageblock_migratetype(page);
 			if (!is_migrate_isolate(mt) && !is_migrate_cma(mt)
+#ifdef VENDOR_EDIT
+/* Shiming.Zhang@PSW.BSP.Kernel.MM, 2017-11-15
+ * could not steal MIGRATE_OPPO
+ */
+				&& mt != MIGRATE_HIGHATOMIC
+				&& mt != MIGRATE_OPPO2)
+#else
 				&& mt != MIGRATE_HIGHATOMIC)
+#endif /*VENDOR_EDIT*/
 				set_pageblock_migratetype(page,
 							  MIGRATE_MOVABLE);
 		}
@@ -2742,10 +2782,24 @@ struct page *buffered_rmqueue(struct zone *preferred_zone,
 			if (!page && migratetype == MIGRATE_MOVABLE &&
 					gfp_flags & __GFP_CMA)
 				page = __rmqueue_cma(zone, order);
+#ifdef VENDOR_EDIT
+/* Hui.Fan@PSW.BSP.Kernel.MM, 2017-8-21
+ * Order-2 allocation use MIGRATE_OPPO first
+ */
+		if (!page && (order == 2))
+			page = __rmqueue_smallest(zone, order, MIGRATE_OPPO2);
+#endif /* VENDOR_EDIT */
 
 			if (!page)
 				page = __rmqueue(zone, order, migratetype);
 		} while (page && check_new_pages(page, order));
+#ifdef VENDOR_EDIT
+/* Shiming.Zhang@PSW.BSP.Kernel.MM, 2017-11-15
+ * order-2 allocate from MIGRATE_HIGHATOMIC instead of fail
+ */
+		if (!page && order == 2)
+			page = __rmqueue_smallest(zone, order, MIGRATE_HIGHATOMIC);
+#endif /* VENDOR_EDIT */
 
 		spin_unlock(&zone->lock);
 		if (!page)
@@ -2872,13 +2926,31 @@ bool __zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
 	if (likely(!alloc_harder))
 		free_pages -= z->nr_reserved_highatomic;
 	else
+#ifdef VENDOR_EDIT
+/* Shiming.Zhang@PSW.BSP.Kernel.MM, 2017-11-15
+ * ALLOC_HIGH:ALLOC_HARDER is about 1:10, so more for ALLOC_HARDER
+ * and since 2-order might allocate from MIGRATE_HIGHATOMIC as fallback,
+ * so here should make it easier for ALLOC_HARDER.
+ * after this change, kswapd might reclaim a bit more, which is what we want.
+ */
+		min -= min / 4 + min / 8;
+#else
 		min -= min / 4;
+#endif /* VENDOR_EDIT */
 
 #ifdef CONFIG_CMA
 	/* If allocation can't use CMA areas don't use free CMA pages */
 	if (!(alloc_flags & ALLOC_CMA))
 		free_pages -= zone_page_state(z, NR_FREE_CMA_PAGES);
 #endif
+
+#ifdef VENDOR_EDIT
+/* Hui.Fan@PSW.BSP.Kernel.MM, 2017-8-21
+ * Not order-2 allocation cannot use MIGRATE_OPPO
+ */
+	if (order != 2)
+		free_pages -= zone_page_state(z, NR_FREE_OPPO2_PAGES);
+#endif /* VENDOR_EDIT */
 
 	/*
 	 * Check watermarks for an order-0 allocation request. If these
@@ -2900,6 +2972,14 @@ bool __zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
 		if (!area->nr_free)
 			continue;
 
+#ifdef VENDOR_EDIT
+/* Hui.Fan@PSW.BSP.Kernel.MM, 2017-8-21
+ * If MIGRATE_OPPO not empty, return true
+ */
+		if (order == 2 && !list_empty(&area->free_list[MIGRATE_OPPO2]))
+			return true;
+#endif /* VENDOR_EDIT */
+
 		for (mt = 0; mt < MIGRATE_PCPTYPES; mt++) {
 #ifdef CONFIG_CMA
 			/*
@@ -2912,6 +2992,14 @@ bool __zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
 			if (!list_empty(&area->free_list[mt]))
 				return true;
 		}
+
+#ifdef VENDOR_EDIT
+/* Shiming.Zhang@PSW.BSP.Kernel.MM, 2017-11-15
+ * order-2 could allocate from MIGRATE_HIGHATOMIC as last resert
+ */
+		if (order == 2 && !list_empty(&area->free_list[MIGRATE_HIGHATOMIC]))
+			return true;
+#endif /* VENDOR_EDIT */
 
 #ifdef CONFIG_CMA
 		if ((alloc_flags & ALLOC_CMA) &&
@@ -2995,6 +3083,11 @@ get_page_from_freelist(gfp_t gfp_mask, unsigned int order, int alloc_flags,
 	struct zoneref *z = ac->preferred_zoneref;
 	struct zone *zone;
 	struct pglist_data *last_pgdat_dirty_limit = NULL;
+#ifdef VENDOR_EDIT
+/* Huacai.Zhou@PSW.BSP.Kernel.MM, 2018-01-12, add for unmovable allocation */
+	if (ac->migratetype == MIGRATE_UNMOVABLE)
+		alloc_flags |= ALLOC_UNMOVABLE;
+#endif /*VENDOR_EDIT*/
 
 	/*
 	 * Scan zonelist, looking for a zone with enough free.
@@ -3675,7 +3768,13 @@ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
 	enum compact_result compact_result;
 	int compaction_retries;
 	int no_progress_loops;
+	unsigned long alloc_start = jiffies;
+	unsigned int stall_timeout = 10 * HZ;
 	unsigned int cpuset_mems_cookie;
+#if defined(VENDOR_EDIT) && defined(CONFIG_OPPO_MEM_MONITOR)
+/* Huacai.Zhou@PSW.BSP.Kernel.MM, 2018-07-07, add alloc wait monitor support*/
+	unsigned long oppo_alloc_start = jiffies;
+#endif /*VENDOR_EDIT*/
 
 	/*
 	 * In the slowpath, we sanity check order to avoid ever trying to
@@ -3847,6 +3946,14 @@ retry:
 	if (order > PAGE_ALLOC_COSTLY_ORDER && !(gfp_mask & __GFP_REPEAT))
 		goto nopage;
 
+	/* Make sure we know about allocations which stall for too long */
+	if (time_after(jiffies, alloc_start + stall_timeout)) {
+		warn_alloc(gfp_mask,
+			"page allocation stalls for %ums, order:%u",
+			jiffies_to_msecs(jiffies-alloc_start), order);
+		stall_timeout += 10 * HZ;
+	}
+
 	if (should_reclaim_retry(gfp_mask, order, ac, alloc_flags,
 				 did_some_progress > 0, &no_progress_loops))
 		goto retry;
@@ -3896,6 +4003,10 @@ nopage:
 	warn_alloc(gfp_mask,
 			"page allocation failure: order:%u", order);
 got_pg:
+#if defined(VENDOR_EDIT) && defined(CONFIG_OPPO_MEM_MONITOR)
+/* Huacai.Zhou@PSW.BSP.Kernel.MM, 2018-07-07, add alloc wait monitor support*/
+	memory_alloc_monitor(gfp_mask, order, jiffies_to_msecs(jiffies - oppo_alloc_start));
+#endif /*VENDOR_EDIT*/
 	return page;
 }
 
@@ -4326,6 +4437,11 @@ long si_mem_available(void)
 	available += global_node_page_state(NR_INDIRECTLY_RECLAIMABLE_BYTES) >>
 		PAGE_SHIFT;
 
+#if defined(VENDOR_EDIT) && defined(CONFIG_ION)
+//Jiheng.Xie@TECH.BSP.Performance,2019-04-18,add for ion cache add to avaible memory statistics
+	available += global_page_state(NR_IONCACHE_PAGES);
+#endif
+
 	if (available < 0)
 		available = 0;
 	return available;
@@ -4407,6 +4523,12 @@ static void show_migration_types(unsigned char type)
 		[MIGRATE_MOVABLE]	= 'M',
 		[MIGRATE_RECLAIMABLE]	= 'E',
 		[MIGRATE_HIGHATOMIC]	= 'H',
+#ifdef VENDOR_EDIT
+/* Hui.Fan@PSW.BSP.Kernel.MM, 2017-8-21
+ * Add a migrate type to manage special page alloc/free
+ */
+		[MIGRATE_OPPO2]		= 'P',
+#endif /* VENDOR_EDIT */
 #ifdef CONFIG_CMA
 		[MIGRATE_CMA]		= 'C',
 #endif
@@ -6803,6 +6925,165 @@ static void setup_per_zone_lowmem_reserve(void)
 	calculate_totalreserve_pages();
 }
 
+#ifdef VENDOR_EDIT
+/* Hui.Fan@PSW.BSP.Kernel.MM, 2017-8-21 */
+/*
+ * Check if a pageblock contains reserved pages
+ */
+static int pageblock_is_reserved(unsigned long start_pfn, unsigned long end_pfn)
+{
+	unsigned long pfn;
+
+	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+		if (!pfn_valid_within(pfn) || PageReserved(pfn_to_page(pfn)))
+			return 1;
+	}
+	return 0;
+}
+
+/*
+ * Number of pageblocks to reserve as MIGRATE_OPPO.
+ * Set as per the actual usage of special pages.
+ */
+
+static const int oppo2_reserve[] = {
+/*TODO: maybe it should be increased if only has one memory zone*/
+	6, /*2GB<===>48MB,24MB per zone*/
+	7, /*3GB<===>56MB,28MB per zone*/
+	8, /*4GB<===>64MB,32MB per zone*/
+	8, /*6GB<===>64MB,32MB per zone*/
+};
+
+enum totalram_index {
+	TOTALRAM_2GB_INDEX = 0,
+	TOTALRAM_3GB_INDEX,
+	TOTALRAM_4GB_INDEX,
+	TOTALRAM_6GB_INDEX,
+};
+
+static unsigned long config_migrate_oppo(void)
+{
+	int index;
+	if (totalram_pages <= TOTALRAM_2GB)
+		index = TOTALRAM_2GB_INDEX;
+	else if (totalram_pages <= TOTALRAM_3GB)
+		index = TOTALRAM_3GB_INDEX;
+	else if (totalram_pages <= TOTALRAM_4GB)
+		index = TOTALRAM_4GB_INDEX;
+	else if (totalram_pages <= TOTALRAM_6GB)
+		index = TOTALRAM_6GB_INDEX;
+	else
+		index = TOTALRAM_6GB_INDEX;
+
+	return oppo2_reserve[index];
+}
+
+/*
+ * Mark a number of pageblocks as MIGRATE_OPPO.
+ * The memory withinthe reserve will tend to store contiguous free pages.
+ */
+static void setup_zone_migrate_oppo(struct zone *zone, int reserve_migratetype)
+{
+	unsigned long start_pfn, pfn, end_pfn, block_end_pfn;
+	struct page *page;
+	unsigned long block_migratetype;
+	unsigned long reserve;
+	unsigned long old_reserve;
+	int pages_moved = 0;
+	enum zone_stat_item item;
+
+	/*
+	 * Get the start pfn, end pfn and the number of blocks to reserve
+	 * We have to be careful to be aligned to pageblock_nr_pages to
+	 * make sure that we always check pfn_valid for the first page in
+	 * the block.
+	 */
+	start_pfn = zone->zone_start_pfn;
+	end_pfn = zone_end_pfn(zone);
+	start_pfn = roundup(start_pfn, pageblock_nr_pages);
+
+	/* fix me. reserve should be limited based on wmark.
+	reserve = roundup(min_wmark_pages(zone), pageblock_nr_pages) >>
+							pageblock_order;
+	reserve = min((unsigned long)MIGRATE_OPPO_PAGE_BLOCKS, reserve);
+	*/
+	if (reserve_migratetype == MIGRATE_OPPO2) {
+		reserve = config_migrate_oppo();
+		old_reserve = zone->nr_migrate_oppo2_block;
+		item = NR_FREE_OPPO2_PAGES;
+	}
+	else {
+		reserve = 0;
+		old_reserve = 0;
+	}
+
+	/* When memory hot-add, we almost always need to do nothing */
+	if (reserve == old_reserve)
+		return;
+
+	if (reserve_migratetype == MIGRATE_OPPO2)
+		zone->nr_migrate_oppo2_block = reserve;
+
+	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
+		if (!pfn_valid(pfn))
+			continue;
+		page = pfn_to_page(pfn);
+
+		/* Watch out for overlapping nodes */
+		if (page_to_nid(page) != zone_to_nid(zone))
+			continue;
+
+		block_migratetype = get_pageblock_migratetype(page);
+
+		/* Only test what is necessary when the reserves are not met */
+		if (reserve > 0) {
+			/*
+			 * Blocks with reserved pages will never free, skip
+			 * them.
+			 */
+			block_end_pfn = min(pfn + pageblock_nr_pages, end_pfn);
+			if (pageblock_is_reserved(pfn, block_end_pfn))
+				continue;
+
+			/* If this block is reserved, account for it */
+			if (block_migratetype == reserve_migratetype) {
+				reserve--;
+				continue;
+			}
+
+			/* Suitable for reserving if this block is movable */
+			if (block_migratetype == MIGRATE_MOVABLE) {
+				set_pageblock_migratetype(page,
+							reserve_migratetype);
+				pages_moved = move_freepages_block(zone, page,
+							reserve_migratetype);
+				__mod_zone_page_state(zone, item,
+						pages_moved);
+				reserve--;
+				continue;
+			}
+		} else if (!old_reserve) {
+			/*
+			 * At boot time we don't need to scan the whole zone
+			 * for turning off MIGRATE_RESERVE.
+			 */
+			break;
+		}
+
+		/*
+		 * If the reserve is met and this is a previous reserved block,
+		 * take it back
+		 */
+		if (block_migratetype == reserve_migratetype) {
+			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+			pages_moved = move_freepages_block(zone, page, MIGRATE_MOVABLE);
+			__mod_zone_page_state(zone, item,
+						-pages_moved);
+		}
+	}
+}
+#endif /* VENDOR_EDIT */
+
 static void __setup_per_zone_wmarks(void)
 {
 	unsigned long pages_min = min_free_kbytes >> (PAGE_SHIFT - 10);
@@ -6863,6 +7144,12 @@ static void __setup_per_zone_wmarks(void)
 		zone->watermark[WMARK_HIGH] = min_wmark_pages(zone) +
 					low + min * 2;
 
+#ifdef VENDOR_EDIT
+/* Hui.Fan@PSW.BSP.Kernel.MM, 2017-8-21
+ * Setup MIGRATE_OPPO blocks for each zone
+ */
+		setup_zone_migrate_oppo(zone, MIGRATE_OPPO2);
+#endif /* VENDOR_EDIT */
 		spin_unlock_irqrestore(&zone->lock, flags);
 	}
 

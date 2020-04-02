@@ -298,6 +298,7 @@ int smpboot_park_threads(unsigned int cpu)
 	list_for_each_entry_reverse(cur, &hotplug_threads, list)
 		smpboot_park_thread(cur, cpu);
 	mutex_unlock(&smpboot_threads_lock);
+
 	return 0;
 }
 

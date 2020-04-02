@@ -503,6 +503,9 @@ void thread_group_cputime_adjusted(struct task_struct *p, cputime_t *ut, cputime
 	*ut = cputime.utime;
 	*st = cputime.stime;
 }
+#ifdef VENDOR_EDIT
+EXPORT_SYMBOL(thread_group_cputime_adjusted);
+#endif
 #else /* !CONFIG_VIRT_CPU_ACCOUNTING_NATIVE */
 /*
  * Account a single tick of cpu time.
@@ -718,6 +721,9 @@ void thread_group_cputime_adjusted(struct task_struct *p, cputime_t *ut, cputime
 	thread_group_cputime(p, &cputime);
 	cputime_adjust(&cputime, &p->signal->prev_cputime, ut, st);
 }
+#ifdef VENDOR_EDIT
+EXPORT_SYMBOL(thread_group_cputime_adjusted);
+#endif
 #endif /* !CONFIG_VIRT_CPU_ACCOUNTING_NATIVE */
 
 #ifdef CONFIG_VIRT_CPU_ACCOUNTING_GEN

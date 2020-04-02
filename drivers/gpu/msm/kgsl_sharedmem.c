@@ -296,6 +296,14 @@ void kgsl_process_init_sysfs(struct kgsl_device *device,
 	}
 }
 
+#ifdef VENDOR_EDIT
+//Jiheng.Xie@TECH.BSP.Performance, 2019-07-22, add for  gpu total used account
+unsigned long gpu_total(void)
+{
+	return (unsigned long)atomic_long_read(&kgsl_driver.stats.page_alloc);
+}
+#endif /*VENDOR_EDIT*/
+
 static ssize_t kgsl_drv_memstat_show(struct device *dev,
 				 struct device_attribute *attr,
 				 char *buf)

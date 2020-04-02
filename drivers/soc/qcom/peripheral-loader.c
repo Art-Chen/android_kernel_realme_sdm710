@@ -292,6 +292,7 @@ int pil_do_ramdump(struct pil_desc *desc,
 			(desc->minidump_ss->md_ss_toc_init == true) &&
 			(desc->minidump_ss->md_ss_enable_status ==
 				MD_SS_ENABLED)) {
+
 			if (encryption_status == MD_SS_ENCR_DONE ||
 				encryption_status == MD_SS_ENCR_NOTREQ) {
 				pr_info("Minidump : Dumping for %s\n",

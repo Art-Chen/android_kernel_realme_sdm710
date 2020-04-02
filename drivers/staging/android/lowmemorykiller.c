@@ -119,26 +119,20 @@ struct lmk_event {
 	struct list_head list;
 };
 
-void handle_lmk_event(struct task_struct *selected, int selected_tasksize,
-		      short min_score_adj)
+void handle_lmk_event(struct task_struct *selected, short min_score_adj)
 {
 	int head;
 	int tail;
 	struct lmk_event *events;
 	struct lmk_event *event;
 	int res;
-	char taskname[MAX_TASKNAME];
+	long rss_in_pages = -1;
+	struct mm_struct *mm = get_task_mm(selected);
 
-	res = get_cmdline(selected, taskname, MAX_TASKNAME - 1);
-
-	/* No valid process name means this is definitely not associated with a
-	 * userspace activity.
-	 */
-
-	if (res <= 0 || res >= MAX_TASKNAME)
-		return;
-
-	taskname[res] = '\0';
+	if (mm) {
+		rss_in_pages = get_mm_rss(mm);
+		mmput(mm);
+	}
 
 	spin_lock(&lmk_event_lock);
 
@@ -154,8 +148,18 @@ void handle_lmk_event(struct task_struct *selected, int selected_tasksize,
 	events = (struct lmk_event *) event_buffer.buf;
 	event = &events[head];
 
-	memcpy(event->taskname, taskname, res + 1);
+	res = get_cmdline(selected, event->taskname, MAX_TASKNAME - 1);
 
+	/* No valid process name means this is definitely not associated with a
+	 * userspace activity.
+	 */
+
+	if (res <= 0 || res >= MAX_TASKNAME) {
+		spin_unlock(&lmk_event_lock);
+		return;
+	}
+
+	event->taskname[res] = '\0';
 	event->pid = selected->pid;
 	event->uid = from_kuid_munged(current_user_ns(), task_uid(selected));
 	if (selected->group_leader)
@@ -166,7 +170,7 @@ void handle_lmk_event(struct task_struct *selected, int selected_tasksize,
 	event->maj_flt = selected->maj_flt;
 	event->oom_score_adj = selected->signal->oom_score_adj;
 	event->start_time = nsec_to_clock_t(selected->real_start_time);
-	event->rss_in_pages = selected_tasksize;
+	event->rss_in_pages = rss_in_pages;
 	event->min_score_adj = min_score_adj;
 
 	event_buffer.head = (head + 1) & (MAX_BUFFERED_EVENTS - 1);
@@ -781,8 +785,8 @@ static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 
 		lowmem_deathpending_timeout = jiffies + HZ;
 		rem += selected_tasksize;
+		handle_lmk_event(selected, min_score_adj);
 		rcu_read_unlock();
-		get_task_struct(selected);
 		/* give the system time to free up the memory */
 		msleep_interruptible(20);
 		trace_almk_shrink(selected_tasksize, ret,
@@ -796,11 +800,6 @@ static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 	lowmem_print(4, "lowmem_scan %lu, %x, return %lu\n",
 		     sc->nr_to_scan, sc->gfp_mask, rem);
 	mutex_unlock(&scan_mutex);
-
-	if (selected) {
-		handle_lmk_event(selected, selected_tasksize, min_score_adj);
-		put_task_struct(selected);
-	}
 	return rem;
 }
 

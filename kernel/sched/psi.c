@@ -173,12 +173,31 @@ static u64 psi_period __read_mostly;
 
 /* System-level pressure and stall tracking */
 static DEFINE_PER_CPU(struct psi_group_cpu, system_group_pcpu);
-static struct psi_group psi_system = {
+struct psi_group psi_system = {
 	.pcpu = &system_group_pcpu,
 };
 
 static void psi_avgs_work(struct work_struct *work);
 
+#ifdef VENDOR_EDIT
+/*Huacai.Zhou@Tech.BSP.Kernel.Performance, 2019-05-17 ,add psi monitor support*/
+static BLOCKING_NOTIFIER_HEAD(psi_mem_notifier);
+
+int psi_mem_notifier_register(struct notifier_block *nb)
+{
+	return blocking_notifier_chain_register(&psi_mem_notifier, nb);
+}
+
+int psi_mem_notifier_unregister(struct notifier_block *nb)
+{
+	return blocking_notifier_chain_unregister(&psi_mem_notifier, nb);
+}
+
+static void  psi_mem_notify(u64 growth, void* data)
+{
+	blocking_notifier_call_chain(& psi_mem_notifier, growth, data);
+}
+#endif /*VENDOR_EDIT*/
 static void group_init(struct psi_group *group)
 {
 	int cpu;
@@ -536,6 +555,11 @@ static u64 update_triggers(struct psi_group *group, u64 now)
 		/* Generate an event */
 		if (cmpxchg(&t->event, 0, 1) == 0)
 			wake_up_interruptible(&t->event_wait);
+#ifdef VENDOR_EDIT
+/*Huacai.Zhou@Tech.BSP.Kernel.Performance, 2019-05-17 ,add psi monitor support*/
+		if (t->state == PSI_MEM_SOME || t->state == PSI_MEM_FULL)
+			psi_mem_notify( growth,(void *)t);
+#endif
 		t->last_event_time = now;
 	}
 
@@ -1013,14 +1037,15 @@ struct psi_trigger *psi_trigger_create(struct psi_group *group,
 
 	if (static_branch_likely(&psi_disabled))
 		return ERR_PTR(-EOPNOTSUPP);
-
+	printk(KERN_ERR "===>PSIDEBUG:psi_trigger_create buf = %s\n",buf);
 	if (sscanf(buf, "some %u %u", &threshold_us, &window_us) == 2)
 		state = PSI_IO_SOME + res * 2;
 	else if (sscanf(buf, "full %u %u", &threshold_us, &window_us) == 2)
 		state = PSI_IO_FULL + res * 2;
-	else
+	else {
+		printk(KERN_ERR "===>PSIDEBUG:sscanf error\n");
 		return ERR_PTR(-EINVAL);
-
+	}
 	if (state >= PSI_NONIDLE)
 		return ERR_PTR(-EINVAL);
 
@@ -1048,13 +1073,13 @@ struct psi_trigger *psi_trigger_create(struct psi_group *group,
 	kref_init(&t->refcount);
 
 	mutex_lock(&group->trigger_lock);
-
+	printk(KERN_ERR "===>PSIDEBUG:psi_trigger_create threshold = %llu,win = %llu\n",t->threshold, t->win.size);
 	if (!rcu_access_pointer(group->poll_kworker)) {
 		struct sched_param param = {
 			.sched_priority = MAX_RT_PRIO - 1,
 		};
 		struct kthread_worker *kworker;
-
+		printk(KERN_ERR "===>PSIDEBUG:kthread_create_worker\n");
 		kworker = kthread_create_worker(0, "psimon");
 		if (IS_ERR(kworker)) {
 			kfree(t);
@@ -1186,7 +1211,7 @@ static ssize_t psi_write(struct file *file, const char __user *user_buf,
 	size_t buf_size;
 	struct seq_file *seq;
 	struct psi_trigger *new;
-
+	printk(KERN_ERR "===>PSIDEBUG:psi_write\n");
 	if (static_branch_likely(&psi_disabled))
 		return -EOPNOTSUPP;
 
@@ -1205,7 +1230,10 @@ static ssize_t psi_write(struct file *file, const char __user *user_buf,
 	mutex_lock(&seq->lock);
 	psi_trigger_replace(&seq->private, new);
 	mutex_unlock(&seq->lock);
-
+#ifdef VENDOR_EDIT
+/*Huacai.Zhou@Tech.BSP.Kernel.Performance, 2019-05-17, add kernel trigger support*/
+	kref_get(&new->refcount);
+#endif /*VENDOR_EDIT*/
 	return nbytes;
 }
 
@@ -1271,10 +1299,12 @@ static const struct file_operations psi_cpu_fops = {
 
 static int __init psi_proc_init(void)
 {
-	proc_mkdir("pressure", NULL);
-	proc_create("pressure/io", 0, NULL, &psi_io_fops);
-	proc_create("pressure/memory", 0, NULL, &psi_memory_fops);
-	proc_create("pressure/cpu", 0, NULL, &psi_cpu_fops);
+	printk(KERN_ERR "===>PSIDEBUG:psi_proc_init\n");
+	proc_mkdir_mode("pressure", 0664,NULL);
+	proc_create("pressure/io", 0664, NULL, &psi_io_fops);
+	proc_create("pressure/memory", 0664, NULL, &psi_memory_fops);
+	proc_create("pressure/cpu", 0664, NULL, &psi_cpu_fops);
+
 	return 0;
 }
 module_init(psi_proc_init);

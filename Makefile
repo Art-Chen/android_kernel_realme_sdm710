@@ -406,6 +406,34 @@ KBUILD_CFLAGS_MODULE  := -DMODULE
 KBUILD_LDFLAGS_MODULE := -T $(srctree)/scripts/module-common.lds
 GCC_PLUGINS_CFLAGS :=
 
+# ifdef VENDOR_EDIT
+# jiangyg@OnlineRd.PM, 2013/10/15, add enviroment variant
+KBUILD_CFLAGS +=   -DVENDOR_EDIT
+KBUILD_CPPFLAGS += -DVENDOR_EDIT
+CFLAGS_KERNEL +=   -DVENDOR_EDIT
+CFLAGS_MODULE +=   -DVENDOR_EDIT
+#Added by guanling.yang@SCM.ROM，2015-11-23 add for disable fastboot modem at release soft
+#Ping.Liu@BSP.Fingerprint.Secure 2019/07/02, Modify for open fastboot unlock at all build, delete DISABLE_FASTBOOT_CMDS.
+
+#ifdef VENDOR_EDIT //Cong.Dai@PSW.BSP.TP, 2019/07/03, add for notify build type
+ifeq ($(TARGET_BUILD_VARIANT),user)
+KBUILD_CFLAGS += -DCONFIG_OPPO_BUILD_USER
+endif
+#endif /*VENDOR_EDIT*/
+
+#ifdef VENDOR_EDIT //Cong.Dai@PSW.BSP.TP, 2019/08/23, add for notify dynamic patition
+ifeq ($(BOARD_DYNAMIC_PARTITION_ENABLE),true)
+KBUILD_CFLAGS += -DCONFIG_DYNAMIC_PARTITION_ENABLE
+endif
+#endif /*VENDOR_EDIT*/
+
+#ifdef VENDOR_EDIT//Fanhong.Kong@PSW.BSP.CHG,add 2019/04/28  for 806 high/low temp aging
+ifeq ($(OPPO_HIGH_TEMP_VERSION),true)
+KBUILD_CFLAGS += -DCONFIG_HIGH_TEMP_VERSION
+endif
+#endif /* VENDOR_EDIT */
+#endif /*VENDOR_EDIT*/
+
 # Read KERNELRELEASE from include/config/kernel.release (if it exists)
 KERNELRELEASE = $(shell cat include/config/kernel.release 2> /dev/null)
 KERNELVERSION = $(VERSION)$(if $(PATCHLEVEL),.$(PATCHLEVEL)$(if $(SUBLEVEL),.$(SUBLEVEL)))$(EXTRAVERSION)

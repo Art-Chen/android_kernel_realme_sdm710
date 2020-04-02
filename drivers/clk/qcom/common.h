@@ -28,9 +28,15 @@ struct parent_map;
 struct qcom_cc_desc {
 	const struct regmap_config *config;
 	struct clk_regmap **clks;
-	struct clk_hw **hwclks;
+	//#ifdef VENDOR_EDIT
+	//PengNan@BSP.Power.Basic,remove ufs and emmc compatibility for standby current, 2019/07/30
+	//struct clk_hw **hwclks;
+	//#endif
 	size_t num_clks;
-	size_t num_hwclks;
+	//#ifdef VENDOR_EDIT
+	//PengNan@BSP.Power.Basic,remove ufs and emmc compatibility for standby current, 2019/07/30
+	//size_t num_hwclks;
+	//endif
 	const struct qcom_reset_map *resets;
 	size_t num_resets;
 	struct gdsc **gdscs;

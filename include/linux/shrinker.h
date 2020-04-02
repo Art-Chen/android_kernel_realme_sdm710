@@ -69,4 +69,12 @@ struct shrinker {
 
 extern int register_shrinker(struct shrinker *);
 extern void unregister_shrinker(struct shrinker *);
+
+#ifdef VENDOR_EDIT
+#define BALANCE_PG_BEGIN 1
+#define BALANCE_PG_END 2
+#define MIN_ORDER_NOTIFY_HYPNUS 2
+extern int balance_pg_register_notifier(struct notifier_block *nb);
+extern int balance_pg_unregister_notifier(struct notifier_block *nb);
+#endif
 #endif

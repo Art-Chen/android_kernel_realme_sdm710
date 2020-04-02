@@ -98,6 +98,11 @@
 #include <trace/events/sched.h>
 #include "walt.h"
 
+#ifdef VENDOR_EDIT
+// Liujie.Xie@TECH.Kernel.Sched, 2019/05/22, add for ui first
+#include <linux/oppocfs/oppo_cfs_common.h>
+#endif
+
 ATOMIC_NOTIFIER_HEAD(load_alert_notifier_head);
 
 DEFINE_MUTEX(sched_domains_mutex);
@@ -3256,6 +3261,7 @@ void scheduler_tick(void)
 	curr->sched_class->task_tick(rq, curr, 0);
 	cpu_load_update_active(rq);
 	calc_global_load_tick(rq);
+	psi_task_tick(rq);
 
 	early_notif = early_detection_notify(rq, wallclock);
 	if (early_notif)
@@ -3277,6 +3283,13 @@ void scheduler_tick(void)
 	trigger_load_balance(rq);
 #endif
 	rq_last_tick_reset(rq);
+
+#ifdef VENDOR_EDIT
+// Liujie.Xie@TECH.Kernel.Sched, 2019/05/22, add for ui first
+    if (sysctl_uifirst_enabled) {
+        trigger_ux_balance(rq);
+    }
+#endif
 
 	rcu_read_lock();
 	grp = task_related_thread_group(curr);
@@ -3642,6 +3655,11 @@ static void __sched notrace __schedule(bool preempt)
 		rq_unpin_lock(rq, &rf);
 		raw_spin_unlock_irq(&rq->lock);
 	}
+
+#ifdef VENDOR_EDIT
+// Liujie.Xie@TECH.Kernel.Sched, 2019/05/22, add for ui first
+    prev->enqueue_time = rq->clock;
+#endif
 
 	balance_callback(rq);
 }
@@ -8300,6 +8318,10 @@ void __init sched_init(void)
 		init_cfs_rq(&rq->cfs);
 		init_rt_rq(&rq->rt);
 		init_dl_rq(&rq->dl);
+#ifdef VENDOR_EDIT
+// Liujie.Xie@TECH.Kernel.Sched, 2019/05/22, add for ui first
+        ux_init_rq_data(rq);
+#endif
 #ifdef CONFIG_FAIR_GROUP_SCHED
 		root_task_group.shares = ROOT_TASK_GROUP_LOAD;
 		INIT_LIST_HEAD(&rq->leaf_cfs_rq_list);
@@ -9082,6 +9104,10 @@ int sched_rr_handler(struct ctl_table *table, int write,
 }
 
 #ifdef CONFIG_PROC_SYSCTL
+#ifdef VENDOR_EDIT
+//cuixiaogang@SRC.hypnus.2018.07.11. add for change up/down migrate
+static DEFINE_MUTEX(updown_migrate_mutex);
+#endif /* VENDOR_EDIT */
 int sched_updown_migrate_handler(struct ctl_table *table, int write,
 				 void __user *buffer, size_t *lenp,
 				 loff_t *ppos)
@@ -9089,9 +9115,11 @@ int sched_updown_migrate_handler(struct ctl_table *table, int write,
 	int ret;
 	unsigned int *data = (unsigned int *)table->data;
 	unsigned int old_val;
-	static DEFINE_MUTEX(mutex);
 
-	mutex_lock(&mutex);
+#ifdef VENDOR_EDIT
+//cuixiaogang@SRC.hypnus.2018.07.11. add for change up/down migrate
+	mutex_lock(&updown_migrate_mutex);
+#endif /* VENDOR_EDIT */
 	old_val = *data;
 
 	ret = proc_douintvec_capacity(table, write, buffer, lenp, ppos);
@@ -9101,11 +9129,52 @@ int sched_updown_migrate_handler(struct ctl_table *table, int write,
 		ret = -EINVAL;
 		*data = old_val;
 	}
-	mutex_unlock(&mutex);
+#ifdef VENDOR_EDIT
+//cuixiaogang@SRC.hypnus.2018.07.11. add for change up/down migrate
+	mutex_unlock(&updown_migrate_mutex);
+#endif /* VENDOR_EDIT */
 
 	return ret;
 }
+
+#ifdef VENDOR_EDIT
+//cuixiaogang@SRC.hypnus.2018.07.11. add for change up/down migrate
+void sched_get_updown_migrate(unsigned int *up_pct, unsigned int *down_pct)
+{
+	if (!up_pct || !down_pct)
+		return;
+	mutex_lock(&updown_migrate_mutex);
+	*up_pct = SCHED_FIXEDPOINT_SCALE * 100 / sysctl_sched_capacity_margin;
+	*down_pct = SCHED_FIXEDPOINT_SCALE * 100 / sysctl_sched_capacity_margin_down;
+	mutex_unlock(&updown_migrate_mutex);
+}
+EXPORT_SYMBOL(sched_get_updown_migrate);
+
+int sched_set_updown_migrate(unsigned int *up_pct, unsigned int *down_pct)
+{
+	if (*up_pct > 100 || *down_pct > 100)
+		return -EINVAL;
+
+	if (*down_pct > *up_pct)
+		return -EINVAL;
+
+	mutex_lock(&updown_migrate_mutex);
+	sysctl_sched_capacity_margin = SCHED_FIXEDPOINT_SCALE * 100 / *up_pct;
+	sysctl_sched_capacity_margin_down = SCHED_FIXEDPOINT_SCALE * 100 / *down_pct;
+	mutex_unlock(&updown_migrate_mutex);
+
+        return 0;
+}
+EXPORT_SYMBOL(sched_set_updown_migrate);
+#endif /* VENDOR_EDIT */
 #endif
+
+#ifdef CONFIG_CGROUP_SCHED
+
+inline struct task_group *css_tg(struct cgroup_subsys_state *css)
+{
+	return css ? container_of(css, struct task_group, css) : NULL;
+}
 
 void threadgroup_change_begin(struct task_struct *tsk)
 {
@@ -9116,13 +9185,6 @@ void threadgroup_change_begin(struct task_struct *tsk)
 void threadgroup_change_end(struct task_struct *tsk)
 {
 	cgroup_threadgroup_change_end(tsk);
-}
-
-#ifdef CONFIG_CGROUP_SCHED
-
-inline struct task_group *css_tg(struct cgroup_subsys_state *css)
-{
-	return css ? container_of(css, struct task_group, css) : NULL;
 }
 
 static struct cgroup_subsys_state *
@@ -9713,5 +9775,13 @@ find_first_cpu_bit(struct task_struct *p, const cpumask_t *search_cpus,
 	}
 
 	return i;
+}
+#endif
+
+#ifdef VENDOR_EDIT
+/*fanhui@PhoneSW.BSP, 2016-06-23, get current task on one cpu*/
+struct task_struct *oppo_get_cpu_task(int cpu)
+{
+	return cpu_curr(cpu);
 }
 #endif

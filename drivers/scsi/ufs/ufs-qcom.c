@@ -2757,11 +2757,18 @@ static int ufs_qcom_probe(struct platform_device *pdev)
 	 * Hence, check for the connected device early-on & don't turn-off
 	 * the regulators.
 	 */
+	//#ifndef VENDOR_EDIT
+	//PengNan@BSP.Power.Basic,remove ufs and emmc compatibility for standby current, 2019/07/30
+	//if (of_property_read_bool(np, "non-removable") &&
+	//    !of_property_read_bool(np, "force-ufshc-probe") &&
+	//   strcmp(android_boot_dev, dev_name(dev)))
+	//	return -ENODEV;
+	//#else
 	if (of_property_read_bool(np, "non-removable") &&
-	    !of_property_read_bool(np, "force-ufshc-probe") &&
+	    strlen(android_boot_dev) &&
 	    strcmp(android_boot_dev, dev_name(dev)))
 		return -ENODEV;
-
+	//#endif
 	/* Perform generic probe */
 	err = ufshcd_pltfrm_init(pdev, &ufs_hba_qcom_variant);
 	if (err)

@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -112,6 +112,8 @@ int cam_ife_csid_deinit_soc_resources(
 		CAM_ERR(CAM_ISP, "CPAS unregistration failed rc=%d", rc);
 
 	rc = cam_soc_util_release_platform_resource(soc_info);
+	if (rc < 0)
+		return rc;
 
 	return rc;
 }
@@ -139,9 +141,14 @@ int cam_ife_csid_enable_soc_resources(struct cam_hw_soc_info *soc_info)
 		rc = -EFAULT;
 		goto end;
 	}
-
+#ifdef VENDOR_EDIT
+/* Huanyun.Tang@RM.Camera modify clk_level to CAM_TURBO_VOTE,20190621 */
+	rc = cam_soc_util_enable_platform_resource(soc_info, true,
+		CAM_TURBO_VOTE, true);
+#else
 	rc = cam_soc_util_enable_platform_resource(soc_info, true,
 		CAM_SVS_VOTE, true);
+#endif
 	if (rc) {
 		CAM_ERR(CAM_ISP, "enable platform failed");
 		goto stop_cpas;

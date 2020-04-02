@@ -220,6 +220,14 @@ struct cpufreq_policy *cpufreq_cpu_get_raw(unsigned int cpu)
 }
 EXPORT_SYMBOL_GPL(cpufreq_cpu_get_raw);
 
+#ifdef VENDOR_EDIT
+struct list_head *get_cpufreq_policy_list(void)
+{
+    return &cpufreq_policy_list;
+}
+EXPORT_SYMBOL(get_cpufreq_policy_list);
+#endif /* VENDOR_EDIT */
+
 unsigned int cpufreq_generic_get(unsigned int cpu)
 {
 	struct cpufreq_policy *policy = cpufreq_cpu_get_raw(cpu);
@@ -954,6 +962,17 @@ static ssize_t show_bios_limit(struct cpufreq_policy *policy, char *buf)
 	}
 	return sprintf(buf, "%u\n", policy->cpuinfo.max_freq);
 }
+#if defined(VENDOR_EDIT) && defined(CONFIG_OPPO_HEALTHINFO)
+//Jiheng.Xie@TECH.BSP.Performance,2019-07-29,add for cpufreq limit info
+static ssize_t show_freq_change_info(struct cpufreq_policy *policy, char *buf)
+{
+	ssize_t i = 0;
+
+	i += sprintf(buf, "%u,%s\n", policy->org_max, policy->change_comm);
+
+	return i;
+}
+#endif
 
 cpufreq_freq_attr_ro_perm(cpuinfo_cur_freq, 0400);
 cpufreq_freq_attr_ro(cpuinfo_min_freq);
@@ -965,6 +984,10 @@ cpufreq_freq_attr_ro(scaling_cur_freq);
 cpufreq_freq_attr_ro(bios_limit);
 cpufreq_freq_attr_ro(related_cpus);
 cpufreq_freq_attr_ro(affected_cpus);
+#if defined(VENDOR_EDIT) && defined(CONFIG_OPPO_HEALTHINFO)
+//Jiheng.Xie@TECH.BSP.Performance,2019-07-29,add for cpufreq limit info
+cpufreq_freq_attr_ro(freq_change_info);
+#endif
 cpufreq_freq_attr_rw(scaling_min_freq);
 cpufreq_freq_attr_rw(scaling_max_freq);
 cpufreq_freq_attr_rw(scaling_governor);
@@ -982,6 +1005,10 @@ static struct attribute *default_attrs[] = {
 	&scaling_driver.attr,
 	&scaling_available_governors.attr,
 	&scaling_setspeed.attr,
+#if defined(VENDOR_EDIT) && defined(CONFIG_OPPO_HEALTHINFO)
+//Jiheng.Xie@TECH.BSP.Performance,2019-07-29,add for cpufreq limit info
+	&freq_change_info.attr,
+#endif
 	NULL
 };
 
@@ -2302,6 +2329,10 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
 
 	pr_debug("setting new policy for CPU %u: %u - %u kHz\n",
 		 new_policy->cpu, new_policy->min, new_policy->max);
+#if defined(VENDOR_EDIT) && defined(CONFIG_OPPO_HEALTHINFO)
+//Jiheng.Xie@TECH.BSP.Performance,2019-07-29,add for cpufreq limit info
+	policy->org_max = new_policy->max;
+#endif
 
 	memcpy(&new_policy->cpuinfo, &policy->cpuinfo, sizeof(policy->cpuinfo));
 
@@ -2344,6 +2375,10 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
 	policy->min = new_policy->min;
 	policy->max = new_policy->max;
 	trace_cpu_frequency_limits(policy->max, policy->min, policy->cpu);
+#if defined(VENDOR_EDIT) && defined(CONFIG_OPPO_HEALTHINFO)
+//Jiheng.Xie@TECH.BSP.Performance,2019-07-29,add for cpufreq limit info
+	strncpy(policy->change_comm, current->comm, TASK_COMM_LEN);
+#endif
 
 	policy->cached_target_freq = UINT_MAX;
 

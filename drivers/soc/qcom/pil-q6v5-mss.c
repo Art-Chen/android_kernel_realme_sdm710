@@ -41,6 +41,7 @@
 
 #define subsys_to_drv(d) container_of(d, struct modem_data, subsys_desc)
 
+#ifndef VENDOR_EDIT
 static void log_modem_sfr(void)
 {
 	u32 size;
@@ -60,12 +61,31 @@ static void log_modem_sfr(void)
 	strlcpy(reason, smem_reason, min(size, MAX_SSR_REASON_LEN));
 	pr_err("modem subsystem failure reason: %s.\n", reason);
 }
+#endif
+
+#ifdef CONFIG_RECORD_MDMRST
+extern unsigned int mdmrest_count;
+#endif
+#ifdef VENDOR_EDIT
+extern int oppo_log_modem_sfr(void);
+#endif
 
 static void restart_modem(struct modem_data *drv)
 {
+#ifdef VENDOR_EDIT //yixue.ge modify
+	int restart_level = oppo_log_modem_sfr();
+#else
 	log_modem_sfr();
+#endif
+#ifdef CONFIG_RECORD_MDMRST
+	mdmrest_count++;
+#endif
 	drv->ignore_errors = true;
+#ifndef VENDOR_EDIT //yixue.ge modify
 	subsystem_restart_dev(drv->subsys);
+#else
+	subsystem_restart_dev_level(drv->subsys,restart_level);
+#endif
 }
 
 static irqreturn_t modem_err_fatal_intr_handler(int irq, void *dev_id)

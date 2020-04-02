@@ -123,6 +123,11 @@ void nmi_panic(struct pt_regs *regs, const char *msg)
 }
 EXPORT_SYMBOL(nmi_panic);
 
+#ifdef VENDOR_EDIT
+/*yanwu@TECH.Storage.FS, 2019-08-27, flush device cache before goto dump mode*/
+extern int panic_flush_device_cache(int timeout);
+#endif  /*VENDOR_EDIT*/
+
 /**
  *	panic - halt the system
  *	@fmt: The text string to print

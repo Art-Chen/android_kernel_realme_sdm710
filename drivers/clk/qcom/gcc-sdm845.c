@@ -35,7 +35,10 @@
 #include "reset.h"
 #include "clk-alpha-pll.h"
 #include "vdd-level-sdm845.h"
-#include "clk-voter.h"
+//#ifdef VENDOR_EDIT
+//PengNan@BSP.Power.Basic,remove ufs and emmc compatibility for standby current, 2019/07/30
+//#include "clk-voter.h"
+//#endif
 
 #define GCC_MMSS_MISC				0x09FFC
 #define GCC_GPU_MISC				0x71028
@@ -1505,12 +1508,13 @@ static struct clk_branch gcc_aggre_ufs_phy_axi_clk = {
 		},
 	},
 };
-
-static DEFINE_CLK_VOTER(ufs_phy_axi_emmc_vote_clk,
-					gcc_aggre_ufs_phy_axi_clk, 0);
-static DEFINE_CLK_VOTER(ufs_phy_axi_ufs_vote_clk,
-					gcc_aggre_ufs_phy_axi_clk, 0);
-
+//#ifdef VENDOR_EDIT
+//PengNan@BSP.Power.Basic,remove ufs and emmc compatibility for standby current, 2019/07/30
+//static DEFINE_CLK_VOTER(ufs_phy_axi_emmc_vote_clk,
+//					gcc_aggre_ufs_phy_axi_clk, 0);
+//static DEFINE_CLK_VOTER(ufs_phy_axi_ufs_vote_clk,
+//					gcc_aggre_ufs_phy_axi_clk, 0);
+//#endif
 static struct clk_branch gcc_aggre_ufs_phy_axi_hw_ctl_clk = {
 	.halt_reg = 0x82024,
 	.clkr = {
@@ -3786,8 +3790,11 @@ struct clk_hw *gcc_sdm845_hws[] = {
 	[MEASURE_ONLY_CNOC_CLK] = &measure_only_cnoc_clk.hw,
 	[MEASURE_ONLY_BIMC_CLK] = &measure_only_bimc_clk.hw,
 	[MEASURE_ONLY_IPA_2X_CLK] = &measure_only_ipa_2x_clk.hw,
-	[UFS_PHY_AXI_EMMC_VOTE_CLK] = &ufs_phy_axi_emmc_vote_clk.hw,
-	[UFS_PHY_AXI_UFS_VOTE_CLK] = &ufs_phy_axi_ufs_vote_clk.hw,
+	//#ifdef VENDOR_EDIT
+	//PengNan@BSP.Power.Basic,remove ufs and emmc compatibility for standby current, 2019/07/30
+	//[UFS_PHY_AXI_EMMC_VOTE_CLK] = &ufs_phy_axi_emmc_vote_clk.hw,
+	//[UFS_PHY_AXI_UFS_VOTE_CLK] = &ufs_phy_axi_ufs_vote_clk.hw,
+	//#endif
 };
 
 static struct clk_regmap *gcc_sdm845_clocks[] = {
@@ -4069,8 +4076,11 @@ static const struct qcom_cc_desc gcc_sdm845_desc = {
 	.config = &gcc_sdm845_regmap_config,
 	.clks = gcc_sdm845_clocks,
 	.num_clks = ARRAY_SIZE(gcc_sdm845_clocks),
-	.hwclks = gcc_sdm845_hws,
-	.num_hwclks = ARRAY_SIZE(gcc_sdm845_hws),
+	//#ifdef VENDOR_EDIT
+	//PengNan@BSP.Power.Basic,remove ufs and emmc compatibility for standby current, 2019/07/30
+	//.hwclks = gcc_sdm845_hws,
+	//.num_hwclks = ARRAY_SIZE(gcc_sdm845_hws),
+	//#endif
 	.resets = gcc_sdm845_resets,
 	.num_resets = ARRAY_SIZE(gcc_sdm845_resets),
 };
@@ -4289,8 +4299,17 @@ static int gcc_sdm845_fixup(struct platform_device *pdev)
 
 static int gcc_sdm845_probe(struct platform_device *pdev)
 {
+	//#ifdef VENDOR_EDIT
+	//PengNan@BSP.Power.Basic,remove ufs and emmc compatibility for standby current, 2019/07/30
+	struct clk *clk;
+	//#endif
 	struct regmap *regmap;
-	int ret = 0;
+	//#ifndef VENDOR_EDIT
+	//PengNan@BSP.Power.Basic,remove ufs and emmc compatibility for standby current, 2019/07/30
+	//int ret = 0;
+	//#else
+	int i, ret = 0;
+	//#endif
 
 	regmap = qcom_cc_map(pdev, &gcc_sdm845_desc);
 	if (IS_ERR(regmap))
@@ -4315,6 +4334,15 @@ static int gcc_sdm845_probe(struct platform_device *pdev)
 	ret = gcc_sdm845_fixup(pdev);
 	if (ret)
 		return ret;
+	//#ifdef VENDOR_EDIT
+	//PengNan@BSP.Power.Basic,remove ufs and emmc compatibility for standby current, 2019/07/30
+	/* Register the dummy measurement clocks */
+	for (i = 0; i < ARRAY_SIZE(gcc_sdm845_hws); i++) {
+		clk = devm_clk_register(&pdev->dev, gcc_sdm845_hws[i]);
+		if (IS_ERR(clk))
+			return PTR_ERR(clk);
+	}
+	//#endif
 
 	ret = qcom_cc_really_probe(pdev, &gcc_sdm845_desc, regmap);
 	if (ret) {
