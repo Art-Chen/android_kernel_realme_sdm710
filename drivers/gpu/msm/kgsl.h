@@ -315,12 +315,7 @@ struct kgsl_event {
 	void *priv;
 	struct list_head node;
 	unsigned int created;
-	//wangyongwu add for qcom patch caseID04113666
-	#ifdef VENDOR_EDIT
 	struct work_struct work;
-	#else
-	struct kthread_work work;
-	#endif
 	int result;
 	struct kgsl_event_group *group;
 };

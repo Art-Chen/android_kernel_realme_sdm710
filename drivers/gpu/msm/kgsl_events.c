@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2017, 2019, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -32,12 +32,7 @@ static inline void signal_event(struct kgsl_device *device,
 {
 	list_del(&event->node);
 	event->result = result;
-	//wangyongwu add for qcom patch caseID04113666
-	#ifdef VENDOR_EDIT
 	queue_work(device->events_wq, &event->work);
-	#else
-	kthread_queue_work(&kgsl_driver.worker, &event->work);
-	#endif
 }
 
 /**
@@ -47,12 +42,7 @@ static inline void signal_event(struct kgsl_device *device,
  * Each event callback has its own work struct and is run on a event specific
  * workqeuue.  This is the worker that queues up the event callback function.
  */
-//wangyongwu add for qcom patch caseID04113666
-#ifdef VENDOR_EDIT
 static void _kgsl_event_worker(struct work_struct *work)
-#else
-static void _kgsl_event_worker(struct kthread_work *work)
-#endif
 {
 	struct kgsl_event *event = container_of(work, struct kgsl_event, work);
 	int id = KGSL_CONTEXT_ID(event->context);
@@ -295,12 +285,7 @@ int kgsl_add_event(struct kgsl_device *device, struct kgsl_event_group *group,
 	event->func = func;
 	event->created = jiffies;
 	event->group = group;
-	//wangyongwu add for qcom patch caseID04113666
-	#ifdef VENDOR_EDIT
 	INIT_WORK(&event->work, _kgsl_event_worker);
-	#else
-	kthread_init_work(&event->work, _kgsl_event_worker);
-	#endif
 
 	trace_kgsl_register_event(KGSL_CONTEXT_ID(context), timestamp, func);
 
@@ -315,12 +300,7 @@ int kgsl_add_event(struct kgsl_device *device, struct kgsl_event_group *group,
 
 	if (timestamp_cmp(retired, timestamp) >= 0) {
 		event->result = KGSL_EVENT_RETIRED;
-		//wangyongwu add for qcom patch caseID04113666
-		#ifdef VENDOR_EDIT
 		queue_work(device->events_wq, &event->work);
-		#else
-		kthread_queue_work(&kgsl_driver.worker, &event->work);
-		#endif
 		spin_unlock(&group->lock);
 		return 0;
 	}
