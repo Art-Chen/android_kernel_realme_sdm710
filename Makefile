@@ -430,8 +430,10 @@ endif
 #endif /* VENDOR_EDIT */
 #endif /*VENDOR_EDIT*/
 
-KBUILD_CFLAGS	+=-Wno-misleading-indentation
+ifneq ($(cc-name),clang) 
 
+KBUILD_CFLAGS	+=-Wno-misleading-indentation
+endif
 # Read KERNELRELEASE from include/config/kernel.release (if it exists)
 KERNELRELEASE = $(shell cat include/config/kernel.release 2> /dev/null)
 KERNELVERSION = $(VERSION)$(if $(PATCHLEVEL),.$(PATCHLEVEL)$(if $(SUBLEVEL),.$(SUBLEVEL)))$(EXTRAVERSION)
@@ -555,7 +557,9 @@ KBUILD_CFLAGS += $(call cc-disable-warning, format-invalid-specifier)
 KBUILD_CFLAGS += $(call cc-disable-warning, gnu)
 KBUILD_CFLAGS += $(call cc-disable-warning, address-of-packed-member)
 KBUILD_CFLAGS += $(call cc-disable-warning, duplicate-decl-specifier)
+ifneq ($(cc-name),clang) 
 KBUILD_CFLAGS += -Wno-undefined-optimized
+endif
 KBUILD_CFLAGS += -Wno-tautological-constant-out-of-range-compare
 
 # Quiet clang warning: comparison of unsigned expression < 0 is always false
