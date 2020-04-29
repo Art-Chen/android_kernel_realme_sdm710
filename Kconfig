@@ -8,4 +8,5 @@ config SRCARCH
 	string
 	option env="SRCARCH"
 
+source techpack/audio/Kconfig
 source "arch/$SRCARCH/Kconfig"
