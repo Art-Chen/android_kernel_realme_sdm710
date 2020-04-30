@@ -11,5 +11,3 @@ are configurable at compile, boot or run time.
 
    l1tf
    mds
-   tsx_async_abort
-   multihit.rst

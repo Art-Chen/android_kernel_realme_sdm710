@@ -78,12 +78,10 @@ static bool asus_q500a_i8042_filter(unsigned char data, unsigned char str,
 
 static struct quirk_entry quirk_asus_unknown = {
 	.wapf = 0,
-	.wmi_backlight_set_devstate = true,
 };
 
 static struct quirk_entry quirk_asus_q500a = {
 	.i8042_filter = asus_q500a_i8042_filter,
-	.wmi_backlight_set_devstate = true,
 };
 
 /*
@@ -94,18 +92,15 @@ static struct quirk_entry quirk_asus_q500a = {
 static struct quirk_entry quirk_asus_x55u = {
 	.wapf = 4,
 	.wmi_backlight_power = true,
-	.wmi_backlight_set_devstate = true,
 	.no_display_toggle = true,
 };
 
 static struct quirk_entry quirk_asus_wapf4 = {
 	.wapf = 4,
-	.wmi_backlight_set_devstate = true,
 };
 
 static struct quirk_entry quirk_asus_x200ca = {
 	.wapf = 2,
-	.wmi_backlight_set_devstate = true,
 };
 
 static struct quirk_entry quirk_no_rfkill = {
@@ -119,16 +114,13 @@ static struct quirk_entry quirk_no_rfkill_wapf4 = {
 
 static struct quirk_entry quirk_asus_ux303ub = {
 	.wmi_backlight_native = true,
-	.wmi_backlight_set_devstate = true,
 };
 
 static struct quirk_entry quirk_asus_x550lb = {
-	.wmi_backlight_set_devstate = true,
 	.xusb2pr = 0x01D9,
 };
 
-static struct quirk_entry quirk_asus_forceals = {
-	.wmi_backlight_set_devstate = true,
+static struct quirk_entry quirk_asus_ux330uak = {
 	.wmi_force_als_set = true,
 };
 
@@ -439,7 +431,7 @@ static const struct dmi_system_id asus_quirks[] = {
 			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
 			DMI_MATCH(DMI_PRODUCT_NAME, "UX330UAK"),
 		},
-		.driver_data = &quirk_asus_forceals,
+		.driver_data = &quirk_asus_ux330uak,
 	},
 	{
 		.callback = dmi_matched,
@@ -449,15 +441,6 @@ static const struct dmi_system_id asus_quirks[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "X550LB"),
 		},
 		.driver_data = &quirk_asus_x550lb,
-	},
-	{
-		.callback = dmi_matched,
-		.ident = "ASUSTeK COMPUTER INC. UX430UQ",
-		.matches = {
-			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-			DMI_MATCH(DMI_PRODUCT_NAME, "UX430UQ"),
-		},
-		.driver_data = &quirk_asus_forceals,
 	},
 	{},
 };

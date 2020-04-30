@@ -86,14 +86,7 @@ static int slave_alloc (struct scsi_device *sdev)
 	int maxp;
 #endif
 	/*
-	/*
-	 * Set the INQUIRY transfer length to 36.  We don't use any of
-	 * the extra data and many devices choke if asked for more or
-	 * less than 36 bytes.
-	 */
-	sdev->inquiry_len = 36;
-
-	/* USB has unusual scatter-gather requirements: the length of each
+		 * USB has unusual scatter-gather requirements: the length of each
 	 * scatterlist element except the last must be divisible by the
 	 * Bulk maxpacket value.  Fortunately this value is always a
 	 * power of 2.  Inform the block layer about this requirement.

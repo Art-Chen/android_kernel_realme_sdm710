@@ -1105,8 +1105,8 @@ static int ena_io_poll(struct napi_struct *napi, int budget)
 	struct ena_ring *tx_ring, *rx_ring;
 	struct ena_eth_io_intr_reg intr_reg;
 
-	int tx_work_done;
-	int rx_work_done = 0;
+	u32 tx_work_done;
+	u32 rx_work_done;
 	int tx_budget;
 	int napi_comp_call = 0;
 	int ret;
@@ -1122,11 +1122,7 @@ static int ena_io_poll(struct napi_struct *napi, int budget)
 	}
 
 	tx_work_done = ena_clean_tx_irq(tx_ring, tx_budget);
-	/* On netpoll the budget is zero and the handler should only clean the
-	 * tx completions.
-	 */
-	if (likely(budget))
-		rx_work_done = ena_clean_rx_irq(rx_ring, napi, budget);
+	rx_work_done = ena_clean_rx_irq(rx_ring, napi, budget);
 
 	if ((budget > rx_work_done) && (tx_budget > tx_work_done)) {
 		napi_complete_done(napi, rx_work_done);
@@ -1702,7 +1698,6 @@ err_setup_rx:
 err_setup_tx:
 	ena_free_io_irq(adapter);
 err_req_irq:
-	ena_del_napi(adapter);
 
 	return rc;
 }
