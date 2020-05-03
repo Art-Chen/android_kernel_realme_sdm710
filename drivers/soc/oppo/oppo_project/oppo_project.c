@@ -604,9 +604,14 @@ static int __init oppo_project_init(void)
                 pr_err("can't create oppoVersion proc\n");
                 goto ERROR_INIT_VERSION;
         }
-        pentry = proc_create("prjName", S_IRUGO, oppoVersion, &prjVersion_proc_fops);
+		pentry = proc_create("prjVersion", S_IRUGO, oppoVersion, &prjVersion_proc_fops);
         if (!pentry) {
                 pr_err("create prjVersion proc failed.\n");
+                goto ERROR_INIT_VERSION;
+        }
+        pentry = proc_create("prjName", S_IRUGO, oppoVersion, &prjVersion_proc_fops);
+        if (!pentry) {
+            pr_err("create prjName proc failed.\n");
                 goto ERROR_INIT_VERSION;
         }
         pentry = proc_create("pcbVersion", S_IRUGO, oppoVersion, &pcbVersion_proc_fops);
