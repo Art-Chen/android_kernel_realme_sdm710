@@ -100,4 +100,5 @@ config SND_SOC_MSM_HDMI_CODEC_RX
 	tristate "SND_SOC_MSM_HDMI_CODEC_RX"
 config SND_SOC_TFA9894
 	tristate "SND_SOC_TFA9894"
-
+config SND_SOC_TFA98XX
+	tristate "SND_SOC_TFA98XX"

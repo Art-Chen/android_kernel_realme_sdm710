@@ -14,6 +14,7 @@ obj-$(CONFIG_SND_SOC_WCD_MBHC_ADC) += wcd-mbhc-adc.o
 obj-$(CONFIG_SND_SOC_WCD_MBHC_LEGACY) += wcd-mbhc-legacy.o
 obj-$(CONFIG_SND_SOC_MSM_HDMI_CODEC_RX) += msm_hdmi_codec_rx.o
 obj-$(CONFIG_SND_SOC_TFA9894) += tfa98xx-v6/
+obj-$(CONFIG_SND_SOC_TFA98XX) += tfa98xx/
 obj-y += wcd934x/
 obj-y += sdm660_cdc/ 
 obj-y += msm_sdw/
