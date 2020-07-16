@@ -639,6 +639,89 @@ static const struct file_operations proc_lstats_operations = {
 
 #endif
 
+static int top_app_show(struct seq_file *m, void *v)
+{
+ 	struct inode *inode = m->private;
+ 	struct task_struct *p;
+ 	int err = 0;
+
+ 	p = get_proc_task(inode);
+ 	if (!p)
+ 		return -ESRCH;
+
+ 	if (p != current) {
+
+ 		if (!capable(CAP_SYS_NICE)) {
+ 			err = -EPERM;
+ 			goto out;
+ 		}
+ 		err = security_task_getscheduler(p);
+ 		if (err)
+ 			goto out;
+ 	}
+
+ 	task_lock(p);
+ 	seq_printf(m, "%u\n", p->top_app);
+ 	task_unlock(p);
+
+out:
+ 	put_task_struct(p);
+
+ 	return err;
+}
+
+static int top_app_open(struct inode *inode, struct file *filp)
+{
+ 	return single_open(filp, top_app_show, inode);
+}
+
+static ssize_t top_app_write(struct file *file, const char __user *buf,
+                                         size_t count, loff_t *offset)
+{
+ 	struct inode *inode = file_inode(file);
+ 	struct task_struct *p;
+ 	unsigned int top_app;
+ 	int err;
+
+ 	err = kstrtouint_from_user(buf, count, 10, &top_app);
+ 	if (err < 0)
+ 		return err;
+
+ 	p = get_proc_task(inode);
+ 	if (!p)
+ 		return -ESRCH;
+
+ 	if (p != current) {
+ 		if (!capable(CAP_SYS_NICE)) {
+ 			count = -EPERM;
+ 			goto out;
+ 		}
+
+ 		err = security_task_setscheduler(p);
+ 		if (err) {
+ 			count = err;
+ 			goto out;
+ 		}
+ 	}
+
+ 	task_lock(p);
+ 	p->top_app = top_app;
+ 	task_unlock(p);
+
+out:
+ 	put_task_struct(p);
+
+ 	return count;
+}
+
+static const struct file_operations proc_pid_set_top_app_operations = {
+ 	.open		= top_app_open,
+ 	.read		= seq_read,
+ 	.write		= top_app_write,
+ 	.llseek		= seq_lseek,
+ 	.release	= single_release,
+};
+
 static int proc_oom_score(struct seq_file *m, struct pid_namespace *ns,
 			  struct pid *pid, struct task_struct *task)
 {
@@ -3552,6 +3635,7 @@ static const struct pid_entry tgid_base_stuff[] = {
 // Liujie.Xie@TECH.Kernel.Sched, 2019/08/29, add for stuck monitor
     REG("stuck_info", S_IRUGO | S_IWUGO, proc_stuck_trace_operations),
 #endif
+    REG("top_app", S_IRUGO|S_IWUGO, proc_pid_set_top_app_operations),
 };
 
 static int proc_tgid_base_readdir(struct file *file, struct dir_context *ctx)
@@ -3952,6 +4036,7 @@ static const struct pid_entry tid_base_stuff[] = {
 // Liujie.Xie@TECH.Kernel.Sched, 2019/05/22, add for ui first
     REG("static_ux", S_IRUGO | S_IWUSR, proc_static_ux_operations),
 #endif
+    REG("top_app", S_IRUGO|S_IWUGO, proc_pid_set_top_app_operations),
 };
 
 static int proc_tid_base_readdir(struct file *file, struct dir_context *ctx)

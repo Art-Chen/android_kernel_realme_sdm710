@@ -2873,6 +2873,15 @@ static int binder_fixup_parent(struct binder_transaction *t,
 	return 0;
 }
 
+static inline void binder_thread_set_inherit_top_app(
+ 		struct binder_thread *thread, struct binder_thread *from) {
+ 	set_inherit_top_app(thread->task, from->task);
+}
+
+static inline void binder_thread_restore_inherit_top_app(struct binder_thread *thread) {
+ 	restore_inherit_top_app(thread->task);
+}
+
 /**
  * binder_proc_transaction() - sends a transaction to a process and wakes it up
  * @t:		transaction to send
@@ -2932,6 +2941,7 @@ static bool binder_proc_transaction(struct binder_transaction *t,
 // Liujie.Xie@TECH.Kernel.Sched, 2019/05/22, add for ui first
         if (!oneway) {
             binder_thread_check_and_set_dynamic_ux(thread->task, t->from->task);
+			binder_thread_set_inherit_top_app(thread, t->from);
         }
 #endif
 	} else if (!pending_async) {
@@ -3675,6 +3685,7 @@ static void binder_transaction(struct binder_proc *proc,
 		binder_enqueue_thread_work_ilocked(target_thread, &t->work);
 		binder_inner_proc_unlock(target_proc);
 		wake_up_interruptible_sync(&target_thread->wait);
+		binder_thread_restore_inherit_top_app(thread);
 		binder_restore_priority(current, in_reply_to->saved_priority);
 		binder_free_transaction(in_reply_to);
 	} else if (!(t->flags & TF_ONE_WAY)) {
