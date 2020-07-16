@@ -1474,12 +1474,17 @@ int oppo_chg_parse_charger_dt(struct oppo_chg_chip *chip)
 		chip->limits.input_current_charger_ma
 			= OPCHG_INPUT_CURRENT_LIMIT_CHARGER_MA;
 	}
+#ifdef VENDOR_EDIT
+/* wangsen@BSP.CHG.Basic,charger 2020/01/17,modify PD current to 3A */
+	chip->limits.pd_input_current_charger_ma = 3000;
+#else
 	rc = of_property_read_u32(node, "qcom,pd_input_current_charger_ma",
 			&chip->limits.pd_input_current_charger_ma);
 	if (rc) {
 		chip->limits.pd_input_current_charger_ma
 			= OPCHG_INPUT_CURRENT_LIMIT_CHARGER_MA;
 	}
+#endif /* VENDOR_EDIT */
 	rc = of_property_read_u32(node, "qcom,qc_input_current_charger_ma",
 			&chip->limits.qc_input_current_charger_ma);
 	if (rc) {
@@ -1548,16 +1553,17 @@ int oppo_chg_parse_charger_dt(struct oppo_chg_chip *chip)
 		chip->limits.led_warm_bat_decidegc = 350;
 	}
 
-#ifdef CONFIG_HIGH_TEMP_VERSION
-	chip->limits.input_current_led_ma_normal = OPCHG_INPUT_CURRENT_LIMIT_CHARGER_MA;
-	chg_err(" CONFIG_HIGH_TEMP_VERSION enable here, led_ma_normal on current 2A \n");
+#ifdef VENDOR_EDIT
+/* wangsen@BSP.CHG.Basic,charger 2020/01/17,modify PD current to 3A */
+	chip->limits.input_current_led_ma_normal = 3000;
+	chg_err(" CONFIG input_current_led_ma_normal to 3A \n");
 #else
 	rc = of_property_read_u32(node, "qcom,input_current_led_ma_normal",
 			&chip->limits.input_current_led_ma_normal);
 	if (rc) {
 		chip->limits.input_current_led_ma_normal = chip->limits.input_current_led_ma;;
 	}
-#endif
+#endif /* VENDOR_EDIT */
 
 	rc = of_property_read_u32(node, "qcom,input_current_camera_ma",
 			&chip->limits.input_current_camera_ma);
@@ -1757,11 +1763,16 @@ int oppo_chg_parse_charger_dt(struct oppo_chg_chip *chip)
 	if (rc < 0) {
 		chip->limits.temp_normal_vfloat_mv = 4320;
 	}
+#ifdef VENDOR_EDIT
+/* wangsen@BSP.CHG.Basic,charger 2020/01/17,modify PD current to 3A */
+	chip->limits.pd_temp_normal_fastchg_current_ma = 3000;
+#else
 	rc = of_property_read_u32(node, "qcom,pd_temp_normal_fastchg_current_ma",
 			&chip->limits.pd_temp_normal_fastchg_current_ma);
 	if (rc) {
 		chip->limits.pd_temp_normal_fastchg_current_ma = OPCHG_FAST_CHG_MAX_MA;
 	}
+#endif
 	rc = of_property_read_u32(node, "qcom,qc_temp_normal_fastchg_current_ma",
 			&chip->limits.qc_temp_normal_fastchg_current_ma);
 	if (rc) {

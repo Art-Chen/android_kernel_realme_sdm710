@@ -1685,6 +1685,24 @@ int himax_mcu_0f_operation_dirly(void)
 
     TPD_DETAIL("%s, Entering \n", __func__);
     TPD_DETAIL("file name = %s\n", private_ts->panel_data.fw_name);
+    if (g_chip_info->g_fw_entry == NULL) {
+        TPD_INFO("Request TP firmware.\n");
+        if(private_ts->fw_update_app_support) {
+            err = request_firmware_select (&g_chip_info->g_fw_entry, private_ts->panel_data.fw_name, private_ts->dev);
+        } else {
+            err = request_firmware (&g_chip_info->g_fw_entry, private_ts->panel_data.fw_name, private_ts->dev);
+        }
+        if (err < 0) {
+            TPD_INFO("%s, fail in line%d error code=%d,file maybe fail\n", __func__, __LINE__, err);
+            if(g_chip_info->g_fw_entry != NULL) {
+                release_firmware(g_chip_info->g_fw_entry);
+                g_chip_info->g_fw_entry = NULL;
+            }
+            return err;
+        }
+    } else {
+        TPD_DETAIL("TP firmware has been requested.\n");
+    }
 
     if(g_f_0f_updat == 1) {
         TPD_INFO("%s:[Warning]Other thread is updating now!\n", __func__);
@@ -1734,7 +1752,7 @@ int himax_mcu_0f_operation_test_dirly(char *fw_name)
 
 void himax_mcu_0f_operation(struct work_struct *work)
 {
-    //int err = NO_ERR;
+    int err = NO_ERR;
     //const struct firmware *fw_entry = NULL;
 
 
@@ -1748,8 +1766,24 @@ void himax_mcu_0f_operation(struct work_struct *work)
     {
     if (0 == is_oem_unlocked())
        {
-			TPD_INFO("file name = %s\n", private_ts->panel_data.fw_name);
-	   }
+	        TPD_INFO("file name = %s\n", private_ts->panel_data.fw_name);
+	        if (g_chip_info->g_fw_entry == NULL) {
+	            TPD_INFO("Request TP firmware.\n");
+	            if(private_ts->fw_update_app_support) {
+	                err = request_firmware_select (&g_chip_info->g_fw_entry, private_ts->panel_data.fw_name, private_ts->dev);
+	            } else {
+	                err = request_firmware (&g_chip_info->g_fw_entry, private_ts->panel_data.fw_name, private_ts->dev);
+	            }
+	            if (err < 0) {
+	                TPD_INFO("%s, fail in line%d error code=%d,file maybe fail\n", __func__, __LINE__, err);
+	                if(g_chip_info->g_fw_entry != NULL) {
+	                    release_firmware(g_chip_info->g_fw_entry);
+	                    g_chip_info->g_fw_entry = NULL;
+	                }
+	                return ;
+	            }
+	        }
+		}
     } else {
         TPD_INFO("TP firmware has been requested.\n");
     }
@@ -5223,10 +5257,10 @@ static int hx83112b_reset(void *chip_data)
 
     TPD_INFO("%s.\n", __func__);
 
-    //if (!chip_info->first_download_finished) {
-      //  TPD_INFO("%s:First download has not finished, don't do reset.\n", __func__);
-       // return 0;
-    //}
+    if (!chip_info->first_download_finished) {
+        TPD_INFO("%s:First download has not finished, don't do reset.\n", __func__);
+        return 0;
+    }
 
     g_zero_event_count = 0;
 
@@ -6604,10 +6638,10 @@ static int hx83112b_tp_probe(struct spi_device *spi)
     } else {
         //disable_irq_nosync(chip_info->hx_irq);
     }
-	//if (is_oem_unlocked()) {
-      //  TPD_INFO("Replace system image for cts, download fw by headfile\n");
+	if (is_oem_unlocked()) {
+        TPD_INFO("Replace system image for cts, download fw by headfile\n");
         queue_delayed_work(chip_info->himax_0f_update_wq, &chip_info->work_0f_update, msecs_to_jiffies(500));
-    //}
+    }
 
     return 0;
 err_spi_setup:

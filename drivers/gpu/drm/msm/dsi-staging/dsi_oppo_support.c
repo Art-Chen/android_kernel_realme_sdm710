@@ -83,7 +83,8 @@ int set_oppo_display_vendor(const char * display_name) {
         } else if(!strcmp(display_name,"dsi_rm19651samsung_ams641rw01_1080_2340_cmd_display")) {
                 oppo_display_vendor = OPPO_19651_SAMSUNG_DISPLAY_FHD_CMD_PANEL;
                 register_device_proc("lcd", "AMS641RW01", "samsung1024");
-	} else if(!strcmp(display_name,"dsi_oppo18041samsung_ams653tk01_1080_2340_cmd_display")) {
+	} else if(!strcmp(display_name,"dsi_oppo18041samsung_ams653tk01_1080_2340_cmd_display") ||
+                !strcmp(display_name,"dsi_oppo18041samsung_ams653tk01_1080_2340_cmd_display_evt")) {
                 oppo_display_vendor = OPPO_18041_SAMSUNG_DISPLAY_FHD_CMD_PANEL;
                 register_device_proc("lcd", "AMS653TK01", "samsung1024");
 	} else {

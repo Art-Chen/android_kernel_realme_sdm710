@@ -66,7 +66,10 @@
 
 #endif
 
-
+#include "oppo_sha1_hmac.h"
+#ifdef OPPO_SHA1_HMAC
+#include <linux/random.h>
+#endif
 #include "../oppo_charger.h"
 #include "../oppo_gauge.h"
 #include "../oppo_vooc.h"
@@ -515,9 +518,33 @@ static int bq27541_get_average_current(void)
 	return -curr;
 }
 
+static bool bq27541_sha1_hmac_authenticate(void);
 static bool bq27541_get_battery_authenticate(void)
 {
-	return true;
+        static bool get_temp = false;
+
+        if (!gauge_ic) {
+            return true;
+        }
+
+        if (gauge_ic->batt_bq28z610)
+        {
+            return bq27541_sha1_hmac_authenticate();
+        }
+        else
+        {
+            if (gauge_ic->temp_pre == 0 && get_temp == false) {
+                    bq27541_get_battery_temperature();
+                    msleep(10);
+                    bq27541_get_battery_temperature();
+            }
+            get_temp = true;
+            if (gauge_ic->temp_pre == (-400 - ZERO_DEGREE_CELSIUS_IN_TENTH_KELVIN)) {
+                    return false;
+            } else {
+                    return true;
+            }
+        }
 }
 
 static int bq27541_get_prev_battery_mvolts(void)
@@ -1482,6 +1509,186 @@ static int bq28z610_get_2cell_voltage(void)
 	return 0;
 }
 
+#ifdef OPPO_SHA1_HMAC
+/* export variables from SHA1_HMAC.c */
+extern UINT8  Message[RANDMESGNUMBYTES];           // Random message
+extern UINT8  Key[SECRETKEYNUMBYTES];              // Secret key
+extern UINT32 H[5];
+extern UINT32 Digest_32[5]; // Result of SHA1/HMAC obtained by MCU is contained here
+
+#define BLOCKDATACTRL	0X61
+#define DATAFLASHBLOCK	0X3F
+#define AUTHENDATA		0X40
+#define AUTHENCHECKSUM	0X54
+#define MESSAGE_LEN		20
+#define KEY_LEN			16
+
+static bool bq27541_sha1_hmac_authenticate(void)
+{
+    int i, ret;
+	int j;
+	unsigned char t;
+	int len;
+	unsigned char *ph;
+	//unsigned char result[20];
+	u8 checksum_buf[1] ={0x0};
+	u8 authen_cmd_buf[1] = {0x00};
+	u8 recv_buf[MESSAGE_LEN]={0x0};
+
+	#ifdef SHA1_DBG
+	unsigned char mmm[] = {
+		0xA2, 0x63, 0xAA, 0xF8, 0xC5, 0xFC, 0xF8, 0xB1, 0xF9, 0xB1,
+		0xFD, 0xF9, 0xD7, 0x9F, 0xA0, 0xA0, 0xAB, 0x5F, 0xB4, 0xF9
+	};
+
+	unsigned char exp_result[] = {
+		0x85, 0x53, 0x4D, 0xE1, 0x28, 0x75, 0xCB, 0x8D, 0xB5, 0xF2,
+		0x4A, 0x53, 0x05, 0xD6, 0x41, 0x9F, 0x24, 0x94, 0xB5, 0xFE
+	};
+	#endif
+
+
+	Key[15] = 0x01;
+	Key[14] = 0x23;
+	Key[13] = 0x45;
+	Key[12] = 0x67;
+	Key[11] = 0x89;
+	Key[10] = 0xAB;
+	Key[ 9] = 0xCD;
+	Key[ 8] = 0xEF;
+	Key[ 7] = 0xFE;
+	Key[ 6] = 0xDC;
+	Key[ 5] = 0xBA;
+	Key[ 4] = 0x98;
+	Key[ 3] = 0x76;
+	Key[ 2] = 0x54;
+	Key[ 1] = 0x32;
+	Key[ 0] = 0x10;
+
+	// step 0: produce 20 bytes random data and checksum
+	#ifdef SHA1_DBG
+	for (i = 0; i < RANDMESGNUMBYTES; i++)
+		Message[i] = mmm[i];
+	#else
+	get_random_bytes(Message,20);
+	#endif
+
+	#ifndef SHA1_DBG
+	chg_err("Message: \n");
+	for (i = 0; i < RANDMESGNUMBYTES; ++i) {
+		chg_err("%02x \n", Message[i]);
+	}
+	#endif
+
+	len = sizeof(Message);
+	for(i = 0; i < len / 2; i++){
+		t = Message[i];
+		Message[i] = Message[len - i - 1];
+		Message[len - i - 1] = t;
+	}
+
+	#ifdef SHA1_DBG
+	chg_err("Reversed Message: \n");
+	for (i = 0; i < RANDMESGNUMBYTES; ++i) {
+		chg_err("%02x \n", Message[i]);
+	}
+	#endif
+
+	for(i = 0;i < RANDMESGNUMBYTES;i++){
+		checksum_buf[0] = checksum_buf[0] + Message[i];
+	}
+	checksum_buf[0] = 0xff - (checksum_buf[0]&0xff);
+
+	/* step 1: unseal mode->write 0x01 to blockdatactrl
+	authen_cmd_buf[0] = 0x01;
+	ret = i2c_smbus_write_i2c_block_data(client,BLOCKDATACTRL,1,&authen_cmd_buf[0]);
+	}	*/
+
+	// step 1: seal mode->write 0x00 to dataflashblock
+	ret = bq27541_i2c_txsubcmd_onebyte(DATAFLASHBLOCK, authen_cmd_buf[0]);
+	//ret = i2c_smbus_write_i2c_block_data(client,DATAFLASHBLOCK,1,&authen_cmd_buf[0]);
+	if( ret < 0 ){
+		chg_err("%s i2c write error\n",__func__);
+		return false;
+	}
+	// step 2: write 20 bytes to authendata_reg
+	bq27541_write_i2c_block(AUTHENDATA, MESSAGE_LEN, &Message[0]);
+	//i2c_smbus_write_i2c_block_data(client,AUTHENDATA,MESSAGE_LEN,&Message[0]);
+	msleep(1);
+	// step 3: write checksum to authenchecksum_reg for compute
+	bq27541_i2c_txsubcmd_onebyte(AUTHENCHECKSUM, checksum_buf[0]);
+	//i2c_smbus_write_i2c_block_data(client,AUTHENCHECKSUM,1,&checksum_buf[0]);
+	msleep(3);
+	// step 4: read authendata
+	bq27541_read_i2c_block(AUTHENDATA, MESSAGE_LEN, &recv_buf[0]);
+	//i2c_smbus_read_i2c_block_data(client,AUTHENDATA,MESSAGE_LEN,&recv_buf[0]);
+	len = MESSAGE_LEN;
+	for(i = 0; i < len / 2; i++){
+		t = recv_buf[i];
+		recv_buf[i] = recv_buf[len - i - 1];
+		recv_buf[len - i - 1] = t;
+	}
+	// step 5: phone do hmac(sha1-generic) algorithm
+	SHA1_authenticate();
+
+	ph = (unsigned char*)H;
+
+	for (i = 0; i < 5; i++){
+		for(j = 0; j < 2; j++){
+			t = ph[i*4 + j];
+			ph[i*4 + j] = ph[i*4 + 3 - j];
+			ph[i*4 + 3 -j] = t;
+		}
+	} 
+
+    #ifndef SHA1_DBG
+	chg_err("HMAC: \n");
+	for (i = 0; i < 20; i++)
+		chg_err("%02x \n", ph[i]);
+	#endif
+
+	#ifdef SHA1_DBG
+	chg_err("EXPRET: \n");
+	for (i = 0; i < 20; ++i)
+		chg_err("%02x \n", exp_result[i]);
+
+	ret = strncmp(ph, exp_result, sizeof(exp_result));//ret = memcmp(ph, exp_result, sizeof(exp_result));
+	if(ret != 0)
+		chg_err("RESULT:Mismatch\n");
+	else
+		chg_err("RESULT:Match\n");
+	#endif
+
+	#ifndef SHA1_DBG
+	chg_err("recv_buf: \n");
+	for(i = 0;i < 20;i++){
+		chg_err("%02x \n", recv_buf[i]);
+	}
+	#endif
+	// step 6: compare recv_buf from bq27541 and result by phone
+	ret = strncmp(ph,recv_buf,MESSAGE_LEN);
+	if(ret == 0){
+		chg_err("bq27541_authenticate success\n");
+		return true;
+	}
+	chg_err("bq27541_authenticate error,dump buf:\n");
+
+	return false;
+}
+#endif
+
+/*static int bq28z610_get_2cell_balance_time(void)
+{
+    u8 balance_time[BQ28Z610_MAC_CELL_BALANCE_TIME_SIZE] = {0,0,0,0};
+
+    bq27541_i2c_txsubcmd(BQ28Z610_MAC_CELL_BALANCE_TIME_EN_ADDR, BQ28Z610_MAC_CELL_BALANCE_TIME_CMD);
+    usleep_range(1000, 1000);
+    bq27541_read_i2c_block(BQ28Z610_MAC_CELL_BALANCE_TIME_ADDR, BQ28Z610_MAC_CELL_BALANCE_TIME_SIZE, balance_time);
+    pr_err("Cell_balance_time_remaining1 = %dS, Cell_balance_time_remaining2 = %dS\n", 
+        (balance_time[1] << 8) | balance_time[0], (balance_time[3] << 8) | balance_time[2]);
+
+    return 0;
+}*/
 
 static void register_gauge_devinfo(struct chip_bq27541 *chip)
 {
@@ -1506,8 +1713,9 @@ static void register_gauge_devinfo(struct chip_bq27541 *chip)
 			version = "unknown";
 			manufacture = "UNKNOWN";
 			break;
-		}
-//        ret = register_device_proc("gauge", version, manufacture);
+	}
+
+	ret = register_device_proc("gauge", version, manufacture);
 	if (ret) {
 		pr_err("register_gauge_devinfo fail\n");
 	}

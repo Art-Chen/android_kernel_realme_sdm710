@@ -4782,14 +4782,14 @@ static int sde_crtc_onscreenfinger_atomic_check(struct sde_crtc_state *cstate,
 
 	for (i = 0; i < cnt; i++) {
 		mode = sde_plane_check_fingerprint_layer(pstates[i].drm_pstate);
-        pr_err("Art_Chen :Check Fingerprint layer, mode is %d, i is %d\n", mode, i);
+        //pr_err("Art_Chen :Check Fingerprint layer, mode is %d, i is %d\n", mode, i);
 		if (mode == 1)
 			fp_index = i;
 		if (mode == 2)
 			fppressed_index = i;
 		if (mode == 3)
 			aod_index = i;
-        pr_err("Art_Chen :Check Fingerprint layer, reason: fp_index is %d, fppressed_index is %d aod_index is %d\n", fp_index, fppressed_index, aod_index);
+        //pr_err("Art_Chen :Check Fingerprint layer, reason: fp_index is %d, fppressed_index is %d aod_index is %d\n", fp_index, fppressed_index, aod_index);
 	}
 
 	if (oppo_dimlayer_bl_enable) {

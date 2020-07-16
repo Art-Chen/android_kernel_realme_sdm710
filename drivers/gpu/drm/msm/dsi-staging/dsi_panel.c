@@ -788,7 +788,7 @@ static int dsi_panel_update_backlight(struct dsi_panel *panel,
 
 	#ifdef VENDOR_EDIT
 	/*liping-m@PSW.MM.Display.LCD.Feature,2018/9/26 temp add for OnScreenFingerprint feature*/
-	if (panel->is_hbm_enabled){
+	if (panel->is_hbm_enabled && bl_lvl != 0){
 		pr_err("panel hbm is enabled\n");
 		return 0;
 	}

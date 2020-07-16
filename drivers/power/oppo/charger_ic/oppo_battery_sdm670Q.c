@@ -701,6 +701,12 @@ static int smblib_set_adapter_allowance(struct smb_charger *chg,
 	int rc = 0;
 	u8 val = 0;
 
+#ifdef VENDOR_EDIT
+/* wangsen@BSP.CHG.Basic,charger 2020/01/17,modify PD adapter to 5V */
+	rc = smblib_read(chg, USBIN_ADAPTER_ALLOW_CFG_REG, &val);
+	smblib_err(chg, "USBIN_ADAPTER_ALLOW_CFG_REG before=0x%02x, only support 5V\n", val);
+	allowed_voltage = USBIN_ADAPTER_ALLOW_5V;
+#else
 	/* PM660 only support max. 9V */
 	if (chg->smb_version == PM660_SUBTYPE) {
 		switch (allowed_voltage) {
@@ -717,9 +723,7 @@ static int smblib_set_adapter_allowance(struct smb_charger *chg,
 			break;
 		}
 	}
-
-	rc = smblib_read(chg, USBIN_ADAPTER_ALLOW_CFG_REG, &val);
-	smblib_err(chg, "USBIN_ADAPTER_ALLOW_CFG_REG=0x%02x, allowed_voltage=0x%02x\n", val, allowed_voltage);
+#endif /* VENDOR_EDIT */
 
 	rc = smblib_write(chg, USBIN_ADAPTER_ALLOW_CFG_REG, allowed_voltage);
 	if (rc < 0) {
@@ -7068,7 +7072,8 @@ static int oppo_usbtemp_init(struct oppo_chg_chip *chip)
 	} else {
         pinctrl_select_state(chip->normalchg_gpio.pinctrl, chip->normalchg_gpio.usb_temp_adc);
     }
-    if(get_project() == 19691 ||get_project() == 19651){
+
+if(get_project() == 19691 || get_project() == 19651) {
 	chip->normalchg_gpio.usb_temp_adc_suspend_12=
 			   pinctrl_lookup_state(chip->normalchg_gpio.pinctrl, "usb_temp_adc_suspend_12");
 	   if (IS_ERR_OR_NULL(chip->normalchg_gpio.usb_temp_adc_suspend_12)) {
@@ -7083,7 +7088,7 @@ static int oppo_usbtemp_init(struct oppo_chg_chip *chip)
 	   } else {
 		   pinctrl_select_state(chip->normalchg_gpio.pinctrl, chip->normalchg_gpio.usb_temp_adc_12);
 	   }
-       }
+}
 	return 0;
 }
 
@@ -7105,7 +7110,8 @@ static void oppo_get_usbtemp_volt(struct oppo_chg_chip *chip)
 		chg_err("usbtemp_vadc_dev NULL\n");
 		return;
 	}
-	if(get_project() == 19651) {
+
+if(get_project() == 19651) {
 	/* just for 19651 gpio,other project need change channal  */
 	rc = qpnp_vadc_read(chip->pmic_spmi.pm660_usbtemp_vadc_dev, P_MUX4_1_1, &results);
 	if (rc) {
@@ -7122,8 +7128,9 @@ static void oppo_get_usbtemp_volt(struct oppo_chg_chip *chip)
 		chip->usbtemp_volt_l = chip->usbtemp_volt_r;//for T0
 	else 
 		chip->usbtemp_volt_l = (int)results.physical / 1000;//for evt and later
-	}
-	if(get_project() == 19691) {
+}
+
+if(get_project() == 19691) {
 	/* just for 19691 gpio,other project need change channal  */
 	rc = qpnp_vadc_read(chip->pmic_spmi.pm660_usbtemp_vadc_dev, P_MUX4_1_1, &results);
 	if (rc) {
@@ -7134,16 +7141,15 @@ static void oppo_get_usbtemp_volt(struct oppo_chg_chip *chip)
 	rc = qpnp_vadc_read(chip->pmic_spmi.pm660_usbtemp_vadc_dev, P_MUX5_1_1, &results);
 	if (rc) {
 		chg_err("unable to read usbtemp_vadc_dev gpio12 rc = %d\n", rc);
-
 	}
+
 	//if(pcb_version >= 1)
 		chip->usbtemp_volt_l = (int)results.physical / 1000;//for evt and later
 	//else 
 	//	chip->usbtemp_volt_l = chip->usbtemp_volt_r;//for T0
+}
 
 	//pr_err("%s:get_PCB_Version, pcb_version:%d\n", __func__,pcb_version);
-	//chg_err("usbtemp volt: %d, %d\n", chip->usbtemp_volt_r, chip->usbtemp_volt_l);
-	}
 	//chg_err("usbtemp volt: %d, %d\n", chip->usbtemp_volt_r, chip->usbtemp_volt_l);
 }
 
@@ -7187,7 +7193,7 @@ static int oppo_dischg_gpio_init(struct oppo_chg_chip *chip)
 #define USB_VBUS_SHORT_DISABLE_VOLT		509
 #define USB_VBUS_SHORT_ENABLE_VOLT		392
 #define MIN_MONITOR_INTERVAL	50//50ms
-#define MAX_MONITOR_INTERVAL	100//200ms
+#define MAX_MONITOR_INTERVAL	200//200ms
 #define RETRY_CNT_DELAY         5 //ms
 #define VBUS_MONITOR_INTERVAL	3000//3s
 #define HIGH_TEMP_SHORT_CHECK_TIMEOUT 1000 /*ms*/
@@ -10865,21 +10871,21 @@ static int oppo_chg_set_input_current(int current_ma)
 		goto aicl_end;
 
 aicl_pre_step:
-	rc = vote(chip->pmic_spmi.smb2_chip->chg.usb_icl_votable, PD_VOTER, true, usb_icl[i] * 1000);
+	//rc = vote(chip->pmic_spmi.smb2_chip->chg.usb_icl_votable, PD_VOTER, true, usb_icl[i] * 1000);
 	rc = vote(chip->pmic_spmi.smb2_chip->chg.usb_icl_votable, USB_PSY_VOTER, true, usb_icl[i] * 1000);
 	chg_debug( "usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_pre_step\n", chg_vol, i, usb_icl[i], aicl_point);
 	smbchg_rerun_aicl();
 	smbchg_usbin_collapse_irq_enable(true);
 	goto aicl_return;
 aicl_end:
-	rc = vote(chip->pmic_spmi.smb2_chip->chg.usb_icl_votable, PD_VOTER, true, usb_icl[i] * 1000);
+	//rc = vote(chip->pmic_spmi.smb2_chip->chg.usb_icl_votable, PD_VOTER, true, usb_icl[i] * 1000);
 	rc = vote(chip->pmic_spmi.smb2_chip->chg.usb_icl_votable, USB_PSY_VOTER, true, usb_icl[i] * 1000);
 	chg_debug( "usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_end\n", chg_vol, i, usb_icl[i], aicl_point);
 	smbchg_rerun_aicl();
 	smbchg_usbin_collapse_irq_enable(true);
 	goto aicl_return;
 aicl_boost_back:
-	rc = vote(chip->pmic_spmi.smb2_chip->chg.usb_icl_votable, PD_VOTER, true, usb_icl[i] * 1000);
+	//rc = vote(chip->pmic_spmi.smb2_chip->chg.usb_icl_votable, PD_VOTER, true, usb_icl[i] * 1000);
 	rc = vote(chip->pmic_spmi.smb2_chip->chg.usb_icl_votable, USB_PSY_VOTER, true, usb_icl[i] * 1000);
 	chg_debug( "usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_boost_back\n", chg_vol, i, usb_icl[i], aicl_point);
 	if (chip->pmic_spmi.smb2_chip->chg.wa_flags & BOOST_BACK_WA)
@@ -10888,7 +10894,7 @@ aicl_boost_back:
 	smbchg_usbin_collapse_irq_enable(true);
 	goto aicl_return;
 aicl_suspend:
-	rc = vote(chip->pmic_spmi.smb2_chip->chg.usb_icl_votable, PD_VOTER, true, usb_icl[i] * 1000);
+	//rc = vote(chip->pmic_spmi.smb2_chip->chg.usb_icl_votable, PD_VOTER, true, usb_icl[i] * 1000);
 	rc = vote(chip->pmic_spmi.smb2_chip->chg.usb_icl_votable, USB_PSY_VOTER, true, usb_icl[i] * 1000);
 	chg_debug( "usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_suspend\n", chg_vol, i, usb_icl[i], aicl_point);
 	oppo_chg_check_clear_suspend();
@@ -11112,7 +11118,7 @@ int opchg_get_charger_type(void)
 	if (!(apsd_stat & APSD_DTC_STATUS_DONE_BIT))
 		return POWER_SUPPLY_TYPE_UNKNOWN;
 
-    smblib_err(chg, "chg->real_charger_type=%d\n", chg->real_charger_type);
+	smblib_err(chg, "chg->real_charger_type=%d\n", chg->real_charger_type);
 	if (chg->real_charger_type == POWER_SUPPLY_TYPE_USB
 			|| chg->real_charger_type == POWER_SUPPLY_TYPE_USB_CDP
 			|| chg->real_charger_type == POWER_SUPPLY_TYPE_USB_PD
@@ -11123,6 +11129,10 @@ int opchg_get_charger_type(void)
 	if (POWER_SUPPLY_TYPE_UNKNOWN == chg->real_charger_type) {
 		smblib_update_usb_type(chg);
 		chg_debug("update_usb_type: get_charger_type=%d\n", chg->real_charger_type);
+	}
+
+	if (POWER_SUPPLY_TYPE_USB_PD == chg->real_charger_type) {
+		return POWER_SUPPLY_TYPE_USB_DCP;
 	}
 
 	return chg->real_charger_type;

@@ -808,6 +808,8 @@ static int pd_select_pdo(struct usbpd *pd, int pdo_pos, int uv, int ua)
 			type, pd->requested_voltage, pd->requested_current, curr);
 	if (pd->requested_voltage > 5000000)
 		return -ENOTSUPP;
+	else
+		curr = 3000;
 #endif /*VENDOR_EDIT*/
 
 	pd->requested_current = curr;

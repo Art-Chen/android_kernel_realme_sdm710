@@ -160,7 +160,10 @@ int tp_util_get_vendor(struct hw_resource *hw_res, struct panel_info *panel_data
 	        panel_data->firmware_headfile.firmware_data = FW_18621_HX83112A_NF_DSJM;
 	        panel_data->firmware_headfile.firmware_size = sizeof(FW_18621_HX83112A_NF_DSJM);
 	        break;
-
+	case OPPO_19691:
+        panel_data->firmware_headfile.firmware_data = FW_19691_HX83112A_NF_DSJM;
+        panel_data->firmware_headfile.firmware_size = sizeof(FW_19691_HX83112A_NF_DSJM);
+        break;
 	    default:
 	        panel_data->firmware_headfile.firmware_data = NULL;
 	        panel_data->firmware_headfile.firmware_size = 0;
