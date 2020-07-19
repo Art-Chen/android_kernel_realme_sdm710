@@ -430,7 +430,7 @@ endif
 #endif /* VENDOR_EDIT */
 #endif /*VENDOR_EDIT*/
 
-ifneq ($(cc-name),clang) 
+ifneq ($(cc-name),clang)
 
 KBUILD_CFLAGS	+=-Wno-misleading-indentation
 endif
@@ -557,7 +557,7 @@ KBUILD_CFLAGS += $(call cc-disable-warning, format-invalid-specifier)
 KBUILD_CFLAGS += $(call cc-disable-warning, gnu)
 KBUILD_CFLAGS += $(call cc-disable-warning, address-of-packed-member)
 KBUILD_CFLAGS += $(call cc-disable-warning, duplicate-decl-specifier)
-ifneq ($(cc-name),clang) 
+ifneq ($(cc-name),clang)
 KBUILD_CFLAGS += -Wno-undefined-optimized
 endif
 KBUILD_CFLAGS += -Wno-tautological-constant-out-of-range-compare
@@ -786,6 +786,14 @@ ifdef CONFIG_PROFILE_ALL_BRANCHES
 KBUILD_CFLAGS	+= -O2 $(call cc-disable-warning,maybe-uninitialized,)
 else
 KBUILD_CFLAGS   += -O2
+endif
+endif
+
+ifeq ($(cc-name),gcc)
+KBUILD_CFLAGS	+= -mcpu=cortex-a75.cortex-a55 -mtune=cortex-a75.cortex-a55
+else ifeq ($(cc-name),clang)
+KBUILD_CFLAGS  += -O3
+KBUILD_CFLAGS	+= -mcpu=cortex-a55 -mtune=cortex-a55
 endif
 endif
 
