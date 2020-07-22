@@ -53,6 +53,8 @@ module_param(wake_boost_duration, short, 0644);
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 static __read_mostly int stune_boost = CONFIG_TA_STUNE_BOOST;
 module_param_named(dynamic_stune_boost, stune_boost, int, 0644);
+#else
+static __read_mostly int stune_boost = 0;
 #endif
 
 enum {
