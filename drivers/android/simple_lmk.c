@@ -11,6 +11,8 @@
 #include <linux/oom.h>
 #include <linux/sort.h>
 #include <linux/vmpressure.h>
+#include <linux/cpu_input_boost.h>
+#include <linux/devfreq_boost.h>
 
 /* The minimum number of pages to free per reclaim */
 #define MIN_FREE_PAGES (CONFIG_ANDROID_SIMPLE_LMK_MINFREE * SZ_1M / PAGE_SIZE)
@@ -203,6 +205,10 @@ static void scan_and_kill(unsigned long pages_needed)
 	write_lock(&mm_free_lock);
 	nr_victims = nr_to_kill;
 	write_unlock(&mm_free_lock);
+
+        // Boost cpufreq 100ms in order to make sure simple_lmk killing tasks more smoothly
+        cpu_input_boost_kick_max(100);
+        devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 100);
 
 	/* Kill the victims */
 	for (i = 0; i < nr_to_kill; i++) {
